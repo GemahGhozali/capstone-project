@@ -1,5 +1,9 @@
 import "./globals.css";
+import { cn } from "cn";
 import { Metadata } from "next";
+import { Space_Grotesk } from "next/font/google";
+
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "Capstone Project",
@@ -8,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`h-full antialiased`}>
+    <html lang="en" className={cn("h-full", "antialiased", "font-sans", spaceGrotesk.variable)}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
