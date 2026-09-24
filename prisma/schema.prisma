@@ -1,0 +1,335 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  identifier        String    @unique @db.VarChar
+  password          String
+  namaLengkap       String    @map("nama_lengkap") @db.VarChar
+  alamatEmail       String    @unique @map("alamat_email") @db.VarChar
+  fotoProfil        String?   @map("foto_profil")
+  isActive          Boolean   @default(true) @map("is_active")
+  isPasswordChanged Boolean   @default(false) @map("is_password_changed")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  mahasiswa       Mahasiswa?
+  dosen           Dosen?
+  userRoles       UserRole[]
+  activityLogs    ActivityLog[]
+
+  @@map("user")
+}
+
+model Role {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nama        String   @unique @db.VarChar
+  deskripsi   String
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  userRoles UserRole[]
+
+  @@map("role")
+}
+
+model UserRole {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  roleId    String   @map("role_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@map("user_role")
+}
+
+model Prodi {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nama      String   @unique @db.VarChar
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  dosen Dosen[]
+
+  @@map("prodi")
+}
+
+model Mahasiswa {
+  id           String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String            @unique @map("user_id") @db.Uuid
+  nim          String            @unique @db.VarChar
+  kelas        String            @db.VarChar
+  angkatan     String            @db.VarChar
+  tanggalMasuk DateTime          @map("tanggal_masuk") @db.Date
+  status       StatusMahasiswa
+  dosenId      String?           @map("dosen_id") @db.Uuid
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dosen    Dosen?   @relation(fields: [dosenId], references: [id], onDelete: SetNull)
+  anggotaTim AnggotaTim?
+  resumes  Resume[]
+  bookings BookingKonsultasi[]
+
+  @@map("mahasiswa")
+}
+
+model Dosen {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String          @unique @map("user_id") @db.Uuid
+  nip            String          @unique @db.VarChar
+  bidangKeahlian String          @map("bidang_keahlian") @db.VarChar
+  status         StatusDosen
+  prodiId        String?         @map("prodi_id") @db.Uuid
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+
+  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prodi                 Prodi?                  @relation(fields: [prodiId], references: [id], onDelete: SetNull)
+  dosenPembimbingDetail DosenPembimbingDetail?
+  proposalReviews       ProposalReview[]
+  resumes               Resume[]
+  resumeReviews         ResumeReview[]
+  jadwalKonsultasi      JadwalKonsultasi[]
+  mahasiswaBimbingan    Mahasiswa[]
+
+  @@map("dosen")
+}
+
+model DosenPembimbingDetail {
+  id            String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dosenId       String                  @unique @map("dosen_id") @db.Uuid
+  batasBimbingan Int                    @map("batas_bimbingan")
+  status        StatusDosenPembimbingDetail
+  createdAt     DateTime                @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime                @updatedAt @map("updated_at") @db.Timestamptz
+
+  dosen Dosen @relation(fields: [dosenId], references: [id], onDelete: Cascade)
+
+  @@map("dosen_pembimbing_detail")
+}
+
+model Tim {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nama      String   @unique @db.VarChar
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  anggotaTim AnggotaTim[]
+  proposals  Proposal[]
+
+  @@map("tim")
+}
+
+model AnggotaTim {
+  id                String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  timId             String               @map("tim_id") @db.Uuid
+  mahasiswaId       String               @unique @map("mahasiswa_id") @db.Uuid
+  peran             PeranAnggotaTim
+  kategoriCapstone  KategoriCapstone     @map("kategori_capstone")
+  statusPersetujuan StatusPersetujuan    @map("status_persetujuan")
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  tim       Tim       @relation(fields: [timId], references: [id], onDelete: Cascade)
+  mahasiswa Mahasiswa @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+
+  @@map("anggota_tim")
+}
+
+model Proposal {
+  id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  timId     String         @map("tim_id") @db.Uuid
+  judul     String         @db.VarChar
+  mitra     String         @db.VarChar
+  file      String
+  status    StatusProposal @default(Menunggu)
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  tim      Tim             @relation(fields: [timId], references: [id], onDelete: Cascade)
+  reviews  ProposalReview[]
+  resumes  Resume[]
+
+  @@map("proposal")
+}
+
+model ProposalReview {
+  id         String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  proposalId String         @map("proposal_id") @db.Uuid
+  dosenId    String?        @map("dosen_id") @db.Uuid
+  catatan    String
+  status     StatusProposal
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  proposal Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  dosen    Dosen?   @relation(fields: [dosenId], references: [id], onDelete: SetNull)
+
+  @@map("proposal_review")
+}
+
+model Resume {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  proposalId  String       @map("proposal_id") @db.Uuid
+  mahasiswaId String       @map("mahasiswa_id") @db.Uuid
+  dosenId     String?      @map("dosen_id") @db.Uuid
+  subjudul    String       @db.VarChar
+  file        String
+  status      StatusResume @default(Menunggu)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  proposal  Proposal  @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  mahasiswa Mahasiswa @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  dosen     Dosen?    @relation(fields: [dosenId], references: [id], onDelete: SetNull)
+  reviews   ResumeReview[]
+
+  @@map("resume")
+}
+
+model ResumeReview {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dosenId   String?      @map("dosen_id") @db.Uuid
+  resumeId  String       @map("resume_id") @db.Uuid
+  catatan   String
+  status    StatusResume
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  dosen  Dosen?  @relation(fields: [dosenId], references: [id], onDelete: SetNull)
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@map("resume_review")
+}
+
+model JadwalKonsultasi {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dosenId   String   @map("dosen_id") @db.Uuid
+  tanggal   DateTime @db.Date
+  jamMulai  DateTime @map("jam_mulai") @db.Time
+  jamTutup  DateTime @map("jam_tutup") @db.Time
+  kuota     Int
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  dosen    Dosen                @relation(fields: [dosenId], references: [id], onDelete: Cascade)
+  bookings BookingKonsultasi[]
+
+  @@map("jadwal_konsultasi")
+}
+
+model BookingKonsultasi {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jadwalId           String               @map("jadwal_id") @db.Uuid
+  mahasiswaId        String               @map("mahasiswa_id") @db.Uuid
+  catatanMahasiswa   String               @map("catatan_mahasiswa")
+  catatanDosen       String?              @map("catatan_dosen")
+  status             StatusBooking
+  tanggalPembatalan  DateTime?            @map("tanggal_pembatalan") @db.Timestamptz
+  alasanPembatalan   String?              @map("alasan_pembatalan")
+  dibatalkanOleh     DibatalkanOleh?      @map("dibatalkan_oleh")
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  jadwal    JadwalKonsultasi @relation(fields: [jadwalId], references: [id], onDelete: Cascade)
+  mahasiswa Mahasiswa        @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+
+  @@map("booking_konsultasi")
+}
+
+model ActivityLog {
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entity    EntityLog
+  entityId  String      @map("entity_id") @db.Uuid
+  userId    String?     @map("user_id") @db.Uuid
+  pesan     String
+  warna     WarnaLog
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("activity_log")
+}
+
+enum StatusMahasiswa {
+  Aktif
+  Nonaktif
+  Arsip
+}
+
+enum StatusDosen {
+  Aktif
+  Nonaktif
+  Pindah
+}
+
+enum StatusDosenPembimbingDetail {
+  Buka
+  Tutup
+}
+
+enum PeranAnggotaTim {
+  Ketua
+  Anggota
+}
+
+enum KategoriCapstone {
+  EPD
+  SM
+}
+
+enum StatusPersetujuan {
+  Menunggu
+  Disetujui
+}
+
+enum StatusProposal {
+  Menunggu
+  Disetujui
+  Ditolak
+  Revisi
+}
+
+enum StatusResume {
+  Menunggu
+  Disetujui
+  Ditolak
+}
+
+enum StatusBooking {
+  Dipesan
+  Dibatalkan
+  Selesai
+}
+
+enum DibatalkanOleh {
+  Mahasiswa
+  Dosen
+}
+
+enum EntityLog {
+  Tim
+  Proposal
+  Resume
+}
+
+enum WarnaLog {
+  Neutral
+  Danger
+  Warning
+  Success
+  Info
+}
