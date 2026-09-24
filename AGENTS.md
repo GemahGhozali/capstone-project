@@ -1,3 +1,27 @@
+# Capstone Project — Agent Instructions
+
+Aplikasi web pengelola alur kerja Capstone Project Prodi D3 Teknik Informatika:
+tim → proposal (tim) → resume (individu) → bimbingan. Role: Mahasiswa, Dosen Capstone Project, Dosen Pembimbing, Kaprodi (superadmin, 1 user bisa multi-role + switch role).
+
+**Baca file berikut sebelum menyentuh skema DB, server action, auth, atau fitur terkait — jangan asumsikan dari ingatan, jangan tanya ulang aturan yang sudah tertulis:**
+
+| File | Isi |
+|---|---|
+| `docs/BUSINESS_RULES.md` | **Single source of truth** aturan bisnis (lock/unlock, replace, booking, dll) |
+| `docs/ERD.md` | ERD final + constraint + validasi app-level |
+| `docs/STACK.md` | Tech stack, pola Server Action/Zod/RHF/Tanstack Query, auth `jose`, struktur folder |
+| `docs/FLOW.md` | Flow end-to-end + state diagram per entitas |
+
+## Konvensi singkat
+
+- Stack: Next.js App Router + **Server Action** (mutasi), **Server Components** (query), Tanstack Query **hanya untuk mutasi**, Tailwind, shadcn/ui, React Hook Form + **Zod** (validasi ganda: client & server action), **Prisma + PostgreSQL**, auth JWT via **`jose`** (httpOnly cookie, tanpa NextAuth).
+- Bahasa teks/enum UI: **Indonesia**, ikuti kamus di `docs/BUSINESS_RULES.md`.
+- Soft delete = kolom status enum / `is_active` (bukan `deletedAt`).
+- File PDF di `public/`; saat replace proposal/resume, **hapus file lama dari disk**.
+- Setiap server action wajib: cek session + cek role, re-parse input dengan Zod.
+- Log `ActivityLog` hanya untuk entity `Tim`, `Proposal`, `Resume`.
+- Sebelum menulis kode Next.js, cek docs versi ini di `node_modules/next/dist/docs/` (lihat blok di bawah).
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

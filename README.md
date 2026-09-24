@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Capstone Project
 
-## Getting Started
+Aplikasi web untuk mengelola seluruh alur kerja Capstone Project Prodi D3 Teknik Informatika: pembuatan tim, pengajuan proposal (tim), pengajuan resume (individu), review & feedback dosen, serta booking jadwal bimbingan.
 
-First, run the development server:
+## Role
+
+- **Mahasiswa** — buat tim, ajukan proposal & resume, booking bimbingan
+- **Dosen Capstone Project** — review & set status proposal tim
+- **Dosen Pembimbing** — review resume (yang diajukan kepadanya), kelola jadwal & bimbingan
+- **Kaprodi** — CRUD data master, assign role, monitoring progress (superadmin; 1 user bisa multi-role + switch role)
+
+## Dokumentasi
+
+Dokumentasi adalah single source of truth untuk pengembangan (termasuk oleh AI agent — lihat `AGENTS.md`):
+
+- [`docs/BUSINESS_RULES.md`](docs/BUSINESS_RULES.md) — aturan bisnis lengkap
+- [`docs/ERD.md`](docs/ERD.md) — ERD final + constraint
+- [`docs/STACK.md`](docs/STACK.md) — tech stack & pola implementasi
+- [`docs/FLOW.md`](docs/FLOW.md) — flow end-to-end & state diagram
+- [`ERD_DRAFT.md`](ERD_DRAFT.md) — draft ERD awal (arsip; final ada di `docs/ERD.md`)
+
+## Tech Stack
+
+Next.js App Router (Server Action) · Tailwind · shadcn/ui · Prisma + PostgreSQL · Zod · React Hook Form · Tanstack Query (mutasi saja) · `jose` (JWT auth)
+
+## Menjalankan
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Buka [http://localhost:3000](http://localhost:3000).
