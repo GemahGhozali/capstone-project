@@ -2,21 +2,21 @@
 
 ## Stack
 
-| Layer | Pilihan | Catatan |
-|---|---|---|
-| Framework | **Next.js (App Router)** | versi sesuai `package.json` — **cek `node_modules/next/dist/docs/` sebelum asumsi API** (versi ini punya breaking changes, lihat blok di `AGENTS.md`) |
-| Rendering | Server Components (default) + Client Components saat perlu interaksi | |
-| Mutasi data | **Server Actions** | semua write (create/update/delete) via server action |
-| Query data | **Server Components** | fetch langsung di server component; **Tanstack Query TIDAK dipakai untuk query** |
-| Mutasi (client) | **Tanstack Query** (`useMutation`) | **hanya untuk mutasi** — invalidasi/refetch setelah server action sukses |
-| Styling | **Tailwind CSS** | |
-| Komponen UI | **shadcn/ui** | komponen di-copy ke project, bukan dependency runtime |
-| Form | **React Hook Form** | |
-| Validasi | **Zod** | schema dibagikan RHF (`zodResolver`) dan server action |
-| Database | **PostgreSQL** | |
-| ORM | **Prisma** | schema di `prisma/schema.prisma` |
-| Auth | **`jose`** (JWT) | JWT ditandatangani server, disimpan di **httpOnly cookie**; verifikasi di middleware + server action. Gaya official Next.js — **tanpa NextAuth/Auth.js** |
-| File storage | **`public/`** | PDF proposal/resume; saat replace, **hapus file lama dari disk** |
+| Layer           | Pilihan                                                              | Catatan                                                                                                                                                  |
+| --------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework       | **Next.js (App Router)**                                             | versi sesuai `package.json` — **cek `node_modules/next/dist/docs/` sebelum asumsi API** (versi ini punya breaking changes, lihat blok di `AGENTS.md`)    |
+| Rendering       | Server Components (default) + Client Components saat perlu interaksi |                                                                                                                                                          |
+| Mutasi data     | **Server Actions**                                                   | semua write (create/update/delete) via server action                                                                                                     |
+| Query data      | **Server Components**                                                | fetch langsung di server component; **Tanstack Query TIDAK dipakai untuk query**                                                                         |
+| Mutasi (client) | **Tanstack Query** (`useMutation`)                                   | **hanya untuk mutasi** — invalidasi/refetch setelah server action sukses                                                                                 |
+| Styling         | **Tailwind CSS**                                                     |                                                                                                                                                          |
+| Komponen UI     | **shadcn/ui**                                                        | komponen di-copy ke project, bukan dependency runtime                                                                                                    |
+| Form            | **React Hook Form**                                                  |                                                                                                                                                          |
+| Validasi        | **Zod**                                                              | schema dibagikan RHF (`zodResolver`) dan server action                                                                                                   |
+| Database        | **PostgreSQL**                                                       |                                                                                                                                                          |
+| ORM             | **Prisma**                                                           | schema di `prisma/schema.prisma`                                                                                                                         |
+| Auth            | **`jose`** (JWT)                                                     | JWT ditandatangani server, disimpan di **httpOnly cookie**; verifikasi di middleware + server action. Gaya official Next.js — **tanpa NextAuth/Auth.js** |
+| File storage    | **`public/`**                                                        | PDF proposal/resume; saat replace, **hapus file lama dari disk**                                                                                         |
 
 ## Pola yang dipakai
 
@@ -56,31 +56,75 @@ Client (RHF + zodResolver)
 - Soft delete = **kolom status enum** (bukan `deletedAt` global).
 - Cascade: lihat kolom **On Delete** di `docs/ERD.md`.
 
-### Struktur folder (usulan)
+### Struktur folder (feature-based)
 
 ```
 src/
-  app/
-    (auth)/login/, ganti-password/
+  app/                              # thin routing — hanya page & layout, tanpa logika bisnis
+    (auth)/
+      login/page.tsx
+      ganti-password/page.tsx
     (dashboard)/
-      mahasiswa/...
-      dosen-capstone/...
-      dosen-pembimbing/...
-      kaprodi/...
-    layout.tsx, page.tsx
-  actions/          # server actions per domain
-  components/       # shadcn + komponen app
-  lib/
-    auth/           # session jose, guards
-    validations/    # zod schemas
-    prisma.ts       # PrismaClient singleton
-  hooks/            # hooks client (mis. useMutation wrappers)
+      layout.tsx                     # shell + guard + switch role
+      mahasiswa/
+        tim/page.tsx
+        proposal/page.tsx
+        resume/page.tsx
+        bimbingan/page.tsx
+      dosen-capstone/
+        proposal/page.tsx
+      dosen-pembimbing/
+        resume/page.tsx
+        bimbingan/page.tsx
+      kaprodi/
+        mahasiswa/page.tsx
+        dosen/page.tsx
+        monitoring/page.tsx
+    layout.tsx
+    globals.css
+
+  features/                          # 1 folder = 1 domain (selaras tabel ERD)
+    auth/          # User, Role, UserRole
+    mahasiswa/     # Mahasiswa
+    dosen/         # Dosen, DosenPembimbingDetail
+    tim/           # Tim, AnggotaTim
+    proposal/      # Proposal, ProposalReview
+    resume/        # Resume, ResumeReview
+    konsultasi/    # JadwalKonsultasi, BookingKonsultasi
+    monitoring/    # read-only, tanpa tabel sendiri
+
+  components/
+    ui/            # shadcn (generated)
+    layout/        # sidebar, navbar, switch-role (lintas fitur)
+
+  libs/
+    prisma.ts
+    auth/          # jose session, guards
+    activity-log.ts
+    utils.ts
 prisma/
-  schema.prisma
 docs/
 ```
 
 > Route dashboard di-segment per **role aktif** untuk mendukung switch role.
+> Tabel `Prodi` **tidak** punya folder fitur (tanpa CRUD, hanya relasi Prisma).
+
+#### Layer di dalam tiap fitur
+
+```
+features/<domain>/
+  schemas.ts      # Zod + type infer (z.infer) — sumber validasi RHF & server action
+  actions.ts      # semua Server Action fitur ("use server"), cek session + role
+  queries.ts      # Prisma read untuk Server Components (reusable, mis. oleh monitoring)
+  hooks.ts        # wrapper Tanstack Query useMutation — hanya jika ada client mutation
+  components/     # UI fitur (form/dialog/table) — SATU-SATUNYA folder di fitur
+```
+
+- **1 file per layer** — jangan pecah per fungsi (`login.ts`, `logout.ts`, dst.).
+- File layer yang tidak dipakai (mis. `monitoring` tanpa mutasi → tanpa `actions.ts`) tidak dibuat.
+- **Tidak ada** `types.ts`, `utils.ts` per fitur, barrel `index.ts`, atau repository/service layer — Prisma dipanggil dari `actions.ts` / `queries.ts` langsung.
+- Import: `@/features/tim/schemas`, `@/features/tim/components/...`.
+- Fitur boleh dilayani >1 role (mis. `mahasiswa` juga dibaca `monitoring` via `queries`) — route segment ≠ folder fitur.
 
 ## Konvensi penting
 

@@ -15,6 +15,8 @@ tim → proposal (tim) → resume (individu) → bimbingan. Role: Mahasiswa, Dos
 ## Konvensi singkat
 
 - Stack: Next.js App Router + **Server Action** (mutasi), **Server Components** (query), Tanstack Query **hanya untuk mutasi**, Tailwind, shadcn/ui, React Hook Form + **Zod** (validasi ganda: client & server action), **Prisma + PostgreSQL**, auth JWT via **`jose`** (httpOnly cookie, tanpa NextAuth).
+- **Struktur feature-based**: logika per domain → `src/features/<domain>/` (selaras tabel ERD: `auth`, `mahasiswa`, `dosen`, `tim`, `proposal`, `resume`, `konsultasi`, `monitoring`). `src/app/` **hanya routing** (page/layout tipis).
+- Layer per fitur **flat, 1 file per layer**: `schemas.ts` (Zod + type), `actions.ts` (server actions), `queries.ts` (Prisma read), `hooks.ts` (Tanstack Query, jika perlu), `components/` (UI — satu-satunya folder). **Jangan** pecah per fungsi atau tambah folder lain di fitur. Detail: `docs/STACK.md`.
 - Bahasa teks/enum UI: **Indonesia**, ikuti kamus di `docs/BUSINESS_RULES.md`.
 - Soft delete = kolom status enum / `is_active` (bukan `deletedAt`).
 - File PDF di `public/`; saat replace proposal/resume, **hapus file lama dari disk**.
