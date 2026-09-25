@@ -17,6 +17,7 @@
 | ORM             | **Prisma**                                                           | schema di `prisma/schema.prisma`                                                                                                                         |
 | Auth            | **`jose`** (JWT)                                                     | JWT ditandatangani server, disimpan di **httpOnly cookie**; verifikasi di middleware + server action. Gaya official Next.js — **tanpa NextAuth/Auth.js** |
 | File storage    | **`public/`**                                                        | PDF proposal/resume; saat replace, **hapus file lama dari disk**                                                                                         |
+| Email           | **Nodemailer + Gmail SMTP** (App Password)                           | library open-source, **tanpa SaaS pihak ketiga**; semua kirim email dibungkus **`libs/mailer.ts** (`sendEmail`) agar provider mudah ditukar. Dependency dipasang saat implementasi (belum ada sekarang) |
 
 ## Pola yang dipakai
 
@@ -45,9 +46,10 @@ Client (RHF + zodResolver)
 
 1. Login: cocokkan `identifier` + password (bcrypt/argon2) → set cookie JWT (`jose`).
 2. JWT payload minimal: `sub` (user id), `role` (role aktif), `exp`.
-3. `is_password_changed = false` → redirect ke halaman ganti password (force).
-4. Switch role: update role aktif dalam JWT (re-issue cookie) → redirect ke dashboard role.
-5. Proteksi route: middleware (cek cookie) + cek ulang di server action/server component.
+3. `is_password_changed = false` → redirect ke halaman **ganti email + password** (force); semua route lain ditolak guard sampai selesai.
+4. Lupa password: input email → respon generik → token hash (15 menit, single-use) dikirim via `libs/mailer.ts` → reset → login.
+5. Switch role: update role aktif dalam JWT (re-issue cookie) → redirect ke dashboard role.
+6. Proteksi route: middleware (cek cookie) + cek ulang di server action/server component.
 
 ### Prisma conventions
 

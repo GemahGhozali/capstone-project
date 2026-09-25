@@ -10,7 +10,22 @@ Dokumen ini adalah **single source of truth** untuk aturan bisnis. Baca sebelum 
 - Data mahasiswa & dosen di-insert oleh **Kaprodi** (Kaprodi = superadmin).
 - Login menggunakan **NIM/NIP** (`User.identifier`) + password.
 - Password awal: **opsional diisi Kaprodi saat insert; jika kosong, default = identifier (NIM/NIP)**.
-- Saat login pertama kali, user **dipaksa mengganti password** (`is_password_changed` false → wajib ganti sebelum masuk dashboard).
+- **Email placeholder** saat insert Kaprodi: format `nim@gmail.com` / `nip@gmail.com` (seeder menyusul; email asli diisi user sendiri saat login pertama).
+- **Force ganti email + password saat login pertama** (`is_password_changed = false`):
+  - User **wajib** mengganti **email dan password** sebelum masuk dashboard (bukan password saja).
+  - Email baru harus unik (`alamat_email` UNIQUE); password baru tidak boleh sama dengan identifier.
+  - Setelah sukses → `is_password_changed = true` → dashboard.
+  - Guard: saat `is_password_changed = false`, semua route **ditolak** kecuali halaman ganti email+password dan halaman lupa/reset password.
+  - `is_password_changed` = penanda "sudah pernah ganti email + password", bukan password saja.
+- **Lupa password** (reset via email):
+  - Input: **email** (`alamat_email`) — bukan NIM/NIP (NIM/NIP publik; token hanya dikirim ke email terdaftar).
+  - **Respon selalu generik** ("Jika email terdaftar, link reset telah dikirim") — anti account enumeration, jangan bocorkan email terdaftar/tidak.
+  - Jika email cocok → buat token acak **32 byte**, simpan **hash**-nya (bukan token mentah) di `PasswordResetToken`, berlaku **15 menit**, **single-use**.
+  - Maksimal **1 token aktif per user** (request baru menimpa/menghapus lama); **cooldown kirim ulang 60 detik**.
+  - Kirim link `/reset-password?token=...` via email.
+  - Halaman reset: masukkan password baru (≠ identifier) → token ditandai `used_at` (terpakai) → redirect ke login dengan pesan sukses.
+  - Token kedaluwarsa/terpakai/salah → pesan error jelas, tidak ada perubahan password.
+  - Catatan: sebelum user ganti email pertama kali, email = placeholder `nim@gmail.com` — link reset mungkin tidak sampai ke inbox asli (best effort; setelah ganti email, alur berjalan normal).
 - Role awal ditentukan Kaprodi. Tabel `Role` berisi: `Mahasiswa`, `Dosen Capstone Project`, `Dosen Pembimbing`, `Kaprodi`.
 - **1 user bisa memiliki lebih dari 1 role** (contoh: dosen bisa merangkap Dosen Capstone + Dosen Pembimbing).
 - Session user menyimpan **role aktif**; mekanisme **switch role** mengganti role aktif → redirect ke dashboard role tersebut.
@@ -172,4 +187,4 @@ Tidak ada fitur tulis — hanya baca. Tampilan:
 | Replace proposal | Hapus `Proposal` (+ `ProposalReview` cascade) + file dari disk |
 | Replace resume | Hapus `Resume` (+ `ResumeReview` cascade) + file dari disk |
 | Soft delete master | Set `status` enum / `is_active` |
-| User/role dihapus | `UserRole` cascade; `Mahasiswa`/`Dosen` cascade ke `User` |
+| User/role dihapus | `UserRole` cascade; `Mahasiswa`/`Dosen` cascade ke `User`; `PasswordResetToken` cascade ke `User` |

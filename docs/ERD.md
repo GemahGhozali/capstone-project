@@ -5,6 +5,7 @@ erDiagram
     User ||--o| Mahasiswa : "1-1"
     User ||--o| Dosen : "1-1"
     User }o--o{ Role : UserRole
+    User ||--o{ PasswordResetToken : ""
     Dosen ||--o| DosenPembimbingDetail : "1-1"
     Mahasiswa ||--o{ AnggotaTim : ""
     Tim ||--o{ AnggotaTim : ""
@@ -29,9 +30,16 @@ erDiagram
         varchar alamat_email "UNIQUE"
         text foto_profil "nullable"
         boolean is_active
-        boolean is_password_changed
+        boolean is_password_changed "sudah ganti email + password"
         timestamptz created_at
         timestamptz updated_at
+    }
+    PasswordResetToken {
+        uuid id PK
+        uuid user_id FK
+        text token_hash "hash dari token 32 byte, bukan token mentah"
+        timestamptz expires_at "15 menit dari created_at"
+        timestamptz used_at "NULL = masih aktif"
     }
     Role {
         uuid id PK
@@ -159,7 +167,18 @@ erDiagram
 | alamat_email | VARCHAR | UNIQUE, NOT NULL | — |
 | foto_profil | TEXT | NULLABLE | — |
 | is_active | BOOLEAN | NOT NULL, DEFAULT true | — |
-| is_password_changed | BOOLEAN | NOT NULL, DEFAULT false | — |
+| is_password_changed | BOOLEAN | NOT NULL, DEFAULT false — penanda **sudah ganti email + password** (bukan password saja) | — |
+| created_at | TIMESTAMPTZ | NOT NULL | — |
+| updated_at | TIMESTAMPTZ | NOT NULL | — |
+
+**PasswordResetToken** (token reset lupa-password)
+| Field | Tipe | Constraint | On Delete |
+|---|---|---|---|
+| id | UUID | PK | — |
+| user_id | UUID | FK → User.id, NOT NULL (1 token aktif per user — request baru menimpa lama) | CASCADE |
+| token_hash | TEXT | NOT NULL (hash dari token acak 32 byte; token mentah **tidak** disimpan) | — |
+| expires_at | TIMESTAMPTZ | NOT NULL (created_at + 15 menit) | — |
+| used_at | TIMESTAMPTZ | NULLABLE — NULL = masih aktif; terisi saat token dipakai (single-use) | — |
 | created_at | TIMESTAMPTZ | NOT NULL | — |
 | updated_at | TIMESTAMPTZ | NOT NULL | — |
 
@@ -361,4 +380,5 @@ erDiagram
 7. `Mahasiswa.dosen_id` di-set saat resume `Disetujui`.
 8. Booking: syarat resume `Disetujui`, jadwal = dospem sendiri, tanpa double-booking aktif, kuota tersedia.
 9. Field `Dibatalkan` (alasan, oleh, tanggal) wajib — via Zod.
-10. Force ganti password saat `is_password_changed = false`.
+10. Force ganti **email + password** saat `is_password_changed = false`.
+11. Reset password: input email saja, respon generik, token hash 15 menit single-use, cooldown kirim ulang 60 detik (lihat `docs/BUSINESS_RULES.md` §1).

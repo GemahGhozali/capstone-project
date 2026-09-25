@@ -7,14 +7,33 @@ End-to-end flows per domain. Aturan detail di `docs/BUSINESS_RULES.md`; skema di
 ## 0. Auth & Switch Role
 
 ```
-Kaprodi insert user (nim/nip, nama, email, password opsional → default = identifier)
+Kaprodi insert user (nim/nip, nama, email placeholder = nim@gmail.com/nip@gmail.com,
+                     password opsional → default = identifier)
   → assign role (boleh >1 role)
+
 User login (identifier + password)
-  → is_password_changed = false? → force ganti password → dashboard
+  → is_password_changed = false?
+      → force halaman ganti EMAIL + PASSWORD (semua route lain ditolak guard)
+      → email baru unique, password baru ≠ identifier
+      → sukses → is_password_changed = true → dashboard
   → else → dashboard role aktif
+
 User punya >1 role? → UI switch role
   → re-issue JWT dengan role baru → redirect dashboard role tsb
+
+[Lupa password]
+  Halaman /lupa-password → input EMAIL
+  → respon selalu generik: "Jika email terdaftar, link reset telah dikirim"
+  → jika email cocok:
+      buat token acak 32 byte → simpan HASH + expires_at (15 menit) di PasswordResetToken
+      (1 token aktif per user — request baru menimpa; cooldown kirim ulang 60 detik)
+      kirim link /reset-password?token=... via email (libs/mailer.ts)
+  Halaman /reset-password → password baru (≠ identifier)
+  → token valid? → update password, used_at terisi (single-use) → redirect login
+  → token expired/salah → pesan error, tanpa perubahan
 ```
+
+State token: `aktif (used_at NULL, belum expired) → terpakai (used_at terisi) | kedaluwarsa (expires_at lewat)`.
 
 ---
 
