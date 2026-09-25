@@ -51,6 +51,19 @@ CREATE TABLE "user" (
 );
 
 -- CreateTable
+CREATE TABLE "password_reset_token" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "user_id" UUID NOT NULL,
+    "token_hash" TEXT NOT NULL,
+    "expires_at" TIMESTAMPTZ NOT NULL,
+    "used_at" TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "password_reset_token_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "role" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "nama" VARCHAR NOT NULL,
@@ -255,6 +268,9 @@ CREATE UNIQUE INDEX "user_identifier_key" ON "user"("identifier");
 CREATE UNIQUE INDEX "user_alamat_email_key" ON "user"("alamat_email");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "password_reset_token_user_id_key" ON "password_reset_token"("user_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "role_nama_key" ON "role"("nama");
 
 -- CreateIndex
@@ -283,6 +299,9 @@ CREATE UNIQUE INDEX "tim_nama_key" ON "tim"("nama");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "anggota_tim_mahasiswa_id_key" ON "anggota_tim"("mahasiswa_id");
+
+-- AddForeignKey
+ALTER TABLE "password_reset_token" ADD CONSTRAINT "password_reset_token_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user_role" ADD CONSTRAINT "user_role_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
