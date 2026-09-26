@@ -2,6 +2,7 @@ import "./globals.css";
 import { cn } from "cn";
 import { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
+import { TanstackQueryProvider } from "@/components/providers/tanstack-query";
 
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -13,7 +14,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={cn("h-full", "antialiased", "font-sans", spaceGrotesk.variable)}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="w-full h-full">
+        <TanstackQueryProvider>{children}</TanstackQueryProvider>
+      </body>
     </html>
   );
 }
