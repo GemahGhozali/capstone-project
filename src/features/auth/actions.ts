@@ -4,9 +4,9 @@ import { prisma } from "@/libs/prisma";
 import { deleteSession } from "@/libs/session";
 import { formatZodError } from "@/utils/format-zod-error";
 import { ActionResponse } from "@/types";
-import { findUserByIdentifier } from "./queries";
 import { createSession, getSession } from "@/libs/session";
 import { comparePassword, hashPassword } from "@/libs/bcrypt";
+import { findUserCredentialByIdentifier } from "./queries";
 import { LoginSchema, LoginInput, ResetAccountInput, ResetAccountSchema } from "./schemas";
 
 export async function login(data: LoginInput): Promise<ActionResponse> {
@@ -19,7 +19,7 @@ export async function login(data: LoginInput): Promise<ActionResponse> {
   const { identifier, password } = parsed.data;
 
   try {
-    const user = await findUserByIdentifier(identifier);
+    const user = await findUserCredentialByIdentifier(identifier);
 
     if (!user) {
       return { success: false, message: "NIM/NIP atau password anda salah!" };

@@ -3,7 +3,7 @@
 import { prisma } from "@/libs/prisma";
 import { getSession } from "@/libs/session";
 
-export async function findUserByIdentifier(identifier: string) {
+export async function findUserCredentialByIdentifier(identifier: string) {
   return prisma.user.findUnique({
     where: { identifier },
     select: {
