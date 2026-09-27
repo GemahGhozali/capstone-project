@@ -5,10 +5,30 @@ export const LoginSchema = z.object({
   password: z.string().min(1, "Password wajib diisi!"),
 });
 
-export const ResetAccountSchema = z.object({
+export const ResetAccountSchema = z
+  .object({
+    alamatEmail: z.email("Format email tidak valid!"),
+    password: z.string().min(8, "Password wajib diisi dan minimal 8 karakter!"),
+    passwordConfirmation: z.string().min(1, "Konfirmasi password wajib diisi!"),
+  })
+  .refine((data) => data.password === data.passwordConfirmation, {
+    error: "Password yang diinput tidak sama!",
+    path: ["passwordConfirmation"],
+  });
+
+export const ForgetPasswordSchema = z.object({
   alamatEmail: z.email("Format email tidak valid!"),
-  password: z.string().min(8, "Password wajib diisi dan minimal 8 karakter!"),
 });
+
+export const ResetPasswordSchema = z
+  .object({
+    password: z.string().min(8, "Password wajib diisi dan minimal 8 karakter!"),
+    passwordConfirmation: z.string().min(1, "Konfirmasi password wajib diisi!"),
+  })
+  .refine((data) => data.password === data.passwordConfirmation, {
+    error: "Password yang diinput tidak sama!",
+    path: ["passwordConfirmation"],
+  });
 
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type ResetAccountInput = z.infer<typeof ResetAccountSchema>;
