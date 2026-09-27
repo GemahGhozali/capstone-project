@@ -43,11 +43,10 @@ model PasswordResetToken {
 }
 
 model Role {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  nama        String   @unique @db.VarChar
-  deskripsi   String
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nama       String   @unique @db.VarChar
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   userRoles UserRole[]
 
@@ -80,18 +79,17 @@ model Prodi {
 }
 
 model Mahasiswa {
-  id           String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId       String            @unique @map("user_id") @db.Uuid
-  nim          String            @unique @db.VarChar
-  kelas        String            @db.VarChar
-  angkatan     String            @db.VarChar
-  tanggalMasuk DateTime          @map("tanggal_masuk") @db.Date
+  id           String           @id @db.Uuid
+  nim          String           @unique @db.VarChar
+  kelas        String           @db.VarChar
+  angkatan     String           @db.VarChar
+  tanggalMasuk DateTime         @map("tanggal_masuk") @db.Date
   status       StatusMahasiswa
-  dosenId      String?           @map("dosen_id") @db.Uuid
-  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+  dosenId      String?          @map("dosen_id") @db.Uuid
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [id], references: [id], onDelete: Cascade)
   dosen    Dosen?   @relation(fields: [dosenId], references: [id], onDelete: SetNull)
   anggotaTim AnggotaTim?
   resumes  Resume[]
@@ -101,8 +99,7 @@ model Mahasiswa {
 }
 
 model Dosen {
-  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId         String          @unique @map("user_id") @db.Uuid
+  id             String          @id @db.Uuid
   nip            String          @unique @db.VarChar
   bidangKeahlian String          @map("bidang_keahlian") @db.VarChar
   status         StatusDosen
@@ -110,7 +107,7 @@ model Dosen {
   createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
   updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz
 
-  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                  User                    @relation(fields: [id], references: [id], onDelete: Cascade)
   prodi                 Prodi?                  @relation(fields: [prodiId], references: [id], onDelete: SetNull)
   dosenPembimbingDetail DosenPembimbingDetail?
   proposalReviews       ProposalReview[]

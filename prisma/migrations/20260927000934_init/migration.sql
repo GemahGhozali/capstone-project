@@ -67,7 +67,6 @@ CREATE TABLE "password_reset_token" (
 CREATE TABLE "role" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "nama" VARCHAR NOT NULL,
-    "deskripsi" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -97,8 +96,7 @@ CREATE TABLE "prodi" (
 
 -- CreateTable
 CREATE TABLE "mahasiswa" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "user_id" UUID NOT NULL,
+    "id" UUID NOT NULL,
     "nim" VARCHAR NOT NULL,
     "kelas" VARCHAR NOT NULL,
     "angkatan" VARCHAR NOT NULL,
@@ -113,8 +111,7 @@ CREATE TABLE "mahasiswa" (
 
 -- CreateTable
 CREATE TABLE "dosen" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "user_id" UUID NOT NULL,
+    "id" UUID NOT NULL,
     "nip" VARCHAR NOT NULL,
     "bidang_keahlian" VARCHAR NOT NULL,
     "status" "StatusDosen" NOT NULL,
@@ -280,13 +277,7 @@ CREATE UNIQUE INDEX "user_role_user_id_role_id_key" ON "user_role"("user_id", "r
 CREATE UNIQUE INDEX "prodi_nama_key" ON "prodi"("nama");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "mahasiswa_user_id_key" ON "mahasiswa"("user_id");
-
--- CreateIndex
 CREATE UNIQUE INDEX "mahasiswa_nim_key" ON "mahasiswa"("nim");
-
--- CreateIndex
-CREATE UNIQUE INDEX "dosen_user_id_key" ON "dosen"("user_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "dosen_nip_key" ON "dosen"("nip");
@@ -310,13 +301,13 @@ ALTER TABLE "user_role" ADD CONSTRAINT "user_role_user_id_fkey" FOREIGN KEY ("us
 ALTER TABLE "user_role" ADD CONSTRAINT "user_role_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "mahasiswa" ADD CONSTRAINT "mahasiswa_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "mahasiswa" ADD CONSTRAINT "mahasiswa_id_fkey" FOREIGN KEY ("id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "mahasiswa" ADD CONSTRAINT "mahasiswa_dosen_id_fkey" FOREIGN KEY ("dosen_id") REFERENCES "dosen"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "dosen" ADD CONSTRAINT "dosen_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "dosen" ADD CONSTRAINT "dosen_id_fkey" FOREIGN KEY ("id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "dosen" ADD CONSTRAINT "dosen_prodi_id_fkey" FOREIGN KEY ("prodi_id") REFERENCES "prodi"("id") ON DELETE SET NULL ON UPDATE CASCADE;
