@@ -43,7 +43,7 @@ CREATE TABLE "user" (
     "alamat_email" VARCHAR NOT NULL,
     "foto_profil" TEXT,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "is_password_changed" BOOLEAN NOT NULL DEFAULT false,
+    "is_account_reset" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 

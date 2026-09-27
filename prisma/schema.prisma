@@ -15,7 +15,7 @@ model User {
   alamatEmail       String    @unique @map("alamat_email") @db.VarChar
   fotoProfil        String?   @map("foto_profil")
   isActive          Boolean   @default(true) @map("is_active")
-  isPasswordChanged Boolean   @default(false) @map("is_password_changed")
+  isAccountReset    Boolean   @default(false) @map("is_account_reset")
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
