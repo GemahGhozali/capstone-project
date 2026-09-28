@@ -1,5 +1,6 @@
 "use server";
 
+import crypto from "crypto";
 import { prisma } from "@/libs/prisma";
 import { getSession } from "@/libs/session";
 
@@ -64,4 +65,17 @@ export async function findPasswordResetToken(tokenHash: string) {
       },
     },
   });
+}
+
+export async function verifyPasswordResetToken(token: string) {
+  try {
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    return prisma.passwordResetToken.findFirst({
+      where: { tokenHash, usedAt: null, expiresAt: { gt: new Date() } },
+      select: { id: true },
+    });
+  } catch {
+    return null;
+  }
 }
