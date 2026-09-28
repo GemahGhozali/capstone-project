@@ -1,5 +1,14 @@
 "use client";
 
+import {
+  LoginInput,
+  ResetAccountInput,
+  ForgotPasswordInput,
+  ResetPasswordInput,
+  ForgotPasswordWithEmailInput,
+  ForgotPasswordWithIdentifierInput,
+} from "./schemas";
+
 import { toast } from "@/components/ui/toast";
 import { logout } from "./actions";
 import { useForm } from "react-hook-form";
@@ -10,8 +19,7 @@ import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ActionResponse } from "@/types";
 import { login, resetAccount, forgotPassword, resetPassword } from "./actions";
-import { LoginInput, ResetAccountInput, ForgotPasswordInput, ResetPasswordInput } from "./schemas";
-import { LoginSchema, ResetAccountSchema, ForgotPasswordSchema, ResetPasswordSchema } from "./schemas";
+import { LoginSchema, ResetAccountSchema, ResetPasswordSchema, ForgotPasswordWithEmailSchema, ForgotPasswordWithIdentifierSchema } from "./schemas";
 
 export function useLogin() {
   const router = useRouter();
@@ -91,15 +99,21 @@ export function useResetAccount() {
 }
 
 export function useForgotPassword() {
-  const router = useRouter();
-
   const [selectedResetOption, setSelectedResetOption] = useState<"email" | "identifier">("email");
 
-  const form = useForm<ForgotPasswordInput>({
-    resolver: zodResolver(ForgotPasswordSchema),
+  const formWithEmail = useForm<ForgotPasswordWithEmailInput>({
+    resolver: zodResolver(ForgotPasswordWithEmailSchema),
     mode: "onTouched",
     defaultValues: { credential: "" },
   });
+
+  const formWithIdentifier = useForm<ForgotPasswordWithIdentifierInput>({
+    resolver: zodResolver(ForgotPasswordWithIdentifierSchema),
+    mode: "onTouched",
+    defaultValues: { credential: "" },
+  });
+
+  const form = selectedResetOption === "email" ? formWithEmail : formWithIdentifier;
 
   const mutation = useMutation({
     mutationFn: (data: ForgotPasswordInput) => runAction(() => forgotPassword(data, selectedResetOption)),
@@ -112,8 +126,9 @@ export function useForgotPassword() {
   });
 
   const handleSelectResetOption = (option: "email" | "identifier") => {
-    setSelectedResetOption(option);
     form.reset();
+    form.clearErrors();
+    setSelectedResetOption(option);
   };
 
   return { form, mutation, selectedResetOption, handleSelectResetOption };
