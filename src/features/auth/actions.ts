@@ -100,19 +100,10 @@ export async function forgotPassword(data: ForgotPasswordInput, option: "identif
     const user = await findUserEmailAndId(credential);
 
     if (!user) {
-      return { success: true, message: `Akun tidak ditemukan! ${option === "identifier" ? "NIM/NIP" : "Email"} yang anda input tidak valid!` };
+      return { success: false, message: `Akun tidak ditemukan! ${option === "identifier" ? "NIM/NIP" : "Email"} yang anda input tidak valid!` };
     }
 
-    await clearAllUserResetPasswordToken(user.id);
-
-    const token = crypto.randomUUID();
-    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
-
-    await prisma.passwordResetToken.create({
-      data: { userId: user.id, tokenHash, expiresAt },
-    });
-
+    const token = await upsertPasswordResetToken(user.id);
     const resetLink = `${getEnv("APP_URL")}/reset-password?token=${token}`;
 
     await sendEmail({
@@ -176,6 +167,16 @@ export async function resetPassword(data: ResetPasswordInput, token: string): Pr
   }
 }
 
-async function clearAllUserResetPasswordToken(userId: string) {
-  return prisma.passwordResetToken.deleteMany({ where: { userId } });
+export async function upsertPasswordResetToken(userId: string) {
+  const token = crypto.randomUUID();
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+  await prisma.passwordResetToken.upsert({
+    where: { userId },
+    update: { tokenHash, expiresAt, usedAt: null },
+    create: { userId, tokenHash, expiresAt },
+  });
+
+  return token;
 }
