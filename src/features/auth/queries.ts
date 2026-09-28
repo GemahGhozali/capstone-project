@@ -37,3 +37,31 @@ export async function getAuthenticatedUser() {
 
   return { ...user, role: session.role };
 }
+
+export async function findUserEmailAndId(value: string) {
+  return prisma.user.findFirst({
+    where: {
+      OR: [{ alamatEmail: value }, { identifier: value }],
+    },
+    select: { id: true, alamatEmail: true },
+  });
+}
+
+export async function findPasswordResetToken(tokenHash: string) {
+  return prisma.passwordResetToken.findFirst({
+    where: { tokenHash },
+    include: {
+      user: {
+        select: {
+          id: true,
+          isAccountReset: true,
+          userRoles: {
+            select: {
+              role: { select: { nama: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+}
