@@ -35,7 +35,13 @@ export const ResetPasswordSchema = z
     path: ["passwordConfirmation"],
   });
 
+export const ForgotPasswordWithEmailSchema = z.object({ credential: z.email("Format email tidak valid!") });
+
+export const ForgotPasswordWithIdentifierSchema = z.object({ credential: z.string().min(1, "NIM/NIP wajib diisi") });
+
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type ResetAccountInput = z.infer<typeof ResetAccountSchema>;
-export type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;
+export type ForgotPasswordWithEmailInput = z.infer<typeof ForgotPasswordWithEmailSchema>;
+export type ForgotPasswordWithIdentifierInput = z.infer<typeof ForgotPasswordWithIdentifierSchema>;
+export type ForgotPasswordInput = ForgotPasswordWithEmailInput | ForgotPasswordWithIdentifierInput;
