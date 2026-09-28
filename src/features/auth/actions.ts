@@ -1,6 +1,6 @@
 "use server";
 
-import { hash } from "bcryptjs";
+import crypto from "crypto";
 import { getEnv } from "@/utils/env";
 import { prisma } from "@/libs/prisma";
 import { sendEmail } from "@/libs/nodemailer";
@@ -106,7 +106,7 @@ export async function forgotPassword(data: ForgotPasswordInput, option: "identif
     await clearAllUserResetPasswordToken(user.id);
 
     const token = crypto.randomUUID();
-    const tokenHash = await hash(token, 10);
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
     await prisma.passwordResetToken.create({
@@ -118,7 +118,7 @@ export async function forgotPassword(data: ForgotPasswordInput, option: "identif
     await sendEmail({
       to: user.alamatEmail,
       subject: "Reset Password - Capstone Project",
-      html: `<p>Klik link di bawah untuk mereset password:</p><a href="${resetLink}">${resetLink}</a>`,
+      html: `<p>Klik link di bawah untuk mereset password:</p><a href="${resetLink}">Reset Password</a>`,
     });
 
     return { success: true, message: "Berhasil mengirim link reset password!", data: { alamatEmail: user.alamatEmail } };
@@ -138,7 +138,7 @@ export async function resetPassword(data: ResetPasswordInput, token: string): Pr
   const { password } = parsed.data;
 
   try {
-    const tokenHash = await hash(token, 10);
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     const resetToken = await findPasswordResetToken(tokenHash);
 
     if (!resetToken) {
