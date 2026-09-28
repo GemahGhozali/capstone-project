@@ -16,9 +16,13 @@ export const ResetAccountSchema = z
     path: ["passwordConfirmation"],
   });
 
-export const ForgetPasswordSchema = z.discriminatedUnion("method", [
-  z.object({ method: z.literal("email"), alamatEmail: z.email("Format email tidak valid!") }),
-  z.object({ method: z.literal("identifier"), identifier: z.string().min(1, "NIM/NIP wajib diisi") }),
+export const ForgotPasswordSchema = z.union([
+  z.object({
+    credential: z.email("Format email tidak valid!"),
+  }),
+  z.object({
+    credential: z.string().min(1, "NIM/NIP wajib diisi"),
+  }),
 ]);
 
 export const ResetPasswordSchema = z
@@ -33,5 +37,5 @@ export const ResetPasswordSchema = z
 
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type ResetAccountInput = z.infer<typeof ResetAccountSchema>;
-export type ForgetPasswordInput = z.infer<typeof ForgetPasswordSchema>;
+export type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;
