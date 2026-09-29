@@ -86,7 +86,7 @@ export async function refreshSession(): Promise<void> {
 
 export const verifySession = cache(async (): Promise<SessionPayload> => {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect("/");
   return session;
 });
 
