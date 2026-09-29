@@ -40,8 +40,6 @@ export function useLogin() {
       router.replace("/");
     },
     onError: (response: ActionResponse) => {
-      toast.add({ type: "error", description: response.message });
-
       if (response.errors) {
         Object.entries(response.errors).forEach(([field, message]) => {
           form.setError(field as keyof LoginInput, { type: "server", message });
@@ -85,8 +83,6 @@ export function useResetAccount() {
       router.replace("/");
     },
     onError: (response: ActionResponse) => {
-      toast.add({ type: "error", description: response.message });
-
       if (response.errors) {
         Object.entries(response.errors).forEach(([field, message]) => {
           form.setError(field as keyof ResetAccountInput, { type: "server", message });
@@ -117,11 +113,15 @@ export function useForgotPassword() {
 
   const mutation = useMutation({
     mutationFn: (data: ForgotPasswordInput) => runAction(() => forgotPassword(data, selectedResetOption)),
-    onSuccess: (response) => {
-      toast.add({ type: "success", description: response.message });
+    onSuccess: () => {
+      toast.add({ type: "success", description: "Link reset password berhasil dikirim!" });
     },
     onError: (response: ActionResponse) => {
-      toast.add({ type: "error", description: response.message });
+      if (response.errors) {
+        Object.entries(response.errors).forEach(([field, message]) => {
+          form.setError(field as keyof ForgotPasswordInput, { type: "server", message });
+        });
+      }
     },
   });
 
@@ -150,14 +150,16 @@ export function useResetPassword() {
     mutationFn: (payload: { data: ResetPasswordInput; token: string }) => {
       return runAction(() => resetPassword(payload.data, payload.token));
     },
-
     onSuccess: (response) => {
       toast.add({ type: "success", description: response.message });
       router.replace("/");
     },
-
     onError: (response: ActionResponse) => {
-      toast.add({ type: "error", description: response.message });
+      if (response.errors) {
+        Object.entries(response.errors).forEach(([field, message]) => {
+          form.setError(field as keyof ResetPasswordInput, { type: "server", message });
+        });
+      }
     },
   });
 
