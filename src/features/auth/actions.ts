@@ -10,7 +10,7 @@ import { comparePassword, hashPassword } from "@/libs/bcrypt";
 import { deleteSession, createSession, getSession } from "@/libs/session";
 import { LoginInput, ResetAccountInput, ForgotPasswordInput, ResetPasswordInput } from "./schemas";
 import { LoginSchema, ResetAccountSchema, ForgotPasswordSchema, ResetPasswordSchema } from "./schemas";
-import { findUserCredentialByIdentifier, findPasswordResetToken, findUserEmailAndId } from "./queries";
+import { findUserCredentialByIdentifier, findPasswordResetToken, findUserEmailAndId, verifyEmailAvailability } from "./queries";
 
 export async function login(data: LoginInput): Promise<ActionResponse> {
   const parsed = LoginSchema.safeParse(data);
@@ -70,6 +70,16 @@ export async function resetAccount(data: ResetAccountInput) {
   const { alamatEmail, password } = parsed.data;
 
   try {
+    const emailInUsed = await verifyEmailAvailability(alamatEmail);
+
+    if (emailInUsed) {
+      return {
+        success: false,
+        message: "Alamat email sudah digunakan!",
+        errors: { alamatEmail: "Email sudah digunakan! Silahkan gunakan email lain." },
+      };
+    }
+
     const hashedPassword = await hashPassword(password);
 
     await prisma.user.update({

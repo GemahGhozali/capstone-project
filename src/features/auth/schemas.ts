@@ -1,7 +1,7 @@
 import * as z from "zod";
 
 export const LoginSchema = z.object({
-  identifier: z.string().min(1, "NIM/NIP wajib diisi"),
+  identifier: z.string().min(1, "NIM/NIP wajib diisi!"),
   password: z.string().min(1, "Password wajib diisi!"),
 });
 

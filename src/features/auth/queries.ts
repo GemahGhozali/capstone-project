@@ -79,3 +79,10 @@ export async function verifyPasswordResetToken(token: string) {
     return null;
   }
 }
+
+export async function verifyEmailAvailability(alamatEmail: string) {
+  return prisma.user.findUnique({
+    where: { alamatEmail },
+    select: { alamatEmail: true },
+  });
+}
