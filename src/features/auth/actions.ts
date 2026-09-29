@@ -10,7 +10,7 @@ import { comparePassword, hashPassword } from "@/libs/bcrypt";
 import { deleteSession, createSession, getSession } from "@/libs/session";
 import { LoginInput, ResetAccountInput, ForgotPasswordInput, ResetPasswordInput } from "./schemas";
 import { LoginSchema, ResetAccountSchema, ForgotPasswordSchema, ResetPasswordSchema } from "./schemas";
-import { findUserCredentialByIdentifier, findPasswordResetToken, findUserEmailAndId, verifyEmailAvailability } from "./queries";
+import { findUserCredentialByIdentifier, findPasswordResetToken, verifyEmailAvailability, verifyUserFromEmailOrIdentifier } from "./queries";
 
 export async function login(data: LoginInput): Promise<ActionResponse> {
   const parsed = LoginSchema.safeParse(data);
@@ -104,13 +104,21 @@ export async function forgotPassword(data: ForgotPasswordInput, option: "identif
     return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
   }
 
-  const { credential } = parsed.data;
+  const { credential: emailOrIdentifier } = parsed.data;
 
   try {
-    const user = await findUserEmailAndId(credential);
+    const user = await verifyUserFromEmailOrIdentifier(emailOrIdentifier);
 
     if (!user) {
-      return { success: false, message: `Akun tidak ditemukan! ${option === "identifier" ? "NIM/NIP" : "Email"} yang anda input tidak valid!` };
+      return { success: false, message: `Akun tidak ditemukan! ${option === "identifier" ? "NIM/NIP" : "Email"} anda tidak valid.` };
+    }
+
+    if (!user.isAccountReset) {
+      return {
+        success: false,
+        message:
+          "Akun anda belum diaktivasi/direset! Silakan login terlebih dahulu menggunakan NIM/NIP dan password default yang diberikan, kemudian reset akun anda.",
+      };
     }
 
     const token = await upsertPasswordResetToken(user.id);

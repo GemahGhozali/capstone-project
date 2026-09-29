@@ -39,12 +39,12 @@ export async function getAuthenticatedUser() {
   return { ...user, role: session.role };
 }
 
-export async function findUserEmailAndId(value: string) {
+export async function verifyUserFromEmailOrIdentifier(value: string) {
   return prisma.user.findFirst({
     where: {
       OR: [{ alamatEmail: value }, { identifier: value }],
     },
-    select: { id: true, alamatEmail: true },
+    select: { id: true, alamatEmail: true, isAccountReset: true },
   });
 }
 
