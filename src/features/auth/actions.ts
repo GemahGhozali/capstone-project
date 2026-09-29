@@ -1,8 +1,17 @@
 "use server";
 
+import {
+  findPasswordResetToken,
+  verifyEmailAvailability,
+  findUserCredentialByIdentifier,
+  verifyUserFromEmailOrIdentifier,
+  isUserHasActiveResetPasswordToken,
+} from "./queries";
+
 import crypto from "crypto";
 import { getEnv } from "@/utils/env";
 import { prisma } from "@/libs/prisma";
+import { maskEmail } from "@/utils/mask-email";
 import { sendEmail } from "@/libs/nodemailer";
 import { formatZodError } from "@/utils/format-zod-error";
 import { ActionResponse } from "@/types";
@@ -10,7 +19,6 @@ import { comparePassword, hashPassword } from "@/libs/bcrypt";
 import { deleteSession, createSession, getSession } from "@/libs/session";
 import { LoginInput, ResetAccountInput, ForgotPasswordInput, ResetPasswordInput } from "./schemas";
 import { LoginSchema, ResetAccountSchema, ForgotPasswordSchema, ResetPasswordSchema } from "./schemas";
-import { findUserCredentialByIdentifier, findPasswordResetToken, verifyEmailAvailability, verifyUserFromEmailOrIdentifier } from "./queries";
 
 export async function login(data: LoginInput): Promise<ActionResponse> {
   const parsed = LoginSchema.safeParse(data);
@@ -25,17 +33,17 @@ export async function login(data: LoginInput): Promise<ActionResponse> {
     const user = await findUserCredentialByIdentifier(identifier);
 
     if (!user) {
-      return { success: false, message: "NIM/NIP atau password anda salah!" };
+      return { success: false, message: "NIM/NIP atau password anda salah! Silahkan coba lagi." };
     }
 
     if (!user.isActive) {
-      return { success: false, message: "Akun ada telah dinonaktifkan!" };
+      return { success: false, message: "Anda tidak bisa mengakses akun karena akun anda telah dinonaktifkan." };
     }
 
     const isPasswordValid = await comparePassword(password, user.password);
 
     if (!isPasswordValid) {
-      return { success: false, message: "NIM/NIP atau password anda salah!" };
+      return { success: false, message: "NIM/NIP atau password anda salah! Silahkan coba lagi." };
     }
 
     const role = user.userRoles[0].role.nama;
@@ -58,7 +66,7 @@ export async function resetAccount(data: ResetAccountInput) {
   const session = await getSession();
 
   if (!session) {
-    return { success: false, message: "Anda belum terautentikasi! Silahkan login." };
+    return { success: false, message: "Anda belum terautentikasi! Silahkan login terlebih dahulu." };
   }
 
   const parsed = ResetAccountSchema.safeParse(data);
@@ -75,7 +83,7 @@ export async function resetAccount(data: ResetAccountInput) {
     if (emailInUsed) {
       return {
         success: false,
-        message: "Alamat email sudah digunakan!",
+        message: "Alamat email sudah digunakan! Silahkan coba menggunakan alamat email lain.",
         errors: { alamatEmail: "Email sudah digunakan! Silahkan gunakan email lain." },
       };
     }
@@ -97,7 +105,7 @@ export async function resetAccount(data: ResetAccountInput) {
   }
 }
 
-export async function forgotPassword(data: ForgotPasswordInput, option: "identifier" | "email"): Promise<ActionResponse<{ alamatEmail: string }>> {
+export async function forgotPassword(data: ForgotPasswordInput, option: "identifier" | "email"): Promise<ActionResponse> {
   const parsed = ForgotPasswordSchema.safeParse(data);
 
   if (!parsed.success) {
@@ -121,6 +129,14 @@ export async function forgotPassword(data: ForgotPasswordInput, option: "identif
       };
     }
 
+    const censoredEmail = maskEmail(user.alamatEmail);
+
+    const userStillHasActiveToken = await isUserHasActiveResetPasswordToken(user.id);
+
+    if (userStillHasActiveToken) {
+      return { success: true, message: `Link reset password sebelumnya telah dikirim ke alamat email ${censoredEmail}` };
+    }
+
     const token = await upsertPasswordResetToken(user.id);
     const resetLink = `${getEnv("APP_URL")}/reset-password?token=${token}`;
 
@@ -130,7 +146,7 @@ export async function forgotPassword(data: ForgotPasswordInput, option: "identif
       html: `<p>Klik link di bawah untuk mereset password:</p><a href="${resetLink}">Reset Password</a>`,
     });
 
-    return { success: true, message: "Berhasil mengirim link reset password!", data: { alamatEmail: user.alamatEmail } };
+    return { success: true, message: `Link reset password berhasil dikirim ke alamat email ${censoredEmail}` };
   } catch (error) {
     console.log("❌ Forgot Password Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
