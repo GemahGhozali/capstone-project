@@ -23,6 +23,7 @@ export function LoginForm() {
   return (
     <form onSubmit={onSubmit}>
       <FieldGroup>
+        {/* Header */}
         <div className="flex flex-col items-center">
           <div className="flex size-10 items-center justify-center rounded-md bg-primary/10 mb-4">
             <IconSchool className="text-primary" />
@@ -30,6 +31,8 @@ export function LoginForm() {
           <FieldLegend className="text-xl! font-bold">Aplikasi Capstone Project</FieldLegend>
           <FieldDescription>Silahkan login terlebih dahulu untuk mengakses aplikasi</FieldDescription>
         </div>
+
+        {/* NIM/NIP (Identifier) */}
         <Controller
           name="identifier"
           control={control}
@@ -56,6 +59,8 @@ export function LoginForm() {
             </Field>
           )}
         />
+
+        {/* Password */}
         <Controller
           name="password"
           control={control}
@@ -98,15 +103,19 @@ export function LoginForm() {
             </Field>
           )}
         />
+
+        {/* Submit Button */}
         <Field>
           <Button type="submit" disabled={isPending}>
             {isPending ? "Memproses" : "Login"}
             {isPending && <Spinner data-icon="inline-start" />}
           </Button>
         </Field>
+
+        {/* Error Alert */}
         {error && (
           <Closable>
-            <Alert variant="destructive" className="border-none bg-destructive/10">
+            <Alert variant="destructive" className="border-none bg-destructive/10 pr-4!">
               <AlertTitle className="flex items-center gap-1.5">
                 <IconAlertTriangle className="size-4" />
                 Login Gagal!

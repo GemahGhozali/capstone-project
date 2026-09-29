@@ -22,6 +22,7 @@ export function ResetAccountForm() {
   return (
     <form onSubmit={onSubmit}>
       <FieldGroup>
+        {/* Header */}
         <div className="flex flex-col items-center">
           <div className="flex size-10 items-center justify-center rounded-md bg-primary/10 mb-4">
             <IconShieldCheckered className="text-primary" />
@@ -31,6 +32,8 @@ export function ResetAccountForm() {
             Silahkan perbaharui alamat email dan password akun anda sebelum menggunakan aplikasi.
           </FieldDescription>
         </div>
+
+        {/* Email */}
         <Controller
           name="alamatEmail"
           control={control}
@@ -57,6 +60,8 @@ export function ResetAccountForm() {
             </Field>
           )}
         />
+
+        {/* Password */}
         <Controller
           name="password"
           control={control}
@@ -94,6 +99,8 @@ export function ResetAccountForm() {
             </Field>
           )}
         />
+
+        {/* Confirm Password */}
         <Controller
           name="passwordConfirmation"
           control={control}
@@ -131,15 +138,19 @@ export function ResetAccountForm() {
             </Field>
           )}
         />
+
+        {/* Submit Button */}
         <Field>
           <Button type="submit" disabled={isPending}>
             {isPending ? "Memproses" : "Reset dan Perbaharui Akun"}
             {isPending && <Spinner data-icon="inline-start" />}
           </Button>
         </Field>
+
+        {/* Error Alert */}
         {error && (
           <Closable>
-            <Alert variant="destructive" className="border-none bg-destructive/10">
+            <Alert variant="destructive" className="border-none bg-destructive/10 pr-4!">
               <AlertTitle className="flex items-center gap-1.5">
                 <IconAlertTriangle className="size-4" />
                 Reset Akun Gagal!
