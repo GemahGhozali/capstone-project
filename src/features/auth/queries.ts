@@ -80,6 +80,13 @@ export async function verifyPasswordResetToken(token: string) {
   }
 }
 
+export async function isUserHasActiveResetPasswordToken(userId: string) {
+  return prisma.passwordResetToken.findFirst({
+    where: { userId, usedAt: null, expiresAt: { gt: new Date() } },
+    select: { id: true },
+  });
+}
+
 export async function verifyEmailAvailability(alamatEmail: string) {
   return prisma.user.findUnique({
     where: { alamatEmail },
