@@ -137,7 +137,16 @@ export async function forgotPassword(data: ForgotPasswordInput, option: "identif
       return { success: true, message: `Link reset password sebelumnya telah dikirim ke alamat email ${censoredEmail}` };
     }
 
-    const token = await upsertPasswordResetToken(user.id);
+    const token = crypto.randomUUID();
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await prisma.passwordResetToken.upsert({
+      where: { userId: user.id },
+      update: { tokenHash, expiresAt, usedAt: null },
+      create: { userId: user.id, tokenHash, expiresAt },
+    });
+
     const resetLink = `${getEnv("APP_URL")}/reset-password?token=${token}`;
 
     await sendEmail({
@@ -199,18 +208,4 @@ export async function resetPassword(data: ResetPasswordInput, token: string): Pr
     console.log("❌ Reset Password Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
-}
-
-export async function upsertPasswordResetToken(userId: string) {
-  const token = crypto.randomUUID();
-  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-
-  await prisma.passwordResetToken.upsert({
-    where: { userId },
-    update: { tokenHash, expiresAt, usedAt: null },
-    create: { userId, tokenHash, expiresAt },
-  });
-
-  return token;
 }
