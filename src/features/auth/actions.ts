@@ -62,11 +62,15 @@ export async function logout(): Promise<ActionResponse> {
   return { success: true, message: "Logout berhasil!" };
 }
 
-export async function resetAccount(data: ResetAccountInput) {
+export async function resetAccount(data: ResetAccountInput): Promise<ActionResponse> {
   const session = await getSession();
 
   if (!session) {
     return { success: false, message: "Anda belum terautentikasi! Silahkan login terlebih dahulu." };
+  }
+
+  if (session.isAccountReset) {
+    return { success: false, message: "Akun sudah diaktivasi/direset! Reset akun hanya bisa dilakukan saat pertama kali login." };
   }
 
   const parsed = ResetAccountSchema.safeParse(data);
@@ -121,6 +125,10 @@ export async function forgotPassword(data: ForgotPasswordInput, option: "identif
       return { success: false, message: `Akun tidak ditemukan! ${option === "identifier" ? "NIM/NIP" : "Email"} anda tidak valid.` };
     }
 
+    if (!user.isActive) {
+      return { success: false, message: "Anda tidak bisa reset password karena akun anda telah dinonaktifkan." };
+    }
+
     if (!user.isAccountReset) {
       return {
         success: false,
@@ -149,11 +157,15 @@ export async function forgotPassword(data: ForgotPasswordInput, option: "identif
 
     const resetLink = `${getEnv("APP_URL")}/reset-password?token=${token}`;
 
-    await sendEmail({
+    const sent = await sendEmail({
       to: user.alamatEmail,
       subject: "Reset Password - Capstone Project",
       html: `<p>Klik link di bawah untuk mereset password:</p><a href="${resetLink}">Reset Password</a>`,
     });
+
+    if (!sent) {
+      return { success: false, message: "Terjadi kesalahan saat mengirim link reset! Silakan dicoba lagi." };
+    }
 
     return { success: true, message: `Link reset password berhasil dikirim ke alamat email ${censoredEmail}` };
   } catch (error) {

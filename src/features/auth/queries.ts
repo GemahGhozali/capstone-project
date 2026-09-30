@@ -44,7 +44,7 @@ export async function verifyUserFromEmailOrIdentifier(value: string) {
     where: {
       OR: [{ alamatEmail: value }, { identifier: value }],
     },
-    select: { id: true, alamatEmail: true, isAccountReset: true },
+    select: { id: true, alamatEmail: true, isAccountReset: true, isActive: true },
   });
 }
 
