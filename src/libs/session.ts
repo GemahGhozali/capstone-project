@@ -1,15 +1,14 @@
 import "server-only";
 
-import { cache } from "react";
+import { Role } from "@/types";
 import { getEnv } from "@/utils/env";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { SignJWT, jwtVerify } from "jose";
 import { isAfter, subDays } from "date-fns";
 
 export type SessionPayload = {
   userId: string;
-  role: string;
+  role: Role;
   isAccountReset: boolean;
   iat: number;
   exp: number;
@@ -83,12 +82,6 @@ export async function refreshSession(): Promise<void> {
     expires,
   });
 }
-
-export const verifySession = cache(async (): Promise<SessionPayload> => {
-  const session = await getSession();
-  if (!session) redirect("/");
-  return session;
-});
 
 function shouldRefreshSession(exp: number) {
   const expiresAt = new Date(exp * 1000);
