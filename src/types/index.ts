@@ -6,3 +6,5 @@ export type ActionResponse<TData = void> = {
   data?: TData;
   errors?: ErrorFields;
 };
+
+export type Role = "Mahasiswa" | "Dosen Capstone Project" | "Dosen Pembimbing" | "Kaprodi";
