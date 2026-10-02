@@ -14,9 +14,10 @@ import { prisma } from "@/libs/prisma";
 import { maskEmail } from "@/utils/mask-email";
 import { sendEmail } from "@/libs/nodemailer";
 import { formatZodError } from "@/utils/format-zod-error";
+import { requireSession } from "@/libs/dal";
 import { ActionResponse, Role } from "@/types";
+import { deleteSession, createSession } from "@/libs/session";
 import { comparePassword, hashPassword } from "@/libs/bcrypt";
-import { deleteSession, createSession, getSession } from "@/libs/session";
 import { LoginInput, ResetAccountInput, ForgotPasswordInput, ResetPasswordInput } from "./schemas";
 import { LoginSchema, ResetAccountSchema, ForgotPasswordSchema, ResetPasswordSchema } from "./schemas";
 
@@ -63,11 +64,7 @@ export async function logout(): Promise<ActionResponse> {
 }
 
 export async function resetAccount(data: ResetAccountInput): Promise<ActionResponse> {
-  const session = await getSession();
-
-  if (!session) {
-    return { success: false, message: "Anda belum terautentikasi! Silahkan login terlebih dahulu." };
-  }
+  const session = await requireSession();
 
   if (session.isAccountReset) {
     return { success: false, message: "Akun sudah diaktivasi/direset! Reset akun hanya bisa dilakukan saat pertama kali login." };
