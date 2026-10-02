@@ -14,7 +14,7 @@ import { prisma } from "@/libs/prisma";
 import { maskEmail } from "@/utils/mask-email";
 import { sendEmail } from "@/libs/nodemailer";
 import { formatZodError } from "@/utils/format-zod-error";
-import { ActionResponse } from "@/types";
+import { ActionResponse, Role } from "@/types";
 import { comparePassword, hashPassword } from "@/libs/bcrypt";
 import { deleteSession, createSession, getSession } from "@/libs/session";
 import { LoginInput, ResetAccountInput, ForgotPasswordInput, ResetPasswordInput } from "./schemas";
@@ -46,7 +46,7 @@ export async function login(data: LoginInput): Promise<ActionResponse> {
       return { success: false, message: "NIM/NIP atau password anda salah! Silahkan coba lagi." };
     }
 
-    const role = user.userRoles[0].role.nama;
+    const role = user.userRoles[0].role.nama as Role;
 
     await createSession({ userId: user.id, role, isAccountReset: user.isAccountReset });
 
@@ -212,7 +212,8 @@ export async function resetPassword(data: ResetPasswordInput, token: string): Pr
       });
     });
 
-    const role = resetToken.user.userRoles[0].role.nama;
+    const role = resetToken.user.userRoles[0].role.nama as Role;
+
     await createSession({ userId: resetToken.user.id, role, isAccountReset: resetToken.user.isAccountReset });
 
     return { success: true, message: "Password berhasil diperbarui!" };

@@ -1,7 +1,8 @@
+import { Role } from "./types";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession, refreshSession } from "@/libs/session";
 
-const roleDashboards: Record<string, string> = {
+const roleDashboards: Record<Role, string> = {
   Mahasiswa: "/mahasiswa",
   "Dosen Capstone Project": "/dosen-capstone-project",
   "Dosen Pembimbing": "/dosen-pembimbing",
