@@ -78,19 +78,32 @@ model Prodi {
   @@map("prodi")
 }
 
+model Kelas {
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nama      String      @db.VarChar(20)
+  angkatan  Int         @db.SmallInt
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+
+  mahasiswa Mahasiswa[]
+
+  @@unique([nama, angkatan])
+  @@map("kelas")
+}
+
 model Mahasiswa {
   id           String              @id @db.Uuid
   nim          String              @unique @db.VarChar
-  kelas        String              @db.VarChar
-  angkatan     String              @db.VarChar
   tanggalMasuk DateTime            @map("tanggal_masuk") @db.Date
   status       StatusMahasiswa
   dosenId      String?             @map("dosen_id") @db.Uuid
+  kelasId      String              @map("kelas_id") @db.Uuid
   createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz
 
   user         User                @relation(fields: [id], references: [id], onDelete: Cascade)
   dosen        Dosen?              @relation(fields: [dosenId], references: [id], onDelete: SetNull)
+  kelas        Kelas               @relation(fields: [kelasId], references: [id], onDelete: Restrict)
   anggotaTim   AnggotaTim?
   resume       Resume?
   bookings     BookingKonsultasi[] 
