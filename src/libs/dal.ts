@@ -2,6 +2,7 @@ import "server-only";
 
 import { Role } from "@/types";
 import { cache } from "react";
+import { prisma } from "./prisma";
 import { redirect } from "next/navigation";
 import { getSession, SessionPayload } from "@/libs/session";
 
@@ -11,9 +12,25 @@ export const requireSession = cache(async (): Promise<SessionPayload> => {
   return session;
 });
 
-export const requireRole = cache(async (...role: Role[]): Promise<SessionPayload> => {
+export async function userIsValidAndHasRole(...role: Role[]) {
   const session = await requireSession();
+
   const isRoleInvalid = !role.includes(session.role);
+
   if (isRoleInvalid) redirect("/");
-  return session;
-});
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId, isActive: true },
+    select: {
+      id: true,
+      identifier: true,
+      namaLengkap: true,
+      alamatEmail: true,
+      fotoProfil: true,
+    },
+  });
+
+  if (!user) redirect("/");
+
+  return user;
+}
