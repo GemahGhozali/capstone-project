@@ -40,15 +40,20 @@ export async function proxy(request: NextRequest) {
   }
 
   // Kondisi 3 : Sudah login
-  const userDashboard = roleDashboards[session.role];
+  const primaryDashboard = roleDashboards[session.roles[0]];
+  const allowedDashboards = session.roles.map((role) => roleDashboards[role]);
+  // const userDashboard = roleDashboards[session.roles[0]];
+
+  const isAccessingAllowedPage = allowedDashboards.some((dashboard) => pathname.startsWith(dashboard));
 
   const isAccessingRoot = pathname === "/";
   const isAccessingAuthPage = authPaths.some((path) => pathname.startsWith(path));
-  const isAccessingWrongDashboard = isAccessingProtectedPage && !pathname.startsWith(userDashboard);
+  const isAccessingWrongDashboard = isAccessingProtectedPage && !isAccessingAllowedPage;
+
   const shouldRedirectToDashboard = isAccessingRoot || isAccessingAuthPage || isAccessingWrongDashboard;
 
   if (shouldRedirectToDashboard) {
-    return NextResponse.redirect(new URL(userDashboard, request.url));
+    return NextResponse.redirect(new URL(primaryDashboard, request.url));
   }
 
   await refreshSession();

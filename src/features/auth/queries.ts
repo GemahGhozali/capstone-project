@@ -2,7 +2,6 @@ import "server-only";
 
 import crypto from "crypto";
 import { prisma } from "@/libs/prisma";
-import { getSession } from "@/libs/session";
 
 export async function findUserCredentialByIdentifier(identifier: string) {
   return prisma.user.findUnique({
@@ -22,21 +21,6 @@ export async function findUserCredentialByIdentifier(identifier: string) {
       },
     },
   });
-}
-
-export async function getAuthenticatedUser() {
-  const session = await getSession();
-
-  if (!session) return null;
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-    select: { id: true, identifier: true, namaLengkap: true, alamatEmail: true, fotoProfil: true },
-  });
-
-  if (!user) return null;
-
-  return { ...user, role: session.role };
 }
 
 export async function verifyUserFromEmailOrIdentifier(value: string) {

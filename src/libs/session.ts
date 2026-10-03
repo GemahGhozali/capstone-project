@@ -8,7 +8,7 @@ import { isAfter, subDays } from "date-fns";
 
 export type SessionPayload = {
   userId: string;
-  role: Role;
+  roles: Role[];
   isAccountReset: boolean;
   iat: number;
   exp: number;

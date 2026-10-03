@@ -47,9 +47,9 @@ export async function login(data: LoginInput): Promise<ActionResponse> {
       return { success: false, message: "NIM/NIP atau password anda salah! Silahkan coba lagi." };
     }
 
-    const role = user.userRoles[0].role.nama as Role;
+    const roles = user.userRoles.map(({ role }) => role.nama) as Role[];
 
-    await createSession({ userId: user.id, role, isAccountReset: user.isAccountReset });
+    await createSession({ userId: user.id, roles, isAccountReset: user.isAccountReset });
 
     return { success: true, message: "Login berhasil!" };
   } catch (error) {
@@ -97,7 +97,7 @@ export async function resetAccount(data: ResetAccountInput): Promise<ActionRespo
     });
 
     await deleteSession();
-    await createSession({ userId: session.userId, role: session.role, isAccountReset: true });
+    await createSession({ userId: session.userId, roles: session.roles, isAccountReset: true });
 
     return { success: true, message: "Reset akun berhasil!" };
   } catch (error) {
@@ -209,9 +209,9 @@ export async function resetPassword(data: ResetPasswordInput, token: string): Pr
       });
     });
 
-    const role = resetToken.user.userRoles[0].role.nama as Role;
+    const roles = resetToken.user.userRoles.map(({ role }) => role.nama) as Role[];
 
-    await createSession({ userId: resetToken.user.id, role, isAccountReset: resetToken.user.isAccountReset });
+    await createSession({ userId: resetToken.user.id, roles, isAccountReset: resetToken.user.isAccountReset });
 
     return { success: true, message: "Password berhasil diperbarui!" };
   } catch (error) {

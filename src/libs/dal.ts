@@ -12,10 +12,10 @@ export const requireSession = cache(async (): Promise<SessionPayload> => {
   return session;
 });
 
-export async function userIsValidAndHasRole(...role: Role[]) {
+export async function userIsValidAndHasRole(...allowedRoles: Role[]) {
   const session = await requireSession();
 
-  const isRoleInvalid = !role.includes(session.role);
+  const isRoleInvalid = !session.roles.some((role) => allowedRoles.includes(role));
 
   if (isRoleInvalid) redirect("/");
 
