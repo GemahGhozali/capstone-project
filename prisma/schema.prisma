@@ -95,7 +95,7 @@ model Mahasiswa {
   id           String              @id @db.Uuid
   nim          String              @unique @db.VarChar
   tanggalMasuk DateTime            @map("tanggal_masuk") @db.Date
-  status       StatusMahasiswa
+  status       StatusMahasiswa     @default(Aktif)
   dosenId      String?             @map("dosen_id") @db.Uuid
   kelasId      String              @map("kelas_id") @db.Uuid
   createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz
@@ -115,7 +115,7 @@ model Dosen {
   id                    String                  @id @db.Uuid
   nip                   String                  @unique @db.VarChar
   bidangKeahlian        String                  @map("bidang_keahlian") @db.VarChar
-  status                StatusDosen
+  status                StatusDosen             @default(Aktif)
   prodiId               String?                 @map("prodi_id") @db.Uuid
   createdAt             DateTime                @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime                @updatedAt @map("updated_at") @db.Timestamptz
@@ -136,7 +136,7 @@ model DosenPembimbingDetail {
   id             String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   dosenId        String                      @unique @map("dosen_id") @db.Uuid
   batasBimbingan Int                         @map("batas_bimbingan")
-  status         StatusDosenPembimbingDetail 
+  status         StatusDosenPembimbingDetail @default(Buka)
   createdAt      DateTime                    @default(now()) @map("created_at") @db.Timestamptz
   updatedAt      DateTime                    @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -163,7 +163,7 @@ model AnggotaTim {
   mahasiswaId       String            @unique @map("mahasiswa_id") @db.Uuid
   peran             PeranAnggotaTim
   kategoriCapstone  KategoriCapstone  @map("kategori_capstone")
-  statusPersetujuan StatusPersetujuan @map("status_persetujuan")
+  statusPersetujuan StatusPersetujuan @default(Menunggu) @map("status_persetujuan")
   createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz
   updatedAt         DateTime          @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -261,7 +261,7 @@ model BookingKonsultasi {
   mahasiswaId        String           @map("mahasiswa_id") @db.Uuid
   catatanMahasiswa   String           @map("catatan_mahasiswa")
   catatanDosen       String?          @map("catatan_dosen")
-  status             StatusBooking
+  status             StatusBooking    @default(Dipesan)
   tanggalPembatalan  DateTime?        @map("tanggal_pembatalan") @db.Timestamptz
   alasanPembatalan   String?          @map("alasan_pembatalan")
   dibatalkanOleh     DibatalkanOleh?  @map("dibatalkan_oleh")
