@@ -202,17 +202,14 @@ export async function updateDosen(id: string, data: UpdateDosenInput): Promise<A
     let finalProfilePhotoPath = existingUser.fotoProfil;
 
     const dosenHasProfilePhoto = typeof existingUser.fotoProfil === "string";
-    const currentDosenProfilePhotoIsRemoved = !fotoProfil;
-    const isUploadedNewProfilePhoto = fotoProfil instanceof File;
+    const isProfilePhotoExplicitlyRemoved = !fotoProfil;
+    const isNewProfilePhotoUploaded = fotoProfil instanceof File;
 
-    const mustRemoveProfilePhoto = dosenHasProfilePhoto && currentDosenProfilePhotoIsRemoved;
-    const mustReplaceOldProfilePhoto = isUploadedNewProfilePhoto && dosenHasProfilePhoto;
-
-    if (mustRemoveProfilePhoto) {
+    if (isProfilePhotoExplicitlyRemoved) {
       finalProfilePhotoPath = null;
     }
 
-    if (mustReplaceOldProfilePhoto) {
+    if (isNewProfilePhotoUploaded) {
       newUploadedPhotoPath = await uploadFileOptional({ file: fotoProfil, uploadPath: "/images/profile/dosen/" });
       finalProfilePhotoPath = newUploadedPhotoPath;
     }
@@ -266,7 +263,9 @@ export async function updateDosen(id: string, data: UpdateDosenInput): Promise<A
       });
 
     // Validasi 6 : Cek apakah file foto profil lama harus dihapus
-    if (mustRemoveProfilePhoto || mustReplaceOldProfilePhoto) {
+    const shouldDeleteOldProfilePhoto = dosenHasProfilePhoto && (isNewProfilePhotoUploaded || isProfilePhotoExplicitlyRemoved);
+
+    if (shouldDeleteOldProfilePhoto) {
       await deleteFile(existingUser.fotoProfil as string);
     }
 
