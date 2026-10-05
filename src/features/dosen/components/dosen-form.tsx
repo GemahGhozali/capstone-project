@@ -13,6 +13,7 @@ import { Controller, useWatch } from "react-hook-form";
 import { getAllDosenRoles, getDosenById } from "../queries";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet, FieldTitle } from "@/components/ui/field";
+import { AvatarUploader, AvatarUploaderPreview, AvatarUploaderRemover, AvatarUploaderTrigger } from "@/components/ui/avatar-uploader";
 
 interface DosenFormProps {
   dosen?: Awaited<ReturnType<typeof getDosenById>>;
@@ -57,6 +58,46 @@ export function DosenForm({ dosen, prodi, role }: DosenFormProps) {
           </FieldLegend>
           <FieldDescription>Silahkan isi biodata diri dari dosen</FieldDescription>
           <FieldGroup className="grid lg:grid-cols-2">
+            {/* Foto Profil */}
+            <Controller
+              name="fotoProfil"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid} className="lg:col-span-2">
+                  <AvatarUploader
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    disabled={isPending}
+                    render={() => (
+                      <div className="flex max-sm:flex-col max-sm:items-center gap-3">
+                        <AvatarUploaderPreview className="rounded-full" />
+
+                        <div className="flex flex-col gap-2 max-sm:items-center max-sm:*:text-center">
+                          <FieldLabel>Foto Profil (Opsional)</FieldLabel>
+
+                          {fieldState.invalid ? (
+                            <FieldError errors={[fieldState.error]} />
+                          ) : (
+                            <FieldDescription>JPEG, JPG, PNG and WEBP, Maks. 1 MB</FieldDescription>
+                          )}
+
+                          <div className="flex items-center gap-2">
+                            <AvatarUploaderTrigger size="sm" variant="outline" className="text-foreground!">
+                              {field.value ? "Ganti" : "Upload"}
+                            </AvatarUploaderTrigger>
+                            <AvatarUploaderRemover size="sm" variant="destructive">
+                              Hapus
+                            </AvatarUploaderRemover>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  />
+                </Field>
+              )}
+            />
+
             {/* Nama Lengkap */}
             <Controller
               name="namaLengkap"
