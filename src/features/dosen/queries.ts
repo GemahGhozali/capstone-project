@@ -1,6 +1,50 @@
 import "server-only";
 
+import { Role } from "@/types";
 import { prisma } from "@/libs/prisma";
+
+export async function getAllDosen() {
+  try {
+    const allDosen = await prisma.dosen.findMany({
+      select: {
+        nip: true,
+        status: true,
+        prodi: {
+          select: { nama: true },
+        },
+        user: {
+          select: {
+            id: true,
+            namaLengkap: true,
+            fotoProfil: true,
+            userRoles: {
+              select: {
+                role: { select: { nama: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return allDosen.map((dosen) => {
+      const { user: account } = dosen;
+
+      return {
+        id: account.id,
+        fotoProfil: account.fotoProfil,
+        namaLengkap: account.namaLengkap,
+        nip: dosen.nip,
+        prodi: dosen.prodi.nama,
+        roles: account.userRoles.map(({ role }) => role.nama) as Role[],
+        status: dosen.status,
+      };
+    });
+  } catch (error) {
+    console.error("❌ Get Dosen By ID Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
 
 export async function getDosenById(id: string) {
   try {
@@ -10,9 +54,7 @@ export async function getDosenById(id: string) {
         id: true,
         namaLengkap: true,
         alamatEmail: true,
-        identifier: true,
         fotoProfil: true,
-        isActive: true,
         userRoles: {
           select: {
             role: {
