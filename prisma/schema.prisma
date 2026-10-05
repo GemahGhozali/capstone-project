@@ -116,12 +116,12 @@ model Dosen {
   nip                   String                  @unique @db.VarChar
   bidangKeahlian        String                  @map("bidang_keahlian") @db.VarChar
   status                StatusDosen             @default(Aktif)
-  prodiId               String?                 @map("prodi_id") @db.Uuid
+  prodiId               String                  @map("prodi_id") @db.Uuid
   createdAt             DateTime                @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime                @updatedAt @map("updated_at") @db.Timestamptz
 
   user                  User                    @relation(fields: [id], references: [id], onDelete: Cascade)
-  prodi                 Prodi?                  @relation(fields: [prodiId], references: [id], onDelete: SetNull)
+  prodi                 Prodi                   @relation(fields: [prodiId], references: [id], onDelete: Restrict)
   dosenPembimbingDetail DosenPembimbingDetail?
   proposalReviews       ProposalReview[]
   resumes               Resume[]
