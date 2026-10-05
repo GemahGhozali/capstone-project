@@ -27,13 +27,13 @@ export function useDosenForm({ dosen }: UseDosenForm) {
       nip: dosen?.nip ?? "",
       namaLengkap: dosen?.namaLengkap ?? "",
       bidangKeahlian: dosen?.bidangKeahlian ?? "",
-      prodiId: dosen?.prodiId ?? "",
+      prodiId: dosen?.prodi?.id ?? "",
       status: dosen?.status ?? "Aktif",
 
       // Informasi Akun
       alamatEmail: dosen?.alamatEmail ?? "",
-      password: dosen?.password ?? "",
-      roleId: dosen?.roleId ?? [],
+      password: "",
+      roleId: dosen?.roles.map((role) => role.id) ?? [],
 
       // Informasi Bimbingan
       statusBimbingan: dosen?.statusBimbingan ?? "Buka",
