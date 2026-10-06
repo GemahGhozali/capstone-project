@@ -7,7 +7,7 @@ Aplikasi web untuk mengelola seluruh alur kerja Capstone Project Prodi D3 Teknik
 - **Mahasiswa** — buat tim, ajukan proposal & resume, booking bimbingan
 - **Dosen Capstone Project** — review & set status proposal tim
 - **Dosen Pembimbing** — review resume (yang diajukan kepadanya), kelola jadwal & bimbingan
-- **Kaprodi** — CRUD data master, assign role, monitoring progress (superadmin; 1 user bisa multi-role + switch role)
+- **Kaprodi** — CRUD data master, assign role, monitoring progress (superadmin; 1 user bisa multi-role — switch role menyusul)
 
 ## Dokumentasi
 
@@ -17,7 +17,6 @@ Dokumentasi adalah single source of truth untuk pengembangan (termasuk oleh AI a
 - [`docs/ERD.md`](docs/ERD.md) — ERD final + constraint
 - [`docs/STACK.md`](docs/STACK.md) — tech stack & pola implementasi
 - [`docs/FLOW.md`](docs/FLOW.md) — flow end-to-end & state diagram
-- [`ERD_DRAFT.md`](ERD_DRAFT.md) — draft ERD awal (arsip; final ada di `docs/ERD.md`)
 
 ## Tech Stack
 
@@ -30,4 +29,4 @@ npm install
 npm run dev
 ```
 
-Buka [http://localhost:3000](http://localhost:3000).
+Buka [http://localhost:3000](http://localhost:3000) — halaman login (`/`).

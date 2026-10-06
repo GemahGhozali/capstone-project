@@ -9,28 +9,35 @@ Dokumen ini adalah **single source of truth** untuk aturan bisnis. Baca sebelum 
 
 - Data mahasiswa & dosen di-insert oleh **Kaprodi** (Kaprodi = superadmin).
 - Login menggunakan **NIM/NIP** (`User.identifier`) + password.
+- **Halaman login = `/` (root)** — `src/app/page.tsx`.
 - Password awal: **opsional diisi Kaprodi saat insert; jika kosong, default = identifier (NIM/NIP)**.
-- **Email placeholder** saat insert Kaprodi: format `nim@gmail.com` / `nip@gmail.com` (seeder menyusul; email asli diisi user sendiri saat login pertama).
-- **Force ganti email + password saat login pertama** (`is_password_changed = false`):
-  - User **wajib** mengganti **email dan password** sebelum masuk dashboard (bukan password saja).
-  - Email baru harus unik (`alamat_email` UNIQUE); password baru tidak boleh sama dengan identifier.
-  - Setelah sukses → `is_password_changed = true` → dashboard.
-  - Guard: saat `is_password_changed = false`, semua route **ditolak** kecuali halaman ganti email+password dan halaman lupa/reset password.
-  - `is_password_changed` = penanda "sudah pernah ganti email + password", bukan password saja.
+- **Email placeholder** saat insert Kaprodi: format `nim@gmail.com` / `nip@gmail.com` (seeder menyusul; email asli diisi user sendiri saat **reset akun**).
+- **Force reset akun saat login pertama** (`is_account_reset = false`):
+  - User **wajib** mengganti **email dan password** sebelum masuk dashboard (bukan password saja) lewat halaman **`/reset-akun`**.
+  - Isian: alamat email baru (**harus unik** — `alamat_email` UNIQUE) + password baru + konfirmasi password (**minimal 8 karakter**).
+  - Setelah sukses → `is_account_reset = true` → dashboard.
+  - Guard: saat `is_account_reset = false`, semua route **ditolak (redirect ke `/reset-akun`)** kecuali halaman `/reset-akun` itu sendiri.
+  - `is_account_reset` = penanda "sudah pernah reset akun (ganti email + password)", bukan password saja.
+- **Proteksi route** dilakukan di **`src/proxy.ts`** (Next.js 16 menyebut middleware sebagai **proxy**, jadi tidak ada `middleware.ts`):
+  1. **Belum login**: akses `/reset-akun` atau halaman dashboard → redirect `/`; selain itu lolos.
+  2. **Sudah login, `is_account_reset = false`**: semua route selain `/reset-akun` → redirect `/reset-akun`.
+  3. **Sudah login & sudah reset**: akses `/`, halaman auth, atau dashboard role lain → redirect ke dashboard role aktif; selain itu lolos (+ sliding refresh session).
 - **Lupa password** (reset via email):
-  - Input: **email** (`alamat_email`) — bukan NIM/NIP (NIM/NIP publik; token hanya dikirim ke email terdaftar).
-  - **Respon selalu generik** ("Jika email terdaftar, link reset telah dikirim") — anti account enumeration, jangan bocorkan email terdaftar/tidak.
-  - Jika email cocok → buat token acak **32 byte**, simpan **hash**-nya (bukan token mentah) di `PasswordResetToken`, berlaku **15 menit**, **single-use**.
-  - Maksimal **1 token aktif per user** (request baru menimpa/menghapus lama); **cooldown kirim ulang 60 detik**.
-  - Kirim link `/reset-password?token=...` via email.
-  - Halaman reset: masukkan password baru (≠ identifier) → token ditandai `used_at` (terpakai) → redirect ke login dengan pesan sukses.
+  - Halaman **`/lupa-password`**; user memilih metode: **Email (`alamat_email`) ATAU NIM/NIP (`identifier`)**.
+  - Prasyarat: `User.is_account_reset = true`. Jika belum → pesan jelas: akun belum diaktivasi/direset, harus login dulu dengan NIM/NIP + password default lalu reset akun.
+  - Token: acak **UUID** (`crypto.randomUUID()`), disimpan **hash SHA-256**-nya (bukan token mentah) di `PasswordResetToken`, berlaku **15 menit**, **single-use**.
+  - **Maksimal 1 token aktif per user** (request baru menimpa lama / `upsert`). Jika masih ada token aktif, link **tidak dikirim ulang** — user diberi pesan bahwa link sebelumnya sudah dikirim ke emailnya (alamat email ditutup/masked).
+  - Kirim link **`/reset-password?token=...`** via email (`libs/nodemailer.ts` → `sendEmail`).
+  - Halaman **`/reset-password`**: masukkan password baru + konfirmasi (min 8 karakter) → token ditandai `used_at` (terpakai) → **langsung login (session dibuat)** → dashboard.
   - Token kedaluwarsa/terpakai/salah → pesan error jelas, tidak ada perubahan password.
-  - Catatan: sebelum user ganti email pertama kali, email = placeholder `nim@gmail.com` — link reset mungkin tidak sampai ke inbox asli (best effort; setelah ganti email, alur berjalan normal).
+  - **Catatan keamanan**: pesan error lupa-password bersifat **spesifik** (mis. "Akun tidak ditemukan!"), **bukan** respon generik — ada risiko account enumeration, diputuskan demikian demi kejelasan user.
+  - Catatan: sebelum user reset akun, email = placeholder `nim@gmail.com` — link reset mungkin tidak sampai ke inbox asli (best effort; setelah reset akun, alur berjalan normal).
 - Role awal ditentukan Kaprodi. Tabel `Role` berisi: `Mahasiswa`, `Dosen Capstone Project`, `Dosen Pembimbing`, `Kaprodi`.
 - **1 user bisa memiliki lebih dari 1 role** (contoh: dosen bisa merangkap Dosen Capstone + Dosen Pembimbing).
-- Session user menyimpan **role aktif**; mekanisme **switch role** mengganti role aktif → redirect ke dashboard role tersebut.
+- Session user menyimpan **role aktif** — saat ini **selalu role pertama** (`user.userRoles[0]`); mekanisme **switch role BELUM diimplementasikan** (belum ada UI maupun aksi penggantian role aktif).
+- Auth session: **JWT signed via `jose`** (cookie httpOnly `session`, gaya official Next.js). Tidak pakai library auth eksternal.
+  - Payload: `{ userId, role, isAccountReset, iat, exp }`, masa berlaku **7 hari** + sliding refresh (diperpanjang saat sisa masa berlaku < 3 hari).
 - `User.is_active = false` → tidak bisa login (soft delete di level user).
-- Auth session: **JWT signed via `jose`** (cookie-based, gaya official Next.js). Tidak pakai library auth eksternal.
 
 ---
 
@@ -140,7 +147,8 @@ Dokumen ini adalah **single source of truth** untuk aturan bisnis. Baca sebelum 
 ## 6. Master Data (Kaprodi)
 
 - CRUD **Mahasiswa** dan **Dosen** dengan **filter, sort, pagination**.
-- Insert user: identifier (NIM/NIP), nama, email, password (opsional, default = identifier), lalu data profil (kelas/angkatan/tanggal_masuk untuk mhs; bidang_keahlian/nip untuk dosen).
+- Insert user: identifier (NIM/NIP), nama, email placeholder (`nim@gmail.com` / `nip@gmail.com`), password (opsional, default = identifier), lalu data profil (kelas/angkatan/tanggal_masuk untuk mhs; bidang_keahlian/nip untuk dosen) — email asli & password baru diisi user sendiri saat **reset akun**.
+- `Mahasiswa.id` / `Dosen.id` = **shared PK dengan `User.id`** (baris profil dibuat dengan id yang sama seperti User yang baru dibuat).
 - **Soft delete = set status data**, bukan hard delete:
   - `Mahasiswa.status`: `Aktif` | `Nonaktif` | `Arsip`
   - `Dosen.status`: `Aktif` | `Nonaktif` | `Pindah`

@@ -2,8 +2,8 @@
 
 ```mermaid
 erDiagram
-    User ||--o| Mahasiswa : "1-1"
-    User ||--o| Dosen : "1-1"
+    User ||--o| Mahasiswa : "1-1 shared PK"
+    User ||--o| Dosen : "1-1 shared PK"
     User }o--o{ Role : UserRole
     User ||--o{ PasswordResetToken : ""
     Dosen ||--o| DosenPembimbingDetail : "1-1"
@@ -30,21 +30,20 @@ erDiagram
         varchar alamat_email "UNIQUE"
         text foto_profil "nullable"
         boolean is_active
-        boolean is_password_changed "sudah ganti email + password"
+        boolean is_account_reset "sudah reset akun (ganti email + password)"
         timestamptz created_at
         timestamptz updated_at
     }
     PasswordResetToken {
         uuid id PK
         uuid user_id FK
-        text token_hash "hash dari token 32 byte, bukan token mentah"
+        text token_hash "hash SHA-256 dari token acak (UUID), bukan token mentah"
         timestamptz expires_at "15 menit dari created_at"
         timestamptz used_at "NULL = masih aktif"
     }
     Role {
         uuid id PK
         varchar nama "UNIQUE"
-        text deskripsi
     }
     UserRole {
         uuid id PK
@@ -56,8 +55,7 @@ erDiagram
         varchar nama "UNIQUE"
     }
     Mahasiswa {
-        uuid id PK
-        uuid user_id FK "UNIQUE"
+        uuid id PK "shared dengan User.id (FK → User.id)"
         varchar nim "UNIQUE"
         varchar kelas
         varchar angkatan
@@ -66,8 +64,7 @@ erDiagram
         uuid dosen_id FK "nullable, dospem tetap"
     }
     Dosen {
-        uuid id PK
-        uuid user_id FK "UNIQUE"
+        uuid id PK "shared dengan User.id (FK → User.id)"
         varchar nip "UNIQUE"
         varchar bidang_keahlian
         enum status "Aktif|Nonaktif|Pindah"
@@ -167,7 +164,7 @@ erDiagram
 | alamat_email | VARCHAR | UNIQUE, NOT NULL | — |
 | foto_profil | TEXT | NULLABLE | — |
 | is_active | BOOLEAN | NOT NULL, DEFAULT true | — |
-| is_password_changed | BOOLEAN | NOT NULL, DEFAULT false — penanda **sudah ganti email + password** (bukan password saja) | — |
+| is_account_reset | BOOLEAN | NOT NULL, DEFAULT false — penanda **sudah reset akun (ganti email + password)** (bukan password saja) | — |
 | created_at | TIMESTAMPTZ | NOT NULL | — |
 | updated_at | TIMESTAMPTZ | NOT NULL | — |
 
@@ -176,7 +173,7 @@ erDiagram
 |---|---|---|---|
 | id | UUID | PK | — |
 | user_id | UUID | FK → User.id, NOT NULL (1 token aktif per user — request baru menimpa lama) | CASCADE |
-| token_hash | TEXT | NOT NULL (hash dari token acak 32 byte; token mentah **tidak** disimpan) | — |
+| token_hash | TEXT | NOT NULL (hash SHA-256 dari token acak `crypto.randomUUID()`; token mentah **tidak** disimpan) | — |
 | expires_at | TIMESTAMPTZ | NOT NULL (created_at + 15 menit) | — |
 | used_at | TIMESTAMPTZ | NULLABLE — NULL = masih aktif; terisi saat token dipakai (single-use) | — |
 | created_at | TIMESTAMPTZ | NOT NULL | — |
@@ -187,7 +184,6 @@ erDiagram
 |---|---|---|---|
 | id | UUID | PK | — |
 | nama | VARCHAR | UNIQUE, NOT NULL | — |
-| deskripsi | TEXT | NOT NULL | — |
 | created_at | TIMESTAMPTZ | NOT NULL | — |
 | updated_at | TIMESTAMPTZ | NOT NULL | — |
 
@@ -213,8 +209,7 @@ erDiagram
 **Mahasiswa**
 | Field | Tipe | Constraint | On Delete |
 |---|---|---|---|
-| id | UUID | PK | — |
-| user_id | UUID | FK → User.id, UNIQUE (1–1), NOT NULL | CASCADE |
+| id | UUID | PK **sekaligus** FK → User.id (**shared PK**: `Mahasiswa.id = User.id`, tanpa default — nilai diambil dari User yang dibuat) | CASCADE |
 | nim | VARCHAR | UNIQUE, NOT NULL | — |
 | kelas | VARCHAR | NOT NULL | — |
 | angkatan | VARCHAR | NOT NULL | — |
@@ -227,8 +222,7 @@ erDiagram
 **Dosen**
 | Field | Tipe | Constraint | On Delete |
 |---|---|---|---|
-| id | UUID | PK | — |
-| user_id | UUID | FK → User.id, UNIQUE (1–1), NOT NULL | CASCADE |
+| id | UUID | PK **sekaligus** FK → User.id (**shared PK**: `Dosen.id = User.id`, tanpa default — nilai diambil dari User yang dibuat) | CASCADE |
 | nip | VARCHAR | UNIQUE, NOT NULL | — |
 | bidang_keahlian | VARCHAR | NOT NULL | — |
 | status | ENUM(Aktif, Nonaktif, Pindah) | NOT NULL | — |
@@ -380,5 +374,5 @@ erDiagram
 7. `Mahasiswa.dosen_id` di-set saat resume `Disetujui`.
 8. Booking: syarat resume `Disetujui`, jadwal = dospem sendiri, tanpa double-booking aktif, kuota tersedia.
 9. Field `Dibatalkan` (alasan, oleh, tanggal) wajib — via Zod.
-10. Force ganti **email + password** saat `is_password_changed = false`.
-11. Reset password: input email saja, respon generik, token hash 15 menit single-use, cooldown kirim ulang 60 detik (lihat `docs/BUSINESS_RULES.md` §1).
+10. Force **reset akun (ganti email + password)** saat `is_account_reset = false` — semua route ditolak kecuali `/reset-akun`.
+11. Reset password: input **email atau NIM/NIP**, token hash (UUID → SHA-256) 15 menit single-use, maks. 1 token aktif per user (request baru menimpa), hanya untuk akun `is_account_reset = true`, password baru min 8 karakter (lihat `docs/BUSINESS_RULES.md` §1).

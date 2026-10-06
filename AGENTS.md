@@ -1,7 +1,7 @@
 # Capstone Project — Agent Instructions
 
 Aplikasi web pengelola alur kerja Capstone Project Prodi D3 Teknik Informatika:
-tim → proposal (tim) → resume (individu) → bimbingan. Role: Mahasiswa, Dosen Capstone Project, Dosen Pembimbing, Kaprodi (superadmin, 1 user bisa multi-role + switch role).
+tim → proposal (tim) → resume (individu) → bimbingan. Role: Mahasiswa, Dosen Capstone Project, Dosen Pembimbing, Kaprodi (superadmin, 1 user bisa multi-role; switch role menyusul).
 
 **Baca file berikut sebelum menyentuh skema DB, server action, auth, atau fitur terkait — jangan asumsikan dari ingatan, jangan tanya ulang aturan yang sudah tertulis:**
 
@@ -15,12 +15,13 @@ tim → proposal (tim) → resume (individu) → bimbingan. Role: Mahasiswa, Dos
 ## Konvensi singkat
 
 - Stack: Next.js App Router + **Server Action** (mutasi), **Server Components** (query), Tanstack Query **hanya untuk mutasi**, Tailwind, shadcn/ui, React Hook Form + **Zod** (validasi ganda: client & server action), **Prisma + PostgreSQL**, auth JWT via **`jose`** (httpOnly cookie, tanpa NextAuth).
-- **Struktur feature-based**: logika per domain → `src/features/<domain>/` (selaras tabel ERD: `auth`, `mahasiswa`, `dosen`, `tim`, `proposal`, `resume`, `konsultasi`, `monitoring`). `src/app/` **hanya routing** (page/layout tipis).
+- **Struktur feature-based**: logika per domain → `src/features/<domain>/` (selaras tabel ERD: `auth`, `mahasiswa`, `dosen`, `tim`, `proposal`, `resume`, `konsultasi`, `monitoring` — folder `monitoring` menyusul). `src/app/` **hanya routing** (page/layout tipis).
 - Layer per fitur **flat, 1 file per layer**: `schemas.ts` (Zod + type), `actions.ts` (server actions), `queries.ts` (Prisma read), `hooks.ts` (Tanstack Query, jika perlu), `components/` (UI — satu-satunya folder). **Jangan** pecah per fungsi atau tambah folder lain di fitur. Detail: `docs/STACK.md`.
 - Bahasa teks/enum UI: **Indonesia**, ikuti kamus di `docs/BUSINESS_RULES.md`.
 - Soft delete = kolom status enum / `is_active` (bukan `deletedAt`).
 - File PDF di `public/`; saat replace proposal/resume, **hapus file lama dari disk**.
-- Setiap server action wajib: cek session + cek role, re-parse input dengan Zod.
+- Setiap server action wajib: cek session + cek role, re-parse input dengan Zod — **kecuali action auth** (`login`, `logout`, `forgotPassword`, `resetPassword`) yang memang dijalankan tanpa session.
+- Proteksi route: **`src/proxy.ts`** (Next.js 16 menyebut middleware sebagai **proxy**; file `middleware.ts` sudah tidak dipakai). **Halaman login = `/`** (root).
 - Log `ActivityLog` hanya untuk entity `Tim`, `Proposal`, `Resume`.
 - Sebelum menulis kode Next.js, cek docs versi ini di `node_modules/next/dist/docs/` (lihat blok di bawah).
 

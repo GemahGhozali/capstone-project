@@ -4,33 +4,48 @@ End-to-end flows per domain. Aturan detail di `docs/BUSINESS_RULES.md`; skema di
 
 ---
 
-## 0. Auth & Switch Role
+## 0. Auth, Reset Akun & Lupa Password
 
 ```
 Kaprodi insert user (nim/nip, nama, email placeholder = nim@gmail.com/nip@gmail.com,
                      password opsional → default = identifier)
   → assign role (boleh >1 role)
+  → baris profil Mahasiswa/Dosen dibuat dgn id = User.id (shared PK)
 
+[Halaman login = `/` (root)]
 User login (identifier + password)
-  → is_password_changed = false?
-      → force halaman ganti EMAIL + PASSWORD (semua route lain ditolak guard)
-      → email baru unique, password baru ≠ identifier
-      → sukses → is_password_changed = true → dashboard
-  → else → dashboard role aktif
+  → user tidak ada / password salah → pesan "NIM/NIP atau password anda salah!"
+  → is_active = false → pesan akun dinonaktifkan (dicek sebelum verifikasi password)
+  → sukses → session JWT di cookie `session` = { userId, role, isAccountReset }
+  → is_account_reset = false?
+      → force halaman /reset-akun (semua route lain ditolak guard)
+      → ganti EMAIL baru (unique) + PASSWORD baru + konfirmasi (min 8)
+      → sukses → is_account_reset = true → dashboard role
+  → else → dashboard role aktif (role = userRoles[0])
 
-User punya >1 role? → UI switch role
-  → re-issue JWT dengan role baru → redirect dashboard role tsb
+[Guard — src/proxy.ts (Next.js 16: middleware → proxy)]
+  belum login         : akses /reset-akun | /{dashboard}  → redirect /
+  belum reset akun    : semua route selain /reset-akun    → redirect /reset-akun
+  sudah login & reset : akses / | halaman auth | dashboard salah role
+                        → redirect dashboard role aktif
+                        selain itu → refresh session (sliding) → lanjut
+
+[Switch role]
+  BELUM diimplementasikan — login selalu memakai role pertama (userRoles[0])
 
 [Lupa password]
-  Halaman /lupa-password → input EMAIL
-  → respon selalu generik: "Jika email terdaftar, link reset telah dikirim"
-  → jika email cocok:
-      buat token acak 32 byte → simpan HASH + expires_at (15 menit) di PasswordResetToken
-      (1 token aktif per user — request baru menimpa; cooldown kirim ulang 60 detik)
-      kirim link /reset-password?token=... via email (libs/mailer.ts)
-  Halaman /reset-password → password baru (≠ identifier)
-  → token valid? → update password, used_at terisi (single-use) → redirect login
-  → token expired/salah → pesan error, tanpa perubahan
+  Halaman /lupa-password → pilih metode: EMAIL atau NIM/NIP
+  → akun tidak ditemukan           → pesan error spesifik (BUKAN respon generik)
+  → is_account_reset = false       → pesan: akun belum diaktivasi/direset,
+                                      login dulu lalu reset akun
+  → masih ada token aktif          → TIDAK kirim ulang,
+                                      pesan "link sebelumnya telah dikirim ke <email tertutup>"
+  → buat token acak (UUID) → simpan HASH SHA-256 + expires_at (15 menit) di PasswordResetToken
+      (1 token aktif per user — request baru menimpa; TANPA cooldown waktu)
+  → kirim link /reset-password?token=... via email (libs/nodemailer.ts)
+  Halaman /reset-password → password baru + konfirmasi (min 8)
+  → token valid? → update password, used_at terisi (single-use) → LANGSUNG LOGIN → dashboard
+  → token expired/salah → pesan error, tanpa perubahan password
 ```
 
 State token: `aktif (used_at NULL, belum expired) → terpakai (used_at terisi) | kedaluwarsa (expires_at lewat)`.
