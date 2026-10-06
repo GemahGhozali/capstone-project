@@ -212,7 +212,7 @@ export async function updateMahasiswa(id: string, data: UpdateMahasiswaInput): P
   }
 }
 
-export async function deleteMahasiswa(id: string) {
+export async function deleteMahasiswa(id: string): Promise<ActionResponse> {
   try {
     await userIsValidAndHasRole("Kaprodi");
 

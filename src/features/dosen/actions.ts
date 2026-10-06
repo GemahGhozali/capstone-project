@@ -276,7 +276,7 @@ export async function updateDosen(id: string, data: UpdateDosenInput): Promise<A
   }
 }
 
-export async function deleteDosen(id: string) {
+export async function deleteDosen(id: string): Promise<ActionResponse> {
   try {
     await userIsValidAndHasRole("Kaprodi");
 
