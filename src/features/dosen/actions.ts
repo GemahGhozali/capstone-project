@@ -275,3 +275,32 @@ export async function updateDosen(id: string, data: UpdateDosenInput): Promise<A
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }
+
+export async function deleteDosen(id: string) {
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    // Validasi 1 : Cek apakah data akun dan profil dosen ditemukan
+    const existingUser = await prisma.user.findUnique({ where: { id }, include: { dosen: true } });
+
+    const dosenNotFound = !existingUser || !existingUser.dosen;
+
+    if (dosenNotFound) {
+      return { success: false, message: "Data dosen tidak ditemukan!" };
+    }
+
+    // Validasi 2 : Cek apakah data akun dosen memiliki file foto profil
+    const dosenHasProfilePhoto = existingUser.fotoProfil;
+
+    if (dosenHasProfilePhoto) {
+      await deleteFile(existingUser.fotoProfil as string);
+    }
+
+    await prisma.user.delete({ where: { id } });
+
+    return { success: true, message: "Dosen berhasil dihapus!" };
+  } catch (error) {
+    console.log("❌ Delete Dosen Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
