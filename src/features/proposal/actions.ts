@@ -276,7 +276,7 @@ export async function reviewProposal(id: string, data: ReviewProposalInput): Pro
 
     return { success: true, message: "Proposal berhasil direview!" };
   } catch (error) {
-    console.log("❌ Delete Mahasiswa Error :", error);
+    console.log("❌ Review Proposal Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }
