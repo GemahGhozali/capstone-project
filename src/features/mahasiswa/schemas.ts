@@ -10,7 +10,7 @@ export const CreateMahasiswaSchema = z.object({
   fotoProfil: z.union([MahasiswaImageSchema, z.string(), z.null()]),
   namaLengkap: z.string().min(1, "Nama lengkap mahasiswa wajib diisi!"),
   nim: z.string().min(1, "NIM mahasiswa wajib diisi!"),
-  kelasId: z.uuid("Prodi wajib dipilih!"),
+  kelasId: z.uuid("Kelas wajib dipilih!"),
   tanggalMasuk: z.date("Tanggal masuk wajib diisi!"),
   status: z.enum(StatusMahasiswa, "Status keaktifan mahasiswa wajib dipilih!"),
   alamatEmail: z.email("Format email tidak valid!"),
