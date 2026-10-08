@@ -1,5 +1,4 @@
 import * as z from "zod";
-import { StatusProposal } from "@/generated/prisma/enums";
 
 const ProposalFileSchema = z
   .file()
@@ -13,7 +12,7 @@ export const ProposalSchema = z.object({
 });
 
 export const ReviewProposalSchema = z.object({
-  status: z.enum(StatusProposal, "Status proposal wajib dipilih!"),
+  status: z.enum(["Disetujui", "Ditolak", "Revisi"], "Status proposal wajib dipilih!"),
   catatan: z.string().min(1, "Catatan review wajib diisi!"),
 });
 
