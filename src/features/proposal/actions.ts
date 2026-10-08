@@ -21,7 +21,7 @@ export async function submitProposal(data: ProposalInput): Promise<ActionRespons
     const { id: mahasiswaId } = await userIsValidAndHasRole("Mahasiswa");
 
     const mahasiswa = await prisma.anggotaTim.findUnique({
-      where: { id: mahasiswaId },
+      where: { mahasiswaId },
       select: {
         peran: true,
         tim: {
@@ -151,8 +151,14 @@ export async function updateProposal(id: string, data: ProposalInput): Promise<A
       return { success: false, message: "Proposal tidak ditemukan!" };
     }
 
+    const mahasiswaMembership = proposal.tim.anggotaTim[0];
+
+    if (!mahasiswaMembership) {
+      return { success: false, message: "Anda bukan anggota tim pemilik proposal ini!" };
+    }
+
     // Validasi 2 : Cek apakah mahasiswa berperan sebagai ketua tim
-    const mahasiswaRole = proposal.tim.anggotaTim[0].peran;
+    const mahasiswaRole = mahasiswaMembership.peran;
     const mahasiswaIsNotLeader = mahasiswaRole !== "Ketua";
 
     if (mahasiswaIsNotLeader) {
