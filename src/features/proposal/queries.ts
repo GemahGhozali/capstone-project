@@ -42,6 +42,24 @@ export async function getProposalById(id: string) {
         mitra: true,
         status: true,
         createdAt: true,
+        reviews: {
+          select: {
+            id: true,
+            status: true,
+            catatan: true,
+            createdAt: true,
+            dosen: {
+              select: {
+                user: {
+                  select: {
+                    namaLengkap: true,
+                    fotoProfil: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         tim: {
           select: {
             nama: true,
@@ -75,13 +93,22 @@ export async function getProposalById(id: string) {
       judul: proposal.judul,
       mitra: proposal.mitra,
       status: proposal.status,
-      namaTim: proposal.tim.nama,
-      anggotaTim: proposal.tim.anggotaTim.map((anggota) => ({
-        nim: anggota.mahasiswa.nim,
-        namaLengkap: anggota.mahasiswa.user.namaLengkap,
-        fotoProfil: anggota.mahasiswa.user.fotoProfil,
-        kategoriCapstone: anggota.kategoriCapstone,
-        peran: anggota.peran,
+      tim: {
+        nama: proposal.tim.nama,
+        anggotaTim: proposal.tim.anggotaTim.map((anggota) => ({
+          nim: anggota.mahasiswa.nim,
+          namaLengkap: anggota.mahasiswa.user.namaLengkap,
+          fotoProfil: anggota.mahasiswa.user.fotoProfil,
+          kategoriCapstone: anggota.kategoriCapstone,
+          peran: anggota.peran,
+        })),
+      },
+      reviews: proposal.reviews.map((review) => ({
+        id: review.id,
+        status: review.status,
+        catatan: review.catatan,
+        namaDosenReviewer: review.dosen?.user.namaLengkap,
+        tanggalReview: review.createdAt,
       })),
     };
   } catch (error) {
