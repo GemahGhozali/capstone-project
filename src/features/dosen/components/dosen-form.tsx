@@ -45,7 +45,7 @@ export function DosenForm({ dosen, prodi, role }: DosenFormProps) {
   const handleSetDefaultAccount = () => {
     const nipValue = getValues("nip");
     if (!nipValue) return;
-    setValues({ alamatEmail: `${nipValue}@gmail.com`, password: nipValue });
+    setValues({ alamatEmail: `${nipValue}@gmail.com`, password: nipValue }, { shouldValidate: true });
   };
 
   return (
