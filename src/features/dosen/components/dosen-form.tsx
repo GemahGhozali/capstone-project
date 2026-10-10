@@ -11,9 +11,9 @@ import { getAllProdi } from "@/features/prodi/queries";
 import { useDosenForm } from "../hooks";
 import { Controller, useWatch } from "react-hook-form";
 import { getAllDosenRoles, getDosenById } from "../queries";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet, FieldTitle } from "@/components/ui/field";
 import { AvatarUploader, AvatarUploaderPreview, AvatarUploaderRemover, AvatarUploaderTrigger } from "@/components/ui/avatar-uploader";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet, FieldTitle } from "@/components/ui/field";
 
 interface DosenFormProps {
   dosen?: Awaited<ReturnType<typeof getDosenById>>;
@@ -190,7 +190,7 @@ export function DosenForm({ dosen, prodi, role }: DosenFormProps) {
                         }
                       }}
                     >
-                      <SelectTrigger id="prodiId" aria-invalid={fieldState.invalid} disabled={isDisabled}>
+                      <SelectTrigger id="prodiId" aria-invalid={fieldState.invalid} disabled={isDisabled} className="w-full">
                         <SelectValue placeholder={prodi.length === 0 ? "Tidak ada data prodi" : "Silahkan pilih prodi dosen disini..."}>
                           {selectedProdi?.nama}
                         </SelectValue>
@@ -198,11 +198,14 @@ export function DosenForm({ dosen, prodi, role }: DosenFormProps) {
 
                       {prodi.length > 0 && (
                         <SelectContent>
-                          {prodi.map((prodi) => (
-                            <SelectItem key={prodi.id} value={prodi.id}>
-                              {prodi.nama}
-                            </SelectItem>
-                          ))}
+                          <SelectGroup>
+                            <SelectLabel>Pilihan Program Studi</SelectLabel>
+                            {prodi.map((prodi) => (
+                              <SelectItem key={prodi.id} value={prodi.id}>
+                                {prodi.nama}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
                         </SelectContent>
                       )}
                     </Select>
@@ -235,11 +238,14 @@ export function DosenForm({ dosen, prodi, role }: DosenFormProps) {
                       <SelectValue placeholder="Pilih status keaktifan dosen disini..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {["Aktif", "Nonaktif", "Pindah"].map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
+                      <SelectGroup>
+                        <SelectLabel>Status Keaktifan</SelectLabel>
+                        {["Aktif", "Nonaktif", "Pindah"].map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     </SelectContent>
                   </Select>
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -386,11 +392,14 @@ export function DosenForm({ dosen, prodi, role }: DosenFormProps) {
                           <SelectValue placeholder="Pilih status bimbingan dosen disini..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {["Buka", "Tutup"].map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          ))}
+                          <SelectGroup>
+                            <SelectLabel>Status Bimbingan</SelectLabel>
+                            {["Buka", "Tutup"].map((category) => (
+                              <SelectItem key={category} value={category}>
+                                {category}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
