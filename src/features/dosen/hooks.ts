@@ -3,6 +3,7 @@
 import { toast } from "@/components/ui/toast";
 import { useForm } from "react-hook-form";
 import { runAction } from "@/utils/action-runner";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { getDosenById } from "./queries";
@@ -15,6 +16,8 @@ interface UseDosenForm {
 }
 
 export function useDosenForm({ dosen }: UseDosenForm) {
+  const router = useRouter();
+
   const form = useForm({
     resolver: zodResolver(dosen ? UpdateDosenSchema : CreateDosenSchema),
     mode: "onTouched",
@@ -46,6 +49,7 @@ export function useDosenForm({ dosen }: UseDosenForm) {
 
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });
+      router.replace("/kaprodi/daftar-dosen");
     },
 
     onError: (response: ActionResponse) => {
@@ -63,11 +67,14 @@ export function useDosenForm({ dosen }: UseDosenForm) {
 }
 
 export function useDeleteDosen() {
+  const router = useRouter();
+
   return useMutation({
     mutationFn: (id: string) => runAction(() => deleteDosen(id)),
 
     onSuccess: (response) => {
       toast.add({ type: "success", description: response.message });
+      router.refresh();
     },
 
     onError: (response: ActionResponse) => {
