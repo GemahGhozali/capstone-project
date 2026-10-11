@@ -3,6 +3,7 @@
 import { toast } from "@/components/ui/toast";
 import { useForm } from "react-hook-form";
 import { runAction } from "@/utils/action-runner";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { ActionResponse } from "@/types";
@@ -15,6 +16,8 @@ interface UseMahasiswaForm {
 }
 
 export function useMahasiswaForm({ mahasiswa }: UseMahasiswaForm) {
+  const router = useRouter();
+
   const form = useForm({
     resolver: zodResolver(mahasiswa ? UpdateMahasiswaSchema : CreateMahasiswaSchema),
     mode: "onTouched",
@@ -38,6 +41,7 @@ export function useMahasiswaForm({ mahasiswa }: UseMahasiswaForm) {
 
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });
+      router.replace("/kaprodi/daftar-mahasiswa");
     },
 
     onError: (response: ActionResponse) => {
@@ -55,11 +59,14 @@ export function useMahasiswaForm({ mahasiswa }: UseMahasiswaForm) {
 }
 
 export function useDeleteMahasiswa() {
+  const router = useRouter();
+
   return useMutation({
     mutationFn: (id: string) => runAction(() => deleteMahasiswa(id)),
 
     onSuccess: (response) => {
       toast.add({ type: "success", description: response.message });
+      router.refresh();
     },
 
     onError: (response: ActionResponse) => {
