@@ -9,14 +9,14 @@ import { useRouter } from "next/navigation";
 import { DatePicker } from "@/components/ui/date-picker";
 import { getAllKelas } from "@/features/kelas/queries";
 import { useMahasiswaForm } from "../hooks";
-import { getMahasiswaById } from "../queries";
+import { MahasiswaDetails } from "../types";
 import { Controller, useWatch } from "react-hook-form";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { AvatarUploader, AvatarUploaderPreview, AvatarUploaderRemover, AvatarUploaderTrigger } from "@/components/ui/avatar-uploader";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface MahasiswaFormProps {
-  mahasiswa?: Awaited<ReturnType<typeof getMahasiswaById>>;
+  mahasiswa?: MahasiswaDetails;
   kelas: Awaited<ReturnType<typeof getAllKelas>>;
 }
 
