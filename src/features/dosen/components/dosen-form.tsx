@@ -9,14 +9,15 @@ import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 import { getAllProdi } from "@/features/prodi/queries";
 import { useDosenForm } from "../hooks";
+import { DosenDetails } from "../types";
+import { getAllDosenRoles } from "../queries";
 import { Controller, useWatch } from "react-hook-form";
-import { getAllDosenRoles, getDosenById } from "../queries";
 import { AvatarUploader, AvatarUploaderPreview, AvatarUploaderRemover, AvatarUploaderTrigger } from "@/components/ui/avatar-uploader";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet, FieldTitle } from "@/components/ui/field";
 
 interface DosenFormProps {
-  dosen?: Awaited<ReturnType<typeof getDosenById>>;
+  dosen?: DosenDetails;
   prodi: Awaited<ReturnType<typeof getAllProdi>>;
   role: Awaited<ReturnType<typeof getAllDosenRoles>>;
 }
