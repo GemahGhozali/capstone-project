@@ -2,8 +2,8 @@ import { Role } from "@/types";
 import { IconLayoutGrid, IconUsers, IconClipboardText, IconBook, IconFileDescription } from "@tabler/icons-react";
 
 export type SidebarMenuItem = {
-  url: string;
   title: string;
+  url: string;
   icon: React.JSX.Element;
 };
 
@@ -16,8 +16,8 @@ const mahasiswaSidebarMenus: SidebarMenuGroup[] = [
   {
     items: [
       {
-        url: "/mahasiswa",
         title: "Dashboard",
+        url: "/mahasiswa",
         icon: <IconLayoutGrid />,
       },
       {
@@ -48,8 +48,8 @@ const dosenCapstoneProjectSidebarMenus: SidebarMenuGroup[] = [
   {
     items: [
       {
-        url: "/dosen-capstone-project",
         title: "Dashboard",
+        url: "/dosen-capstone-project",
         icon: <IconLayoutGrid />,
       },
       {
@@ -65,8 +65,8 @@ const dosenPembimbingSidebarMenus: SidebarMenuGroup[] = [
   {
     items: [
       {
-        url: "/dosen-pembimbing",
         title: "Dashboard",
+        url: "/dosen-pembimbing",
         icon: <IconLayoutGrid />,
       },
       {
@@ -87,8 +87,18 @@ const kaprodiSidebarMenus: SidebarMenuGroup[] = [
   {
     items: [
       {
-        url: "/kaprodi",
         title: "Dashboard",
+        url: "/kaprodi",
+        icon: <IconLayoutGrid />,
+      },
+      {
+        title: "Daftar Dosen",
+        url: "/kaprodi/daftar-dosen",
+        icon: <IconLayoutGrid />,
+      },
+      {
+        title: "Daftar Mahasiswa",
+        url: "/kaprodi/daftar-mahasiswa",
         icon: <IconLayoutGrid />,
       },
     ],
@@ -101,3 +111,17 @@ export const roleSidebarMenus: Record<Role, SidebarMenuGroup[]> = {
   "Dosen Pembimbing": dosenPembimbingSidebarMenus,
   Kaprodi: kaprodiSidebarMenus,
 };
+
+export function getActiveSidebarMenu(segments: string[], sidebarMenus: SidebarMenuGroup[]) {
+  const activePath = "/" + segments.join("/");
+
+  const menuItems = sidebarMenus.flatMap((group) => group.items);
+
+  const menuItemUrls = menuItems.map((item) => item.url);
+
+  const matchedUrls = menuItemUrls.filter((url) => activePath === url || activePath.startsWith(url + "/"));
+
+  const sortedUrls = matchedUrls.sort((a, b) => b.length - a.length);
+
+  return sortedUrls[0];
+}

@@ -4,8 +4,9 @@ import Link from "next/link";
 import { UserProfile } from "@/components/layouts/user-profile";
 import { SidebarLogo } from "./sidebar-logo";
 import { SessionPayload } from "@/libs/session";
-import { roleSidebarMenus } from "./dashboard-sidebar-menus";
 import { AuthenticatedUserData } from "@/features/auth/types";
+import { useSelectedLayoutSegments } from "next/navigation";
+import { getActiveSidebarMenu, roleSidebarMenus } from "./dashboard-sidebar-menus";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from "@/components/ui/sidebar";
 import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 
@@ -15,7 +16,11 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({ session, user }: DashboardSidebarProps) {
+  const segments = useSelectedLayoutSegments();
+
   const sidebarMenus = roleSidebarMenus[session.currentRole];
+
+  const activeSidebarMenu = getActiveSidebarMenu(segments, sidebarMenus);
 
   return (
     <Sidebar collapsible="icon">
@@ -31,6 +36,7 @@ export function DashboardSidebar({ session, user }: DashboardSidebarProps) {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     tooltip={item.title}
+                    isActive={item.url === activeSidebarMenu}
                     render={
                       <Link href={item.url}>
                         {item.icon}
