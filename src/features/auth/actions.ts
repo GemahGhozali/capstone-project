@@ -49,7 +49,7 @@ export async function login(data: LoginInput): Promise<ActionResponse> {
 
     const roles = user.userRoles.map(({ role }) => role.nama) as Role[];
 
-    await createSession({ userId: user.id, roles, isAccountReset: user.isAccountReset });
+    await createSession({ userId: user.id, roles, isAccountReset: user.isAccountReset, currentRole: roles[0] });
 
     return { success: true, message: "Login berhasil!" };
   } catch (error) {
@@ -96,8 +96,7 @@ export async function resetAccount(data: ResetAccountInput): Promise<ActionRespo
       where: { id: session.userId },
     });
 
-    await deleteSession();
-    await createSession({ userId: session.userId, roles: session.roles, isAccountReset: true });
+    await createSession({ userId: session.userId, roles: session.roles, isAccountReset: true, currentRole: session.roles[0] });
 
     return { success: true, message: "Reset akun berhasil!" };
   } catch (error) {
@@ -211,11 +210,23 @@ export async function resetPassword(data: ResetPasswordInput, token: string): Pr
 
     const roles = resetToken.user.userRoles.map(({ role }) => role.nama) as Role[];
 
-    await createSession({ userId: resetToken.user.id, roles, isAccountReset: resetToken.user.isAccountReset });
+    await createSession({ userId: resetToken.user.id, roles, isAccountReset: resetToken.user.isAccountReset, currentRole: roles[0] });
 
     return { success: true, message: "Password berhasil diperbarui!" };
   } catch (error) {
     console.log("❌ Reset Password Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
+}
+
+export async function switchRole(role: Role): Promise<ActionResponse> {
+  const session = await requireSession();
+
+  if (!session.roles.includes(role)) {
+    return { success: false, message: "Anda tidak memiliki role tersebut!" };
+  }
+
+  await createSession({ userId: session.userId, roles: session.roles, isAccountReset: session.isAccountReset, currentRole: role });
+
+  return { success: true, message: `Beralih ke role ${role}!` };
 }

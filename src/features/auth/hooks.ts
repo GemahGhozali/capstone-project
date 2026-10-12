@@ -10,15 +10,15 @@ import {
 } from "./schemas";
 
 import { toast } from "@/components/ui/toast";
-import { logout } from "./actions";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { runAction } from "@/utils/action-runner";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ActionResponse } from "@/types";
-import { login, resetAccount, forgotPassword, resetPassword } from "./actions";
+import { roleDashboards } from "./utils";
+import { ActionResponse, Role } from "@/types";
+import { login, resetAccount, forgotPassword, resetPassword, logout, switchRole } from "./actions";
 import { LoginSchema, ResetAccountSchema, ResetPasswordSchema, ForgotPasswordWithEmailSchema, ForgotPasswordWithIdentifierSchema } from "./schemas";
 
 export function useLogin() {
@@ -164,4 +164,20 @@ export function useResetPassword() {
   });
 
   return { form, mutation };
+}
+
+export function useSwitchRole() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (data: Role) => runAction(() => switchRole(data)),
+    onSuccess: (response, role) => {
+      toast.add({ type: "success", description: response.message });
+      router.replace(roleDashboards[role]);
+      router.refresh();
+    },
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
 }
