@@ -11,18 +11,27 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { cn } from "cn";
+import { useLogout } from "@/features/auth/hooks";
+import { ThemeToggler } from "./theme-toggler";
+import { RoleSwitcher } from "./role-switcher";
+import { SessionPayload } from "@/libs/session";
+import { generateNameInitials } from "@/utils/generate-name-initials";
+import { AuthenticatedUserData } from "@/features/auth/types";
+import { IconSelector, IconLogout, IconUser } from "@tabler/icons-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import { IconSelector, IconLogout, IconUser, IconSettings, IconMoon, IconSunHigh, IconSwitch2 } from "@tabler/icons-react";
 
-export function UserProfile() {
+interface UserProfileProps {
+  session: SessionPayload;
+  user: AuthenticatedUserData;
+}
+
+export function UserProfile({ session, user }: UserProfileProps) {
+  const { mutate: logout } = useLogout();
+
   const { state, isMobile } = useSidebar();
 
   const isSidebarCollapsed = state === "collapsed" && !isMobile;
-
-  const nim = "246151004";
-  const namaLengkap = "Gemah Suwailma Ghozali Absyafa";
-  const fotoProfil = "https://github.com/shadcn.png";
 
   return (
     <SidebarMenu>
@@ -30,12 +39,12 @@ export function UserProfile() {
         <DropdownMenu>
           <DropdownMenuTrigger render={<SidebarMenuButton size="lg" className="aria-expanded:bg-muted h-auto" />}>
             <Avatar size="lg">
-              <AvatarImage src={fotoProfil} alt={namaLengkap} />
-              <AvatarFallback>CN</AvatarFallback>
+              <AvatarImage src={user.fotoProfil || ""} alt={user.namaLengkap} />
+              <AvatarFallback>{generateNameInitials(user.namaLengkap)}</AvatarFallback>
             </Avatar>
-            <div className="grid flex-1 text-left text-sm leading-tight space-y-0.5">
-              <span className="truncate font-medium">{namaLengkap}</span>
-              <span className="truncate text-xs text-muted-foreground">{nim}</span>
+            <div className="grid flex-1 text-left text-sm leading-tight space-y-1">
+              <span className="truncate font-medium">{user.namaLengkap}</span>
+              <span className="truncate text-xs text-muted-foreground">{user.identifier}</span>
             </div>
             <IconSelector className="ml-auto size-4" />
           </DropdownMenuTrigger>
@@ -44,21 +53,7 @@ export function UserProfile() {
             sideOffset={isSidebarCollapsed ? 24 : 16}
             className={cn(isSidebarCollapsed && "w-48")}
           >
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>Pilihan Tema Aplikasi</DropdownMenuLabel>
-              <DropdownMenuItem>
-                <IconSettings />
-                Sistem
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconMoon />
-                Gelap
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconSunHigh />
-                Terang
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
+            <ThemeToggler />
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuLabel>Menu Akun</DropdownMenuLabel>
@@ -66,11 +61,8 @@ export function UserProfile() {
                 <IconUser />
                 Profil Pengguna
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconSwitch2 />
-                Switch Role
-              </DropdownMenuItem>
-              <DropdownMenuItem variant="destructive">
+              {session.roles.length > 1 && <RoleSwitcher session={session} />}
+              <DropdownMenuItem variant="destructive" onClick={() => logout()}>
                 <IconLogout />
                 Log out
               </DropdownMenuItem>
