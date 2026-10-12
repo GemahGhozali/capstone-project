@@ -1,13 +1,6 @@
-import { Role } from "./types";
+import { roleDashboards } from "./features/auth/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession, refreshSession } from "@/libs/session";
-
-const roleDashboards: Record<Role, string> = {
-  Mahasiswa: "/mahasiswa",
-  "Dosen Capstone Project": "/dosen-capstone-project",
-  "Dosen Pembimbing": "/dosen-pembimbing",
-  Kaprodi: "/kaprodi",
-};
 
 const authPaths = ["/reset-akun", "/lupa-password", "/reset-password"];
 const protectedPaths = ["/mahasiswa", "/dosen-capstone-project", "/dosen-pembimbing", "/kaprodi"];
@@ -40,12 +33,9 @@ export async function proxy(request: NextRequest) {
   }
 
   // Kondisi 3 : Sudah login
-  const primaryDashboard = roleDashboards[session.roles[0]];
-  const allowedDashboards = session.roles.map((role) => roleDashboards[role]);
-  // const userDashboard = roleDashboards[session.roles[0]];
+  const userDashboard = roleDashboards[session.currentRole];
 
-  const isAccessingAllowedPage = allowedDashboards.some((dashboard) => pathname.startsWith(dashboard));
-
+  const isAccessingAllowedPage = pathname.startsWith(userDashboard);
   const isAccessingRoot = pathname === "/";
   const isAccessingAuthPage = authPaths.some((path) => pathname.startsWith(path));
   const isAccessingWrongDashboard = isAccessingProtectedPage && !isAccessingAllowedPage;
@@ -53,7 +43,7 @@ export async function proxy(request: NextRequest) {
   const shouldRedirectToDashboard = isAccessingRoot || isAccessingAuthPage || isAccessingWrongDashboard;
 
   if (shouldRedirectToDashboard) {
-    return NextResponse.redirect(new URL(primaryDashboard, request.url));
+    return NextResponse.redirect(new URL(userDashboard, request.url));
   }
 
   await refreshSession();
