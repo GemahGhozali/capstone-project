@@ -10,6 +10,7 @@ export type SessionPayload = {
   userId: string;
   roles: Role[];
   isAccountReset: boolean;
+  currentRole: Role;
   iat: number;
   exp: number;
 };
