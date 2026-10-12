@@ -2,6 +2,8 @@ import "server-only";
 
 import crypto from "crypto";
 import { prisma } from "@/libs/prisma";
+import { redirect } from "next/navigation";
+import { requireSession } from "@/libs/dal";
 
 export async function findUserCredentialByIdentifier(identifier: string) {
   return prisma.user.findUnique({
@@ -76,4 +78,21 @@ export async function verifyEmailAvailability(alamatEmail: string) {
     where: { alamatEmail },
     select: { alamatEmail: true },
   });
+}
+
+export async function getAuthenticatedUserData() {
+  try {
+    const session = await requireSession();
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId, isActive: true },
+      select: { id: true, identifier: true, namaLengkap: true, alamatEmail: true, fotoProfil: true },
+    });
+
+    if (!user) redirect("/");
+
+    return user;
+  } catch (error) {
+    redirect("/");
+  }
 }
