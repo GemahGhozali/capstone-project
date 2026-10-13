@@ -5,7 +5,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -17,7 +16,7 @@ import { RoleSwitcher } from "./role-switcher";
 import { SessionPayload } from "@/libs/session";
 import { generateNameInitials } from "@/utils/generate-name-initials";
 import { AuthenticatedUserData } from "@/features/auth/types";
-import { IconSelector, IconLogout, IconUser } from "@tabler/icons-react";
+import { IconSelector, IconLogout } from "@tabler/icons-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 
@@ -56,11 +55,6 @@ export function UserProfile({ session, user }: UserProfileProps) {
             <ThemeToggler />
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuLabel>Menu Akun</DropdownMenuLabel>
-              <DropdownMenuItem>
-                <IconUser />
-                Profil Pengguna
-              </DropdownMenuItem>
               {session.roles.length > 1 && <RoleSwitcher session={session} />}
               <DropdownMenuItem variant="destructive" onClick={() => logout()}>
                 <IconLogout />
