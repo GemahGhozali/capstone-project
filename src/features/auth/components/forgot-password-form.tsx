@@ -37,8 +37,8 @@ export function ForgotPasswordForm() {
       <FieldGroup>
         {/* Header */}
         <div className="flex flex-col items-center">
-          <div className="flex size-10 items-center justify-center rounded-md bg-primary/10 mb-4">
-            <IconLockQuestion className="text-primary" />
+          <div className="flex size-10 items-center justify-center rounded-md bg-sidebar-primary/10 mb-4">
+            <IconLockQuestion className="text-sidebar-primary" />
           </div>
           <FieldLegend className="text-xl! font-bold">Lupa Password Akun</FieldLegend>
           <FieldDescription className="text-center">Pilih metode pemulihan untuk mereset password akun Anda.</FieldDescription>

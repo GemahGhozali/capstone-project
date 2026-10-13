@@ -25,8 +25,8 @@ export function LoginForm() {
       <FieldGroup>
         {/* Header */}
         <div className="flex flex-col items-center">
-          <div className="flex size-10 items-center justify-center rounded-md bg-primary/10 mb-4">
-            <IconSchool className="text-primary" />
+          <div className="flex size-10 items-center justify-center rounded-md bg-sidebar-primary/10 mb-4">
+            <IconSchool className="text-sidebar-primary" />
           </div>
           <FieldLegend className="text-xl! font-bold">Aplikasi Capstone Project</FieldLegend>
           <FieldDescription>Silahkan login terlebih dahulu untuk mengakses aplikasi</FieldDescription>
@@ -71,7 +71,7 @@ export function LoginForm() {
                   Password <span className="text-red-600">*</span>
                 </FieldLabel>
                 <Link href="/lupa-password">
-                  <FieldDescription className="text-primary underline-offset-2 hover:underline">Lupa Password?</FieldDescription>
+                  <FieldDescription className="text-sidebar-primary underline-offset-2 hover:underline">Lupa Password?</FieldDescription>
                 </Link>
               </div>
               <PasswordInput

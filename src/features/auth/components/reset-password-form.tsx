@@ -29,8 +29,8 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       <FieldGroup>
         {/* Header */}
         <div className="flex flex-col items-center">
-          <div className="flex size-10 items-center justify-center rounded-md bg-primary/10 mb-4">
-            <IconKey className="text-primary" />
+          <div className="flex size-10 items-center justify-center rounded-md bg-sidebar-primary/10 mb-4">
+            <IconKey className="text-sidebar-primary" />
           </div>
           <FieldLegend className="text-xl! font-bold">Reset Password Akun</FieldLegend>
           <FieldDescription className="text-center">Silahkan perbaharui password untuk akun anda</FieldDescription>

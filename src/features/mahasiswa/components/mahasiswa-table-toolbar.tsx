@@ -40,7 +40,7 @@ export function MahasiswaTableToolbar<TData extends RowData>({ table }: Mahasisw
   const statusFilterActive = statusFilter !== "";
 
   const filterActiveClass =
-    "border-primary/40 bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary aria-expanded:bg-primary/10 aria-expanded:text-primary";
+    "border-sidebar-primary/40! bg-sidebar-primary/10! text-sidebar-primary hover:bg-sidebar-primary/10 hover:text-sidebar-primary aria-expanded:bg-sidebar-primary/10 aria-expanded:text-sidebar-primary";
 
   return (
     <div className="flex gap-3 max-sm:flex-col">

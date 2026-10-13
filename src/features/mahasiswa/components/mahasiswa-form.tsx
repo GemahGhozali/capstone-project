@@ -47,7 +47,7 @@ export function MahasiswaForm({ mahasiswa, kelas }: MahasiswaFormProps) {
       <form onSubmit={onSubmit} className="space-y-6 *:px-6">
         <FieldSet>
           <FieldLegend className="text-lg! flex gap-3">
-            <div className="bg-primary/10 text-primary text-xs size-7 grid place-content-center rounded-full">01</div>
+            <div className="bg-sidebar-primary/10 text-sidebar-primary text-xs size-7 grid place-content-center rounded-full">01</div>
             Informasi Umum
           </FieldLegend>
           <FieldDescription>Silahkan isi biodata diri dari mahasiswa</FieldDescription>
@@ -254,7 +254,7 @@ export function MahasiswaForm({ mahasiswa, kelas }: MahasiswaFormProps) {
           <div className="flex flex-col lg:flex-row gap-3 justify-between items-start">
             <div>
               <FieldLegend className="text-lg! flex gap-3">
-                <div className="bg-primary/10 text-primary text-xs size-7 grid place-content-center rounded-full">02</div>
+                <div className="bg-sidebar-primary/10 text-sidebar-primary text-xs size-7 grid place-content-center rounded-full">02</div>
                 Informasi Akun
               </FieldLegend>
               <FieldDescription>Tentukan email dan password default untuk akun mahasiswa</FieldDescription>
