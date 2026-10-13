@@ -3,10 +3,20 @@
 import {
   LoginInput,
   ResetAccountInput,
-  ForgotPasswordInput,
   ResetPasswordInput,
+  ForgotPasswordInput,
+  UpdateUserAccountInput,
   ForgotPasswordWithEmailInput,
   ForgotPasswordWithIdentifierInput,
+} from "./schemas";
+
+import {
+  LoginSchema,
+  ResetAccountSchema,
+  ResetPasswordSchema,
+  UpdateUserAccountSchema,
+  ForgotPasswordWithEmailSchema,
+  ForgotPasswordWithIdentifierSchema,
 } from "./schemas";
 
 import { toast } from "@/components/ui/toast";
@@ -18,8 +28,8 @@ import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { roleDashboards } from "./utils";
 import { ActionResponse, Role } from "@/types";
-import { login, resetAccount, forgotPassword, resetPassword, logout, switchRole } from "./actions";
-import { LoginSchema, ResetAccountSchema, ResetPasswordSchema, ForgotPasswordWithEmailSchema, ForgotPasswordWithIdentifierSchema } from "./schemas";
+import { AuthenticatedUserData } from "./types";
+import { login, resetAccount, forgotPassword, resetPassword, logout, switchRole, updateUserAccount } from "./actions";
 
 export function useLogin() {
   const router = useRouter();
@@ -180,4 +190,36 @@ export function useSwitchRole() {
       toast.add({ type: "error", description: response.message });
     },
   });
+}
+
+export function useUpdateUserAccountForm(user: AuthenticatedUserData) {
+  const router = useRouter();
+
+  const form = useForm<UpdateUserAccountInput>({
+    resolver: zodResolver(UpdateUserAccountSchema),
+    mode: "onTouched",
+    defaultValues: {
+      fotoProfil: user.fotoProfil,
+      namaLengkap: user.namaLengkap,
+      alamatEmail: user.alamatEmail,
+      password: "",
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: (data: UpdateUserAccountInput) => runAction(() => updateUserAccount(data)),
+    onSuccess: (response) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+    onError: (response: ActionResponse) => {
+      if (response.errors) {
+        Object.entries(response.errors).forEach(([field, message]) => {
+          form.setError(field as keyof UpdateUserAccountInput, { type: "server", message });
+        });
+      }
+    },
+  });
+
+  return { form, mutation };
 }
