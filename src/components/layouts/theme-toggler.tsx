@@ -1,22 +1,29 @@
+"use client";
+
+import { useTheme } from "next-themes";
 import { IconMoon, IconSettings, IconSunHigh } from "@tabler/icons-react";
-import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel } from "../ui/dropdown-menu";
+import { DropdownMenuGroup, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "../ui/dropdown-menu";
 
 export function ThemeToggler() {
+  const { theme, setTheme } = useTheme();
+
   return (
     <DropdownMenuGroup>
       <DropdownMenuLabel>Pilihan Tema Aplikasi</DropdownMenuLabel>
-      <DropdownMenuItem>
-        <IconSettings />
-        Sistem
-      </DropdownMenuItem>
-      <DropdownMenuItem>
-        <IconMoon />
-        Gelap
-      </DropdownMenuItem>
-      <DropdownMenuItem>
-        <IconSunHigh />
-        Terang
-      </DropdownMenuItem>
+      <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+        <DropdownMenuRadioItem value="system">
+          <IconSettings />
+          Sistem
+        </DropdownMenuRadioItem>
+        <DropdownMenuRadioItem value="dark">
+          <IconMoon />
+          Gelap
+        </DropdownMenuRadioItem>
+        <DropdownMenuRadioItem value="light">
+          <IconSunHigh />
+          Terang
+        </DropdownMenuRadioItem>
+      </DropdownMenuRadioGroup>
     </DropdownMenuGroup>
   );
 }
