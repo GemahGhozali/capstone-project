@@ -18,8 +18,9 @@ import { requireSession } from "@/libs/dal";
 import { ActionResponse, Role } from "@/types";
 import { deleteSession, createSession } from "@/libs/session";
 import { comparePassword, hashPassword } from "@/libs/bcrypt";
-import { LoginInput, ResetAccountInput, ForgotPasswordInput, ResetPasswordInput } from "./schemas";
-import { LoginSchema, ResetAccountSchema, ForgotPasswordSchema, ResetPasswordSchema } from "./schemas";
+import { deleteFile, uploadFileOptional } from "@/utils/file";
+import { LoginInput, ResetAccountInput, ForgotPasswordInput, ResetPasswordInput, UpdateUserAccountInput } from "./schemas";
+import { LoginSchema, ResetAccountSchema, ForgotPasswordSchema, ResetPasswordSchema, UpdateUserAccountSchema } from "./schemas";
 
 export async function login(data: LoginInput): Promise<ActionResponse> {
   const parsed = LoginSchema.safeParse(data);
@@ -229,4 +230,95 @@ export async function switchRole(role: Role): Promise<ActionResponse> {
   await createSession({ userId: session.userId, roles: session.roles, isAccountReset: session.isAccountReset, currentRole: role });
 
   return { success: true, message: `Beralih ke role ${role}!` };
+}
+
+export async function updateUserAccount(data: UpdateUserAccountInput): Promise<ActionResponse> {
+  const session = await requireSession();
+
+  const parsed = UpdateUserAccountSchema.safeParse(data);
+
+  if (!parsed.success) {
+    return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
+  }
+
+  const { fotoProfil, namaLengkap, alamatEmail, password } = parsed.data;
+
+  try {
+    // Validasi 1 : Cek apakah akun user ditemukan
+    const existingUser = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: {
+        id: true,
+        password: true,
+        fotoProfil: true,
+        mahasiswa: { select: { id: true } },
+        dosen: { select: { id: true } },
+      },
+    });
+
+    if (!existingUser) {
+      return { success: false, message: "Akun tidak ditemukan!" };
+    }
+
+    // Validasi 2 : Cek apakah alamat email sudah dipakai user lain
+    const emailAlreadyInUsed = await prisma.user.findFirst({
+      where: { AND: [{ id: { not: session.userId } }, { alamatEmail }] },
+      select: { id: true },
+    });
+
+    if (emailAlreadyInUsed) {
+      return {
+        success: false,
+        message: "Gagal memperbaharui akun!",
+        errors: { alamatEmail: "Alamat email sudah digunakan! Silahkan gunakan email lain." },
+      };
+    }
+
+    // Validasi 3 : Tentukan folder upload foto profil berdasarkan profil user (mahasiswa/dosen)
+    const uploadPath = existingUser.mahasiswa ? "/images/profile/mahasiswa/" : "/images/profile/dosen/";
+
+    let newUploadedPhotoPath = null;
+    let finalProfilePhotoPath = existingUser.fotoProfil;
+
+    const userHasProfilePhoto = typeof existingUser.fotoProfil === "string";
+    const isProfilePhotoExplicitlyRemoved = !fotoProfil;
+    const isNewProfilePhotoUploaded = fotoProfil instanceof File;
+
+    if (isProfilePhotoExplicitlyRemoved) {
+      finalProfilePhotoPath = null;
+    }
+
+    if (isNewProfilePhotoUploaded) {
+      newUploadedPhotoPath = await uploadFileOptional({ file: fotoProfil, uploadPath });
+      finalProfilePhotoPath = newUploadedPhotoPath;
+    }
+
+    await prisma
+      .$transaction(async (transaction) => {
+        // Update akun user (password hanya diganti jika diisi)
+        const finalPassword = password ? await hashPassword(password) : existingUser.password;
+
+        await transaction.user.update({
+          where: { id: session.userId },
+          data: { namaLengkap, alamatEmail, password: finalPassword, fotoProfil: finalProfilePhotoPath },
+        });
+      })
+      // Rollback : Hapus file baru yang telah diupload jika transaction gagal
+      .catch(async (error) => {
+        if (newUploadedPhotoPath) await deleteFile(newUploadedPhotoPath);
+        throw error;
+      });
+
+    // Validasi 4 : Hapus file foto profil lama jika diganti atau dihapus
+    const shouldDeleteOldProfilePhoto = userHasProfilePhoto && (isNewProfilePhotoUploaded || isProfilePhotoExplicitlyRemoved);
+
+    if (shouldDeleteOldProfilePhoto) {
+      await deleteFile(existingUser.fotoProfil as string);
+    }
+
+    return { success: true, message: "Akun berhasil diperbaharui!" };
+  } catch (error) {
+    console.log("❌ Update User Account Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
 }
