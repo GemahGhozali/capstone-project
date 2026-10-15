@@ -18,7 +18,7 @@ interface TeamMemberInviterProps {
 }
 
 export function TeamMemberInviter({ isTeamFull, disabled, mahasiswaAlreadyInTeam, onInvite }: TeamMemberInviterProps) {
-  const { searchQuery, setSearchQuery, isPending: isSearchPending, isError, error, data } = useSearchMahasiswa();
+  const { searchQuery, setSearchQuery, error, results } = useSearchMahasiswa();
 
   const handleInvite = (mahasiswa: SearchMahasiswaResult) => {
     onInvite(mahasiswa);
@@ -26,9 +26,7 @@ export function TeamMemberInviter({ isTeamFull, disabled, mahasiswaAlreadyInTeam
   };
 
   const renderResults = () => {
-    if (searchQuery.trim().length < 1 || isSearchPending) return null;
-
-    if (isError) {
+    if (error) {
       return (
         <Empty className="border border-dashed rounded-md">
           <EmptyHeader>
@@ -42,7 +40,9 @@ export function TeamMemberInviter({ isTeamFull, disabled, mahasiswaAlreadyInTeam
       );
     }
 
-    const filteredData = data.filter((mahasiswa) => !mahasiswaAlreadyInTeam(mahasiswa.id));
+    if (!results) return null;
+
+    const filteredData = results.filter((mahasiswa) => !mahasiswaAlreadyInTeam(mahasiswa.id));
 
     if (filteredData.length === 0) {
       return (

@@ -36,7 +36,6 @@ export async function GET(request: NextRequest) {
 
     return Response.json(results);
   } catch (error) {
-    console.error("❌ GET /api/mahasiswa/search Error :", error);
     return Response.json({ message: "Terjadi kesalahan pada server!" }, { status: 500 });
   }
 }

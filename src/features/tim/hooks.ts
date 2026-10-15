@@ -2,24 +2,26 @@
 
 import { toast } from "@/components/ui/toast";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { runAction } from "@/utils/action-runner";
 import { createTeam } from "./actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useMutation } from "@tanstack/react-query";
 import { ActionResponse } from "@/types";
 import { KategoriCapstone } from "@/generated/prisma/enums";
 import { SearchMahasiswaResult } from "./types";
 import { AuthenticatedUserData } from "../auth/types";
 import { useFieldArray, useForm } from "react-hook-form";
-import { keepPreviousData, useMutation } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { TeamInput, TeamMemberInput, TeamSchema } from "./schemas";
 
 export function useSearchMahasiswa() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [mahasiswaResults, setMahasiswaResults] = useState<Map<string, SearchMahasiswaResult>>(new Map());
 
-  const debouncedQuery = useDebounce(searchQuery, 150).trim();
+  const debouncedQuery = useDebounce(searchQuery, 500).trim();
+  const normalizedQuery = searchQuery.trim();
 
   const isDebouncing = debouncedQuery.length >= 1;
 
@@ -29,7 +31,6 @@ export function useSearchMahasiswa() {
     retry: false,
     enabled: isDebouncing,
     refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
     queryKey: ["mahasiswa", "search", debouncedQuery],
     queryFn: async ({ signal }): Promise<SearchMahasiswaResult[]> => {
       const query = encodeURIComponent(debouncedQuery);
@@ -44,7 +45,39 @@ export function useSearchMahasiswa() {
     },
   });
 
-  return { ...mahasiswaQuery, setSearchQuery, searchQuery };
+  useEffect(() => {
+    const data = mahasiswaQuery.data;
+
+    if (!data) return;
+
+    setMahasiswaResults((previousResults) => {
+      const nextResults = new Map(previousResults);
+      data.forEach((mahasiswa) => nextResults.set(mahasiswa.id, mahasiswa));
+      return nextResults;
+    });
+  }, [mahasiswaQuery.data]);
+
+  const results = useMemo(() => {
+    if (normalizedQuery.length < 1) return undefined;
+
+    if (mahasiswaResults.size === 0) return undefined;
+
+    const query = normalizedQuery.toLowerCase();
+
+    const mahasiswaList = Array.from(mahasiswaResults.values());
+
+    const filteredMahasiswaList = mahasiswaList.filter((mahasiswa) => {
+      const mahasiswaNameMatchWithQuery = mahasiswa.namaLengkap.toLowerCase().includes(query);
+      const mahasiswaNIMMatchWithQuery = mahasiswa.identifier.toLowerCase().includes(query);
+      return mahasiswaNameMatchWithQuery || mahasiswaNIMMatchWithQuery;
+    });
+
+    const sortedMahasiswaListByNIM = filteredMahasiswaList.sort((a, b) => a.identifier.localeCompare(b.identifier));
+
+    return sortedMahasiswaListByNIM.slice(0, 5);
+  }, [mahasiswaResults, normalizedQuery]);
+
+  return { setSearchQuery, searchQuery, results, error: mahasiswaQuery.error };
 }
 
 interface UseTeamFormProps {
