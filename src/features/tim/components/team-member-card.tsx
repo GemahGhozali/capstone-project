@@ -22,7 +22,7 @@ interface TeamMemberCardProps {
 }
 
 export function TeamMemberCard({ isEditMode, member, index, disabled, onRemove }: TeamMemberCardProps) {
-  const canRemove = index !== 0;
+  const canRemove = member.peran !== "Ketua";
 
   return (
     <Card className="p-0 gap-0">

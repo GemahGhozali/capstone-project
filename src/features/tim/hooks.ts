@@ -124,7 +124,7 @@ export function useTeamForm({ teamData }: UseTeamFormProps) {
   };
 
   const removeMember = (index: number) => {
-    if (index === 0) return;
+    if (members[index].peran === "Ketua") return;
     remove(index);
   };
 
