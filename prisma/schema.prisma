@@ -147,7 +147,7 @@ model DosenPembimbingDetail {
 
 model Tim {
   id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  nama       String       @unique @db.VarChar
+  nama       String       @db.VarChar
   createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz
   updatedAt  DateTime     @updatedAt @map("updated_at") @db.Timestamptz
 
