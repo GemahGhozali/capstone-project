@@ -4,14 +4,13 @@ import { toast } from "@/components/ui/toast";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { runAction } from "@/utils/action-runner";
-import { createTeam } from "./actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useMutation } from "@tanstack/react-query";
 import { ActionResponse } from "@/types";
 import { KategoriCapstone } from "@/generated/prisma/enums";
 import { SearchMahasiswaResult } from "./types";
-import { AuthenticatedUserData } from "../auth/types";
+import { createTeam, updateTeam } from "./actions";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useEffect, useMemo, useState } from "react";
 import { TeamInput, TeamMemberInput, TeamSchema } from "./schemas";
@@ -81,30 +80,22 @@ export function useSearchMahasiswa() {
 }
 
 interface UseTeamFormProps {
-  ketua: AuthenticatedUserData;
-  anggota?: TeamMemberInput[];
+  teamData: {
+    id?: string;
+    nama?: string;
+    anggota: TeamMemberInput[];
+  };
 }
 
-export function useTeamForm({ ketua, anggota }: UseTeamFormProps) {
+export function useTeamForm({ teamData }: UseTeamFormProps) {
   const router = useRouter();
 
   const form = useForm<TeamInput>({
     resolver: zodResolver(TeamSchema),
     mode: "onTouched",
     defaultValues: {
-      namaTim: "",
-      anggota: [
-        {
-          id: ketua.id,
-          fotoProfil: ketua.fotoProfil,
-          nim: ketua.identifier,
-          kategoriCapstone: "EPD",
-          namaLengkap: ketua.namaLengkap,
-          peran: "Ketua",
-          statusPersetujuan: "Disetujui",
-        },
-        ...(anggota || []),
-      ],
+      namaTim: teamData.nama ?? "",
+      anggota: teamData.anggota,
     },
   });
 
@@ -139,7 +130,7 @@ export function useTeamForm({ ketua, anggota }: UseTeamFormProps) {
 
   const mutation = useMutation({
     mutationFn: (data: TeamInput) => {
-      const actionFn = createTeam(data);
+      const actionFn = teamData.id ? updateTeam(teamData.id, data) : createTeam(data);
       return runAction(() => actionFn);
     },
     onSuccess: (response: ActionResponse) => {

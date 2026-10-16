@@ -16,10 +16,19 @@ interface TeamMemberFieldProps {
   removeMember: (index: number) => void;
   mahasiswaAlreadyInTeam: (id: string) => boolean;
   isTeamFull: boolean;
+  isEditMode: boolean;
   disabled: boolean;
 }
 
-export function TeamMemberField({ isTeamFull, teamMembers, addMember, removeMember, mahasiswaAlreadyInTeam, disabled }: TeamMemberFieldProps) {
+export function TeamMemberField({
+  isTeamFull,
+  isEditMode,
+  teamMembers,
+  addMember,
+  removeMember,
+  mahasiswaAlreadyInTeam,
+  disabled,
+}: TeamMemberFieldProps) {
   const form = useFormContext<TeamInput>();
 
   const anggotaTimFieldError = form.formState.errors.anggota?.root;
@@ -46,7 +55,7 @@ export function TeamMemberField({ isTeamFull, teamMembers, addMember, removeMemb
         )}
 
         {teamMembers.map((member, index) => (
-          <TeamMemberCard key={member.fieldId} member={member} index={index} disabled={disabled} onRemove={removeMember} />
+          <TeamMemberCard key={member.fieldId} member={member} index={index} disabled={disabled} onRemove={removeMember} isEditMode={isEditMode} />
         ))}
       </div>
     </Field>
