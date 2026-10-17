@@ -11,15 +11,14 @@ export function validateTeamLeaderDuplication(leaderId: string, teamMembers: Tea
   return totalMatchingLeaderId !== 1 || totalMemberWithPeranKetua !== 1 || !isLeaderHasPeranKetua;
 }
 
-export async function validateInvitedTeamMembers(teamMembers: TeamMemberInput[]) {
+export function validateTeamMembersDuplication(teamMembers: TeamMemberInput[]) {
   const invitedMemberIds = teamMembers.map((member) => member.id);
-
   const uniqueMemberIds = new Set(invitedMemberIds);
-  const teamHasDuplicateMembers = invitedMemberIds.length !== uniqueMemberIds.size;
+  return invitedMemberIds.length !== uniqueMemberIds.size;
+}
 
-  if (teamHasDuplicateMembers) {
-    return { isValid: false, message: "Terdapat duplikasi pada data mahasiswa yang diundang!" };
-  }
+export async function ensureAllTeamMembersIsValid(teamMembers: TeamMemberInput[]) {
+  const invitedMemberIds = teamMembers.map((member) => member.id);
 
   const invitedMahasiswa = await prisma.mahasiswa.findMany({
     where: { id: { in: invitedMemberIds } },
