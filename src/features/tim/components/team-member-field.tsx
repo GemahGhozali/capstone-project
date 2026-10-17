@@ -31,7 +31,8 @@ export function TeamMemberField({
 }: TeamMemberFieldProps) {
   const form = useFormContext<TeamInput>();
 
-  const anggotaTimFieldError = form.formState.errors.anggota?.root;
+  const anggotaErrorFormState = form.formState.errors.anggota;
+  const anggotaTimFieldError = anggotaErrorFormState?.root ?? anggotaErrorFormState;
 
   const canInviteMember = !isTeamFull;
 
