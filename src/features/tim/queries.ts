@@ -11,14 +11,44 @@ interface SearchInvitableMahasiswa {
 }
 
 export async function searchInvitableMahasiswa({ query, authenticatedMahasiswaId }: SearchInvitableMahasiswa) {
+  const mahasiswaMembership = await prisma.anggotaTim.findUnique({
+    where: { mahasiswaId: authenticatedMahasiswaId },
+    select: { timId: true },
+  });
+
+  const mahasiswaTeamId = mahasiswaMembership?.timId;
+
+  const invitableTeamFilter = mahasiswaTeamId
+    ? { OR: [{ anggotaTim: { is: null } }, { anggotaTim: { is: { timId: mahasiswaTeamId } } }] }
+    : { anggotaTim: { is: null } };
+
   const foundedMahasiswa = await prisma.mahasiswa.findMany({
     take: 5,
     where: {
-      status: StatusMahasiswa.Aktif,
       user: { isActive: true },
-      anggotaTim: { is: null },
+      status: StatusMahasiswa.Aktif,
       id: { not: authenticatedMahasiswaId },
-      OR: [{ nim: { contains: query, mode: "insensitive" } }, { user: { namaLengkap: { contains: query, mode: "insensitive" } } }],
+      AND: [
+        invitableTeamFilter,
+        {
+          OR: [
+            {
+              nim: {
+                contains: query,
+                mode: "insensitive",
+              },
+            },
+            {
+              user: {
+                namaLengkap: {
+                  contains: query,
+                  mode: "insensitive",
+                },
+              },
+            },
+          ],
+        },
+      ],
     },
     select: {
       id: true,
