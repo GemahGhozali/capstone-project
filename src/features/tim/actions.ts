@@ -6,7 +6,7 @@ import { formatZodError } from "@/utils/format-zod-error";
 import { userIsValidAndHasRole } from "@/libs/dal";
 import { TeamInput, TeamSchema } from "./schemas";
 import { PeranAnggotaTim, StatusPersetujuan } from "@/generated/prisma/enums";
-import { validateInvitedTeamMembers, validateTeamLeaderDuplication } from "./services";
+import { ensureAllTeamMembersIsValid, validateTeamLeaderDuplication, validateTeamMembersDuplication } from "./services";
 
 export async function createTeam(data: TeamInput): Promise<ActionResponse> {
   const parsed = TeamSchema.safeParse(data);
@@ -20,17 +20,17 @@ export async function createTeam(data: TeamInput): Promise<ActionResponse> {
   try {
     const { id: leaderId } = await userIsValidAndHasRole("Mahasiswa");
 
-    // Validasi Ketua
+    // Validasi 1 : Cek apakah ketua sudah memiliki tim
     const leaderAlreadyHasTeam = await prisma.anggotaTim.findUnique({
       where: { mahasiswaId: leaderId },
       select: { id: true },
     });
 
     if (leaderAlreadyHasTeam) {
-      return { success: false, message: "Anda sudah tergabung dalam tim lain dan tidak dapat membuat tim baru!" };
+      return { success: false, message: "Anda sudah tergabung didalam tim lain dan tidak dapat membuat tim baru!" };
     }
 
-    // Validasi Anggota Tim
+    // Validasi 2 : Cek apakah terdapat duplikasi data ketua di dalam tim
     const teamHasMultipleLeaders = validateTeamLeaderDuplication(leaderId, anggota);
 
     if (teamHasMultipleLeaders) {
@@ -41,15 +41,25 @@ export async function createTeam(data: TeamInput): Promise<ActionResponse> {
       };
     }
 
-    // Validasi Anggota Tim Yang Diundang
-    const invitedMember = anggota.filter((member) => member.id !== leaderId);
-    const validation = await validateInvitedTeamMembers(invitedMember);
+    // Validasi 3 : Cek apakah terdapat duplikasi data anggota tim
+    const teamHasDuplicateMembers = validateTeamMembersDuplication(anggota);
 
-    if (!validation.isValid) {
+    if (teamHasDuplicateMembers) {
       return {
         success: false,
         message: "Gagal membuat tim!",
-        errors: { anggota: validation.message },
+        errors: { anggota: "Terdapat duplikasi pada data anggota tim!" },
+      };
+    }
+
+    // Validasi 4 : Cek apakah data mahasiswa yang diundang memang valid
+    const teamMemberValidation = await ensureAllTeamMembersIsValid(anggota);
+
+    if (!teamMemberValidation.isValid) {
+      return {
+        success: false,
+        message: "Gagal membuat tim!",
+        errors: { anggota: teamMemberValidation.message },
       };
     }
 
@@ -104,12 +114,23 @@ export async function updateTeam(id: string, data: TeamInput): Promise<ActionRes
       },
     });
 
-    // Validasi Tim
+    // Validasi 1 : Cek keberadaan tim mahasiswa
     if (!team) {
       return { success: false, message: "Data tim tidak ditemukan!" };
     }
 
-    // Validasi Proposal
+    // Validasi 2 : Cek keanggotaan dan peran mahasiswa di dalam tim
+    const mahasiswaMembership = team.anggotaTim.find((member) => member.mahasiswaId === leaderId);
+
+    if (!mahasiswaMembership) {
+      return { success: false, message: "Anda bukan anggota tim ini!" };
+    }
+
+    if (mahasiswaMembership.peran !== "Ketua") {
+      return { success: false, message: "Hanya ketua tim yang boleh mengubah tim!" };
+    }
+
+    // Validasi 3 : Cek apakah proposal sedang direview atau telah disetujui
     const teamProposalApproved = team.proposal?.status === "Disetujui";
     const teamProposalUnderReview = team.proposal?.status === "Menunggu";
 
@@ -121,18 +142,7 @@ export async function updateTeam(id: string, data: TeamInput): Promise<ActionRes
       return { success: false, message: "Tim tidak bisa diubah karena proposal tim anda sedang direview!" };
     }
 
-    // Validasi Keanggotaan dan Peran Mahasiswa di Dalam Tim
-    const mahasiswaMembership = team.anggotaTim.find((member) => member.mahasiswaId === leaderId);
-
-    if (!mahasiswaMembership) {
-      return { success: false, message: "Anda bukan anggota tim ini!" };
-    }
-
-    if (mahasiswaMembership.peran !== "Ketua") {
-      return { success: false, message: "Hanya ketua tim yang boleh mengubah tim!" };
-    }
-
-    // Validasi Duplikasi Ketua Tim
+    // Validasi 4 : Cek apakah terdapat duplikasi data ketua di dalam tim
     const teamHasMultipleLeaders = validateTeamLeaderDuplication(leaderId, anggota);
 
     if (teamHasMultipleLeaders) {
@@ -143,7 +153,18 @@ export async function updateTeam(id: string, data: TeamInput): Promise<ActionRes
       };
     }
 
-    // Validasi Keberadaan Anggota Tim Baru
+    // Validasi 5 : Cek apakah terdapat duplikasi data anggota tim
+    const teamHasDuplicateMembers = validateTeamMembersDuplication(anggota);
+
+    if (teamHasDuplicateMembers) {
+      return {
+        success: false,
+        message: "Gagal membuat tim!",
+        errors: { anggota: "Terdapat duplikasi pada data anggota tim!" },
+      };
+    }
+
+    // Validasi 6 : Cek keberadaan anggota tim baru, dan validasi semua anggota baru (jika ada)
     const existingTeamMembers = team.anggotaTim.filter((member) => member.mahasiswaId !== leaderId);
 
     const newInvitedTeamMembers = anggota.filter((member) => {
@@ -155,7 +176,7 @@ export async function updateTeam(id: string, data: TeamInput): Promise<ActionRes
     const hasNewInvitedTeamMember = newInvitedTeamMembers.length > 0;
 
     if (hasNewInvitedTeamMember) {
-      const validation = await validateInvitedTeamMembers(newInvitedTeamMembers);
+      const validation = await ensureAllTeamMembersIsValid(newInvitedTeamMembers);
 
       if (!validation.isValid) {
         return {
@@ -166,7 +187,7 @@ export async function updateTeam(id: string, data: TeamInput): Promise<ActionRes
       }
     }
 
-    // Validasi Mana Member Yang Dihapus dan Yang Menetap
+    // Validasi 7 : Cek mana anggota yang perlu dihapus dan dipertahankan
     const currentTeamMembers = anggota.filter((member) => member.id !== leaderId);
 
     const deletedTeamMembers = existingTeamMembers.filter((existingMember) => {
