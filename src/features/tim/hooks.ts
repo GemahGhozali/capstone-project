@@ -10,10 +10,10 @@ import { useMutation } from "@tanstack/react-query";
 import { ActionResponse } from "@/types";
 import { KategoriCapstone } from "@/generated/prisma/enums";
 import { SearchMahasiswaResult } from "./types";
-import { createTeam, updateTeam } from "./actions";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useEffect, useMemo, useState } from "react";
 import { TeamInput, TeamMemberInput, TeamSchema } from "./schemas";
+import { acceptTeamInvitation, createTeam, rejectTeamInvitation, updateTeam } from "./actions";
 
 export function useSearchMahasiswa() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -149,4 +149,22 @@ export function useTeamForm({ teamData }: UseTeamFormProps) {
   });
 
   return { form, mutation, isTeamFull, teamMembers: fields, addMember, removeMember, mahasiswaAlreadyInTeam };
+}
+
+export function useTeamInvitation() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (decision: "Terima" | "Tolak") => {
+      const actionFn = decision === "Terima" ? acceptTeamInvitation() : rejectTeamInvitation();
+      return runAction(() => actionFn);
+    },
+    onSuccess: (response: ActionResponse) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
 }
