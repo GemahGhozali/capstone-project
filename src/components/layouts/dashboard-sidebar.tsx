@@ -7,7 +7,7 @@ import { SessionPayload } from "@/libs/session";
 import { AuthenticatedUserData } from "@/features/auth/types";
 import { useSelectedLayoutSegments } from "next/navigation";
 import { getActiveSidebarMenu, roleSidebarMenus } from "./dashboard-sidebar-menus";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 
 interface DashboardSidebarProps {
@@ -21,6 +21,8 @@ export function DashboardSidebar({ session, user }: DashboardSidebarProps) {
   const sidebarMenus = roleSidebarMenus[session.currentRole];
 
   const activeSidebarMenu = getActiveSidebarMenu(segments, sidebarMenus);
+
+  const { isMobile, setOpenMobile } = useSidebar();
 
   return (
     <Sidebar collapsible="icon">
@@ -38,7 +40,14 @@ export function DashboardSidebar({ session, user }: DashboardSidebarProps) {
                     tooltip={item.title}
                     isActive={item.url === activeSidebarMenu}
                     render={
-                      <Link href={item.url}>
+                      <Link
+                        href={item.url}
+                        onClick={() => {
+                          if (isMobile) {
+                            setOpenMobile(false);
+                          }
+                        }}
+                      >
                         {item.icon}
                         <span>{item.title}</span>
                       </Link>
