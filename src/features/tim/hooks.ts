@@ -151,14 +151,26 @@ export function useTeamForm({ teamData }: UseTeamFormProps) {
   return { form, mutation, isTeamFull, teamMembers: fields, addMember, removeMember, mahasiswaAlreadyInTeam };
 }
 
-export function useTeamInvitation() {
+export function useAcceptTeamInvitation() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: (decision: "Terima" | "Tolak") => {
-      const actionFn = decision === "Terima" ? acceptTeamInvitation() : rejectTeamInvitation();
-      return runAction(() => actionFn);
+    mutationFn: () => runAction(() => acceptTeamInvitation()),
+    onSuccess: (response: ActionResponse) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
     },
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
+}
+
+export function useRejectTeamInvitation() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: () => runAction(() => rejectTeamInvitation()),
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });
       router.refresh();
