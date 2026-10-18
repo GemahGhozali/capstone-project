@@ -46,16 +46,19 @@ export function TeamInvitationAlert({ teamMembers, teamName }: TeamInvitationAle
               <DialogDescription>{teamName}</DialogDescription>
             </DialogHeader>
 
-            <Tabs defaultValue="detail" className="w-full p-6 py-0 gap-6">
+            {/* Tabs Content */}
+            <Tabs defaultValue="undangan" className="w-full p-6 py-0 gap-6">
               <TabsList className="w-full">
-                <TabsTrigger value="detail">
+                <TabsTrigger value="undangan">
                   <IconMail /> Undangan
                 </TabsTrigger>
                 <TabsTrigger value="anggota">
                   <IconUsers /> Anggota
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value="detail">
+
+              {/* Undangan Tabs Content */}
+              <TabsContent value="undangan">
                 {invitedMahasiswa && (
                   <Card className="p-0 gap-0">
                     <CardHeader className="flex items-center gap-3 p-4">
@@ -82,6 +85,7 @@ export function TeamInvitationAlert({ teamMembers, teamName }: TeamInvitationAle
                 )}
               </TabsContent>
 
+              {/* Anggota Tabs Content */}
               <TabsContent value="anggota">
                 <Card className="p-4 gap-4">
                   {membersInTeam.map((member) => (
@@ -105,6 +109,7 @@ export function TeamInvitationAlert({ teamMembers, teamName }: TeamInvitationAle
               </TabsContent>
             </Tabs>
 
+            {/* CTA Buttons */}
             <DialogFooter className="p-6 gap-3 flex-col!">
               <Button variant="success" onClick={() => acceptTeamInvitation()} disabled={acceptInviationPending || rejectInviationPending}>
                 {acceptInviationPending ? "Memproses" : "Terima Undangan"}
