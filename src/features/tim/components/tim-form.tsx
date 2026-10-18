@@ -33,6 +33,11 @@ export function TimForm({ teamData }: TimFormProps) {
   return (
     <FormProvider {...form}>
       <form onSubmit={onSubmit} className="space-y-6">
+        <div className="space-y-0.5">
+          <h1 className="font-semibold text-lg">Kelola Tim</h1>
+          <p className="text-muted-foreground text-sm">Atur anggota tim beserta kategori capstone-nya</p>
+        </div>
+
         {/* Quick Action (Upload Proposal) */}
         {canUploadProposal && (
           <Card className="p-0 mb-6">
@@ -52,49 +57,47 @@ export function TimForm({ teamData }: TimFormProps) {
             </CardHeader>
           </Card>
         )}
-        <Card className="max-sm:p-0 max-sm:ring-0 max-sm:rounded-none max-sm:overflow-visible p-6">
-          <FieldGroup>
-            {/* Nama Tim */}
-            <Controller
-              name="namaTim"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="namaTim">
-                    Nama Tim <span className="text-red-600">*</span>
-                  </FieldLabel>
-                  <Input
-                    {...field}
-                    id="namaTim"
-                    placeholder="Masukkan nama tim disini..."
-                    aria-invalid={fieldState.invalid}
-                    disabled={mutation.isPending}
-                    autoComplete="off"
-                  />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
+        <FieldGroup>
+          {/* Nama Tim */}
+          <Controller
+            name="namaTim"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="namaTim">
+                  Nama Tim <span className="text-red-600">*</span>
+                </FieldLabel>
+                <Input
+                  {...field}
+                  id="namaTim"
+                  placeholder="Masukkan nama tim disini..."
+                  aria-invalid={fieldState.invalid}
+                  disabled={mutation.isPending}
+                  autoComplete="off"
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-            {/* Anggota Tim */}
-            <TeamMemberField
-              teamMembers={teamMembers}
-              addMember={addMember}
-              removeMember={removeMember}
-              isTeamFull={isTeamFull}
-              mahasiswaAlreadyInTeam={mahasiswaAlreadyInTeam}
-              disabled={mutation.isPending}
-              isEditMode={isEditMode}
-            />
+          {/* Anggota Tim */}
+          <TeamMemberField
+            teamMembers={teamMembers}
+            addMember={addMember}
+            removeMember={removeMember}
+            isTeamFull={isTeamFull}
+            mahasiswaAlreadyInTeam={mahasiswaAlreadyInTeam}
+            disabled={mutation.isPending}
+            isEditMode={isEditMode}
+          />
 
-            <Field orientation="horizontal">
-              <Button type="submit" size="lg" disabled={mutation.isPending} className="w-full">
-                {mutation.isPending ? "Memproses" : isEditMode ? "Update Tim Capstone Project" : "Buat Tim Project"}
-                {mutation.isPending && <Spinner data-icon="inline-start" />}
-              </Button>
-            </Field>
-          </FieldGroup>
-        </Card>
+          <Field orientation="horizontal">
+            <Button type="submit" size="lg" disabled={mutation.isPending} className="w-full">
+              {mutation.isPending ? "Memproses" : isEditMode ? "Update Tim Capstone Project" : "Buat Tim Project"}
+              {mutation.isPending && <Spinner data-icon="inline-start" />}
+            </Button>
+          </Field>
+        </FieldGroup>
       </form>
     </FormProvider>
   );
