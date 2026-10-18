@@ -120,6 +120,7 @@ export function useTeamForm({ teamData }: UseTeamFormProps) {
       kategoriCapstone: KategoriCapstone.EPD,
       peran: "Anggota",
       statusPersetujuan: "Menunggu",
+      isCurrentLoginUser: false,
     });
   };
 

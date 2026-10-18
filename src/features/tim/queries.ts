@@ -136,6 +136,7 @@ export async function getMahasiswaTeamManagementData() {
               peran: PeranAnggotaTim.Ketua,
               kategoriCapstone: KategoriCapstone.EPD,
               statusPersetujuan: StatusPersetujuan.Disetujui,
+              isCurrentLoginUser: true,
             },
           ],
         },
@@ -164,6 +165,7 @@ export async function getMahasiswaTeamManagementData() {
           peran: member.peran,
           kategoriCapstone: member.kategoriCapstone,
           statusPersetujuan: member.statusPersetujuan,
+          isCurrentLoginUser: member.mahasiswa.id === mahasiswa.id,
         })),
       },
     };
