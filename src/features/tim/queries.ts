@@ -92,7 +92,7 @@ export async function getMahasiswaTeamManagementData() {
             id: true,
             nama: true,
             anggotaTim: {
-              orderBy: { peran: "asc" },
+              orderBy: [{ peran: "asc" }, { mahasiswa: { nim: "asc" } }],
               select: {
                 peran: true,
                 kategoriCapstone: true,
