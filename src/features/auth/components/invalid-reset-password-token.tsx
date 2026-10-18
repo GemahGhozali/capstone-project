@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 export function InvalidResetPasswordToken() {
   return (
     <div className="space-y-6">
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center *:text-center">
         <div className="flex size-10 items-center justify-center bg-red-500 rounded-full mb-4">
           <IconX className="text-white" stroke={3.5} />
         </div>
         <h1 className="text-xl font-bold mb-3">Link Reset Password Tidak Valid!</h1>
-        <p className="text-muted-foreground text-sm text-center">Link mungkin sudah digunakan atau telah kedaluwarsa!</p>
+        <p className="text-muted-foreground text-sm">Link mungkin sudah digunakan atau telah kedaluwarsa!</p>
       </div>
       <div className="flex flex-col gap-4">
         <Link href="/lupa-password">

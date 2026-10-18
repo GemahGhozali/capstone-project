@@ -36,15 +36,15 @@ export function ForgotPasswordForm() {
     <form onSubmit={onSubmit}>
       <FieldGroup>
         {/* Header */}
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center *:text-center">
           <div className="flex size-10 items-center justify-center rounded-md bg-sidebar-primary/10 mb-4">
             <IconLockQuestion className="text-sidebar-primary" />
           </div>
           <FieldLegend className="text-xl! font-bold">Lupa Password Akun</FieldLegend>
-          <FieldDescription className="text-center">Pilih metode pemulihan untuk mereset password akun Anda.</FieldDescription>
+          <FieldDescription>Pilih metode pemulihan untuk mereset password akun Anda.</FieldDescription>
         </div>
 
-        {/* Reset Option */}
+        {/* Reset Options */}
         <RadioGroup defaultValue="email" value={selectedResetOption} onValueChange={(value) => handleSelectResetOption(value)} disabled={isPending}>
           {/* Email Option */}
           <FieldLabel htmlFor="email">
@@ -137,12 +137,12 @@ export function ForgotPasswordForm() {
 function ResetPasswordLinkSuccessfullySent({ message }: { message: string }) {
   return (
     <div className="space-y-6">
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center *:text-center">
         <div className="flex size-10 items-center justify-center bg-green-500 rounded-full mb-4">
           <IconCheck className="text-white" stroke={3.5} />
         </div>
         <h1 className="text-xl font-bold mb-3">Link Reset Berhasil Dikirim</h1>
-        <p className="text-muted-foreground text-sm text-center">{message}</p>
+        <p className="text-muted-foreground text-sm">{message}</p>
       </div>
       <div className="flex flex-col gap-4">
         <Link href="https://mail.google.com" target="_blank">

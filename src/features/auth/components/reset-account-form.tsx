@@ -23,14 +23,12 @@ export function ResetAccountForm() {
     <form onSubmit={onSubmit}>
       <FieldGroup>
         {/* Header */}
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center *:text-center">
           <div className="flex size-10 items-center justify-center rounded-md bg-sidebar-primary/10 mb-4">
             <IconShieldCheckered className="text-sidebar-primary" />
           </div>
           <FieldLegend className="text-xl! font-bold">Reset Akun Anda</FieldLegend>
-          <FieldDescription className="text-center">
-            Silahkan perbaharui alamat email dan password akun anda sebelum menggunakan aplikasi.
-          </FieldDescription>
+          <FieldDescription>Silahkan perbaharui alamat email dan password akun anda sebelum menggunakan aplikasi.</FieldDescription>
         </div>
 
         {/* Email */}
