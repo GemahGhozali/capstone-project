@@ -1,6 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/libs/prisma";
+import { userIsValidAndHasRole } from "@/libs/dal";
 
 export async function getAllProposal() {
   try {
@@ -113,6 +114,101 @@ export async function getProposalById(id: string) {
     };
   } catch (error) {
     console.error("❌ Get Proposal By Id Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
+
+export async function getMahasiswaProposalManagementData() {
+  try {
+    const { id: mahasiswaId } = await userIsValidAndHasRole("Mahasiswa");
+
+    const mahasiswaMembership = await prisma.anggotaTim.findUnique({
+      where: { mahasiswaId },
+      select: {
+        peran: true,
+        tim: {
+          select: {
+            anggotaTim: {
+              select: {
+                statusPersetujuan: true,
+              },
+            },
+            proposal: {
+              select: {
+                id: true,
+                judul: true,
+                mitra: true,
+                file: true,
+                status: true,
+                reviews: {
+                  select: {
+                    id: true,
+                    catatan: true,
+                    status: true,
+                    createdAt: true,
+                    dosen: {
+                      select: {
+                        user: {
+                          select: {
+                            namaLengkap: true,
+                            fotoProfil: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!mahasiswaMembership) {
+      return {
+        hasTeam: false,
+        isKetua: true,
+        isTeamComplete: false,
+        proposal: undefined,
+      };
+    }
+
+    const team = mahasiswaMembership.tim;
+    const isKetua = mahasiswaMembership.peran === "Ketua";
+    const isTeamComplete = team.anggotaTim.every((anggota) => anggota.statusPersetujuan === "Disetujui");
+
+    const proposal = team.proposal;
+    const proposalReviews = proposal?.reviews?.map((review) => ({
+      id: review.id,
+      catatan: review.catatan,
+      status: review.status,
+      tanggal: review.createdAt,
+      dosen: {
+        namaLengkap: review.dosen?.user?.namaLengkap ?? "Dosen Capstone Project",
+        fotoProfil: review.dosen?.user?.fotoProfil,
+      },
+    }));
+
+    const formattedProposal = proposal
+      ? {
+          id: proposal.id,
+          judul: proposal.judul,
+          mitra: proposal.mitra,
+          file: proposal.file,
+          status: proposal.status,
+          review: proposalReviews ?? [],
+        }
+      : undefined;
+
+    return {
+      hasTeam: true,
+      isKetua,
+      isTeamComplete,
+      proposal: formattedProposal,
+    };
+  } catch (error) {
+    console.log("❌ Get Mahasiswa Proposal Management Data Error :", error);
     throw new Error("Terjadi kesalahan pada server!");
   }
 }
