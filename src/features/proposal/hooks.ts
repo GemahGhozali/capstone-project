@@ -6,12 +6,12 @@ import { runAction } from "@/utils/action-runner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { ActionResponse } from "@/types";
-import { getProposalById } from "./queries";
+import { ProposalManagementData } from "./types";
 import { submitProposal, updateProposal, reviewProposal } from "./actions";
 import { ProposalSchema, ProposalInput, ReviewProposalSchema, ReviewProposalInput } from "./schemas";
 
 interface UseProposalForm {
-  proposal?: Awaited<ReturnType<typeof getProposalById>>;
+  proposal: ProposalManagementData;
 }
 
 export function useProposalForm({ proposal }: UseProposalForm) {
