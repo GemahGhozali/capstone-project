@@ -1,14 +1,14 @@
 import * as z from "zod";
 
 const ProposalFileSchema = z
-  .file()
+  .file("File proposal wajib diupload!")
   .max(5 * 1024 * 1024, "Maksimal ukuran file proposal adalah 5 MB!")
   .mime(["application/pdf"], "File proposal harus berformat PDF!");
 
 export const ProposalSchema = z.object({
   judul: z.string().min(1, "Judul proposal wajib diisi!"),
   mitra: z.string().min(1, "Nama mitra wajib diisi!"),
-  file: z.union([ProposalFileSchema, z.string()]),
+  file: z.union([ProposalFileSchema, z.string()], "File proposal wajib diupload!"),
 });
 
 export const ReviewProposalSchema = z.object({
