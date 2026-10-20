@@ -8,7 +8,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ActionResponse } from "@/types";
 import { ProposalManagementData } from "./types";
 import { submitProposal, updateProposal, reviewProposal } from "./actions";
-import { ProposalSchema, ProposalInput, ReviewProposalSchema, ReviewProposalInput } from "./schemas";
+import { SubmitProposalSchema, UpdateProposalSchema, ProposalInput, ReviewProposalSchema, ReviewProposalInput } from "./schemas";
 
 interface UseProposalForm {
   proposal: ProposalManagementData;
@@ -16,10 +16,10 @@ interface UseProposalForm {
 
 export function useProposalForm({ proposal }: UseProposalForm) {
   const form = useForm({
-    resolver: zodResolver(ProposalSchema),
+    resolver: zodResolver(proposal ? UpdateProposalSchema : SubmitProposalSchema),
     mode: "onTouched",
     defaultValues: {
-      file: proposal?.file ?? undefined,
+      file: proposal?.filePath ?? undefined,
       judul: proposal?.judul ?? "",
       mitra: proposal?.mitra ?? "",
     },
