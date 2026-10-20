@@ -147,6 +147,7 @@ export async function getMahasiswaProposalManagementData() {
                 fileSize: true,
                 status: true,
                 reviews: {
+                  orderBy: { createdAt: "desc" },
                   select: {
                     id: true,
                     catatan: true,
@@ -205,7 +206,7 @@ export async function getMahasiswaProposalManagementData() {
           fileName: proposal.fileName,
           fileSize: proposal.fileSize,
           status: proposal.status,
-          review: proposalReviews ?? [],
+          reviews: proposalReviews ?? [],
         }
       : undefined;
 
