@@ -124,7 +124,7 @@ export function FileUploader({
         </div>
         <div className="space-y-0.5">
           <p className="font-semibold text-base text-foreground line-clamp-1">{value ? fileName : isDragging ? "Drop File Disini" : label}</p>
-          <p className="text-sm text-muted-foreground">{value ? fileSize : description}</p>
+          <p className="text-sm text-muted-foreground">{value ? (fileSize ?? description) : description}</p>
         </div>
         <Button variant="outline" size="sm" onClick={openFilePicker} disabled={disabled} className="text-foreground!">
           {value ? "Ganti File" : "Upload File"}
