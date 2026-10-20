@@ -38,7 +38,9 @@ export async function getProposalById(id: string) {
       where: { id },
       select: {
         id: true,
-        file: true,
+        filePath: true,
+        fileName: true,
+        fileSize: true,
         judul: true,
         mitra: true,
         status: true,
@@ -90,7 +92,9 @@ export async function getProposalById(id: string) {
 
     return {
       id: proposal.id,
-      file: proposal.file,
+      filePath: proposal.filePath,
+      fileName: proposal.fileName,
+      fileSize: proposal.fileSize,
       judul: proposal.judul,
       mitra: proposal.mitra,
       status: proposal.status,
@@ -138,7 +142,9 @@ export async function getMahasiswaProposalManagementData() {
                 id: true,
                 judul: true,
                 mitra: true,
-                file: true,
+                filePath: true,
+                fileName: true,
+                fileSize: true,
                 status: true,
                 reviews: {
                   select: {
@@ -195,7 +201,9 @@ export async function getMahasiswaProposalManagementData() {
           id: proposal.id,
           judul: proposal.judul,
           mitra: proposal.mitra,
-          file: proposal.file,
+          filePath: proposal.filePath,
+          fileName: proposal.fileName,
+          fileSize: proposal.fileSize,
           status: proposal.status,
           review: proposalReviews ?? [],
         }
