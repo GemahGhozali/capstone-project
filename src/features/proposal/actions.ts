@@ -6,10 +6,10 @@ import { ActionResponse } from "@/types";
 import { userIsValidAndHasRole } from "@/libs/dal";
 import { deleteFile, uploadFile } from "@/utils/file";
 import { getProposalStatusLogMessage, proposalStatusColors } from "./utils";
-import { ProposalSchema, ProposalInput, ReviewProposalInput, ReviewProposalSchema } from "./schemas";
+import { ProposalInput, ReviewProposalInput, ReviewProposalSchema, SubmitProposalSchema, UpdateProposalSchema } from "./schemas";
 
 export async function submitProposal(data: ProposalInput): Promise<ActionResponse> {
-  const parsed = ProposalSchema.safeParse(data);
+  const parsed = SubmitProposalSchema.safeParse(data);
 
   if (!parsed.success) {
     return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
@@ -71,13 +71,15 @@ export async function submitProposal(data: ProposalInput): Promise<ActionRespons
       return { success: false, message: "Tim Anda sudah mengajukan proposal!" };
     }
 
-    const uploadedProposal = await uploadFile({ file, uploadPath: "/documents/proposal/" });
+    const filePath = await uploadFile({ file, uploadPath: "/documents/proposal/" });
+    const fileName = file.name;
+    const fileSize = file.size;
 
     await prisma
       .$transaction(async (trancastion) => {
         // Membuat data proposal tim
         const newProposal = await trancastion.proposal.create({
-          data: { judul, mitra, file: uploadedProposal, timId: team.id },
+          data: { judul, mitra, filePath, fileName, fileSize, timId: team.id },
         });
 
         // Membuat log aktivitas tim
@@ -105,7 +107,7 @@ export async function submitProposal(data: ProposalInput): Promise<ActionRespons
 
       // Rollback : Hapus file proposal yang telah diupload jika transaction gagal
       .catch(async (error) => {
-        if (uploadedProposal) await deleteFile(uploadedProposal);
+        if (filePath) await deleteFile(filePath);
         throw error;
       });
 
@@ -117,7 +119,7 @@ export async function submitProposal(data: ProposalInput): Promise<ActionRespons
 }
 
 export async function updateProposal(id: string, data: ProposalInput): Promise<ActionResponse> {
-  const parsed = ProposalSchema.safeParse(data);
+  const parsed = UpdateProposalSchema.safeParse(data);
 
   if (!parsed.success) {
     return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
@@ -133,7 +135,9 @@ export async function updateProposal(id: string, data: ProposalInput): Promise<A
       where: { id },
       select: {
         id: true,
-        file: true,
+        filePath: true,
+        fileName: true,
+        fileSize: true,
         status: true,
         tim: {
           select: {
@@ -175,7 +179,7 @@ export async function updateProposal(id: string, data: ProposalInput): Promise<A
 
     // Validasi 4 : Cek apakah proposal harus direplace dengan yang baru
     let newUploadedProposalPath = null;
-    let finalProposalPath = proposal.file;
+    let finalProposalPath = proposal.filePath;
 
     const isNewProposalUploaded = file instanceof File;
 
@@ -184,12 +188,15 @@ export async function updateProposal(id: string, data: ProposalInput): Promise<A
       finalProposalPath = newUploadedProposalPath;
     }
 
+    const fileName = isNewProposalUploaded ? file.name : proposal.fileName;
+    const fileSize = isNewProposalUploaded ? file.size : proposal.fileSize;
+
     await prisma
       .$transaction(async (transaction) => {
         // Memperbaharui data proposal dan reset status menjadi "Menunggu"
         await transaction.proposal.update({
           where: { id: proposal.id },
-          data: { judul, mitra, file: finalProposalPath, status: "Menunggu" },
+          data: { judul, mitra, filePath: finalProposalPath, fileName, fileSize, status: "Menunggu" },
         });
 
         // Membuat log aktivitas tim
@@ -222,7 +229,7 @@ export async function updateProposal(id: string, data: ProposalInput): Promise<A
       });
 
     // Validasi 5 : Cek apakah file proposal lama perlu dihapus
-    const oldProposalFile = proposal.file;
+    const oldProposalFile = proposal.filePath;
 
     if (isNewProposalUploaded) {
       await deleteFile(oldProposalFile);
