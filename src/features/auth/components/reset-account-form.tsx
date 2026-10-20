@@ -70,27 +70,25 @@ export function ResetAccountForm() {
               </FieldLabel>
               <PasswordInput
                 render={(type, showPassword) => (
-                  <div className="relative">
-                    <InputGroup className="gap-0.5">
-                      <InputGroupAddon align="inline-start">
-                        <IconLock className="text-muted-foreground" />
+                  <InputGroup className="gap-0.5">
+                    <InputGroupAddon align="inline-start">
+                      <IconLock className="text-muted-foreground" />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      {...field}
+                      type={type}
+                      id="password"
+                      aria-invalid={fieldState.invalid}
+                      placeholder="Masukkan password baru disini..."
+                      autoComplete="off"
+                      disabled={isPending}
+                    />
+                    <PasswordTrigger>
+                      <InputGroupAddon align="inline-end" className="text-muted-foreground cursor-pointer">
+                        {showPassword ? <IconEye /> : <IconEyeOff />}
                       </InputGroupAddon>
-                      <InputGroupInput
-                        {...field}
-                        type={type}
-                        id="password"
-                        aria-invalid={fieldState.invalid}
-                        placeholder="Masukkan password baru disini..."
-                        autoComplete="off"
-                        disabled={isPending}
-                      />
-                      <PasswordTrigger>
-                        <InputGroupAddon align="inline-end" className="text-muted-foreground cursor-pointer">
-                          {showPassword ? <IconEye /> : <IconEyeOff />}
-                        </InputGroupAddon>
-                      </PasswordTrigger>
-                    </InputGroup>
-                  </div>
+                    </PasswordTrigger>
+                  </InputGroup>
                 )}
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -109,27 +107,25 @@ export function ResetAccountForm() {
               </FieldLabel>
               <PasswordInput
                 render={(type, showPassword) => (
-                  <div className="relative">
-                    <InputGroup className="gap-0.5">
-                      <InputGroupAddon align="inline-start">
-                        <IconLockCheck className="text-muted-foreground" />
+                  <InputGroup className="gap-0.5">
+                    <InputGroupAddon align="inline-start">
+                      <IconLockCheck className="text-muted-foreground" />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      {...field}
+                      type={type}
+                      id="passwordConfirmation"
+                      aria-invalid={fieldState.invalid}
+                      placeholder="Konfirmasi password baru disini..."
+                      autoComplete="off"
+                      disabled={isPending}
+                    />
+                    <PasswordTrigger>
+                      <InputGroupAddon align="inline-end" className="text-muted-foreground cursor-pointer">
+                        {showPassword ? <IconEye /> : <IconEyeOff />}
                       </InputGroupAddon>
-                      <InputGroupInput
-                        {...field}
-                        type={type}
-                        id="passwordConfirmation"
-                        aria-invalid={fieldState.invalid}
-                        placeholder="Konfirmasi password baru disini..."
-                        autoComplete="off"
-                        disabled={isPending}
-                      />
-                      <PasswordTrigger>
-                        <InputGroupAddon align="inline-end" className="text-muted-foreground cursor-pointer">
-                          {showPassword ? <IconEye /> : <IconEyeOff />}
-                        </InputGroupAddon>
-                      </PasswordTrigger>
-                    </InputGroup>
-                  </div>
+                    </PasswordTrigger>
+                  </InputGroup>
                 )}
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
