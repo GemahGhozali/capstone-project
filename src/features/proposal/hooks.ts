@@ -19,7 +19,7 @@ export function useProposalForm({ proposal }: UseProposalForm) {
     resolver: zodResolver(proposal ? UpdateProposalSchema : SubmitProposalSchema),
     mode: "onTouched",
     defaultValues: {
-      file: proposal?.filePath ?? undefined,
+      file: proposal?.fileName ?? undefined,
       judul: proposal?.judul ?? "",
       mitra: proposal?.mitra ?? "",
     },
