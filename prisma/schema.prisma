@@ -178,7 +178,9 @@ model Proposal {
   timId     String           @unique @map("tim_id") @db.Uuid
   judul     String           @db.VarChar
   mitra     String           @db.VarChar
-  file      String
+  filePath  String           @map("file_path")
+  fileName  String           @db.VarChar @map("file_name")
+  fileSize  Int              @map("file_size")
   status    StatusProposal   @default(Menunggu)
   createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz
@@ -211,7 +213,9 @@ model Resume {
   mahasiswaId String         @unique @map("mahasiswa_id") @db.Uuid
   dosenId     String?        @map("dosen_id") @db.Uuid
   subjudul    String         @db.VarChar
-  file        String
+  filePath    String         @map("file_path")
+  fileName    String         @db.VarChar @map("file_name")
+  fileSize    Int            @map("file_size")
   status      StatusResume   @default(Menunggu)
   createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz
