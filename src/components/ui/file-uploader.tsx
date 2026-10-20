@@ -4,6 +4,7 @@ import React from "react";
 
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
+import { formatFileSize } from "@/utils/format-file-size";
 import { IconUpload, IconX, IconFileDescription } from "@tabler/icons-react";
 
 interface FileUploaderProps {
@@ -15,14 +16,6 @@ interface FileUploaderProps {
   disabled?: boolean;
   accept?: string;
   invalid?: boolean;
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 Bytes";
-  const k = 1024;
-  const sizes = ["Bytes", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
 export function FileUploader({
