@@ -22,7 +22,7 @@ export function ProposalReviewAccordion({ review }: ProposalReviewAccordionProps
   return (
     <AccordionItem value={review.id} className="border rounded-lg divide-y">
       <AccordionTrigger className="items-end sm:items-center hover:no-underline p-4 gap-3 relative">
-        <div className="flex gap-3 flex-col sm:flex-row">
+        <div className="flex gap-3 flex-col sm:flex-row sm:items-center">
           <Avatar>
             <AvatarImage src={review.dosen.fotoProfil ?? ""} alt={review.dosen.namaLengkap} />
             <AvatarFallback>{generateNameInitials(review.dosen.namaLengkap)}</AvatarFallback>
