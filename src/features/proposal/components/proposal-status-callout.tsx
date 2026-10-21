@@ -47,8 +47,8 @@ export function ProposalStatusCallout({ proposalStatus }: ProposalStatusCalloutP
       {proposalStatus === "Disetujui" && (
         <CalloutAction
           render={
-            <Link href="/mahasiswa/kelola-tim" className="w-full">
-              <Button className="w-full">Buat Tim</Button>
+            <Link href="/mahasiswa/upload-resume" className="w-full">
+              <Button className="w-full">Upload Resume</Button>
             </Link>
           }
         />
