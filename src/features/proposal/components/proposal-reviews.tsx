@@ -1,10 +1,8 @@
-"use client";
-
 import { Accordion } from "@/components/ui/accordion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { IconMessageDots } from "@tabler/icons-react";
-import type { ProposalManagementData } from "../types";
+import { ProposalManagementData } from "../types";
 import { ProposalReviewAccordion } from "./proposal-review-accordion";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 interface ProposalReviewsProps {
