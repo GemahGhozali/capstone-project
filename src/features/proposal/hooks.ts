@@ -3,6 +3,7 @@
 import { toast } from "@/components/ui/toast";
 import { useForm } from "react-hook-form";
 import { runAction } from "@/utils/action-runner";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { ActionResponse } from "@/types";
@@ -15,6 +16,8 @@ interface UseProposalForm {
 }
 
 export function useProposalForm({ proposal }: UseProposalForm) {
+  const router = useRouter();
+
   const form = useForm({
     resolver: zodResolver(proposal ? UpdateProposalSchema : SubmitProposalSchema),
     mode: "onTouched",
@@ -33,6 +36,7 @@ export function useProposalForm({ proposal }: UseProposalForm) {
 
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });
+      router.refresh();
     },
 
     onError: (response: ActionResponse) => {
@@ -50,6 +54,8 @@ export function useProposalForm({ proposal }: UseProposalForm) {
 }
 
 export function useReviewProposalForm(proposalId: string) {
+  const router = useRouter();
+
   const form = useForm({
     resolver: zodResolver(ReviewProposalSchema),
     mode: "onTouched",
@@ -60,6 +66,7 @@ export function useReviewProposalForm(proposalId: string) {
 
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });
+      router.refresh();
     },
 
     onError: (response: ActionResponse) => {
