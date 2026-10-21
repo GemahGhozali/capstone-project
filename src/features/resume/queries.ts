@@ -186,12 +186,10 @@ export async function getMahasiswaResumeManagementData() {
             status: true,
             dosen: {
               select: {
-                id: true,
-                nip: true,
                 user: {
                   select: {
+                    id: true,
                     namaLengkap: true,
-                    fotoProfil: true,
                   },
                 },
               },
@@ -234,10 +232,8 @@ export async function getMahasiswaResumeManagementData() {
             fileSize: resume.fileSize,
             status: resume.status,
             dosen: {
-              id: resume.dosen?.id,
-              nip: resume.dosen?.nip,
-              namaLengkap: resume.dosen?.user.namaLengkap,
-              fotoProfil: resume.dosen?.user.fotoProfil,
+              id: resume.dosen?.user?.id,
+              namaLengkap: resume.dosen?.user?.namaLengkap ?? "Dosen Pembimbing",
             },
             reviews: resume.reviews.map((review) => ({
               id: review.id,

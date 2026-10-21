@@ -130,12 +130,10 @@ export async function getAllDosenPembimbing() {
         },
       },
       select: {
-        id: true,
         user: {
           select: {
-            identifier: true,
+            id: true,
             namaLengkap: true,
-            fotoProfil: true,
           },
         },
         dosenPembimbingDetail: {
@@ -163,10 +161,8 @@ export async function getAllDosenPembimbing() {
         const sisaKuota = Math.max(batasBimbingan - totalBimbingan, 0);
 
         return {
-          id: dosen.id,
-          nip: user.identifier,
+          id: user.id,
           namaLengkap: user.namaLengkap,
-          fotoProfil: user.fotoProfil,
           batasBimbingan,
           totalBimbingan,
           sisaKuota,
