@@ -1,6 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/libs/prisma";
+import { userIsValidAndHasRole } from "@/libs/dal";
 
 export async function getAllResume() {
   try {
@@ -151,6 +152,108 @@ export async function getResumeById(id: string) {
     };
   } catch (error) {
     console.error("❌ Get Resume By Id Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
+
+export async function getMahasiswaResumeManagementData() {
+  try {
+    const { id: mahasiswaId } = await userIsValidAndHasRole("Mahasiswa");
+
+    const mahasiswa = await prisma.mahasiswa.findUnique({
+      where: { id: mahasiswaId },
+      select: {
+        anggotaTim: {
+          select: {
+            tim: {
+              select: {
+                proposal: {
+                  select: {
+                    status: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        resume: {
+          select: {
+            id: true,
+            subjudul: true,
+            filePath: true,
+            fileName: true,
+            fileSize: true,
+            status: true,
+            dosen: {
+              select: {
+                id: true,
+                nip: true,
+                user: {
+                  select: {
+                    namaLengkap: true,
+                    fotoProfil: true,
+                  },
+                },
+              },
+            },
+            reviews: {
+              orderBy: { createdAt: "desc" },
+              select: {
+                id: true,
+                status: true,
+                catatan: true,
+                createdAt: true,
+                dosen: {
+                  select: {
+                    user: {
+                      select: {
+                        namaLengkap: true,
+                        fotoProfil: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const proposal = mahasiswa?.anggotaTim?.tim?.proposal;
+    const resume = mahasiswa?.resume;
+
+    return {
+      proposal,
+      resume: resume
+        ? {
+            id: resume.id,
+            subjudul: resume.subjudul,
+            filePath: resume.filePath,
+            fileName: resume.fileName,
+            fileSize: resume.fileSize,
+            status: resume.status,
+            dosen: {
+              id: resume.dosen?.id,
+              nip: resume.dosen?.nip,
+              namaLengkap: resume.dosen?.user.namaLengkap,
+              fotoProfil: resume.dosen?.user.fotoProfil,
+            },
+            reviews: resume.reviews.map((review) => ({
+              id: review.id,
+              status: review.status,
+              catatan: review.catatan,
+              tanggal: review.createdAt,
+              dosen: {
+                namaLengkap: review.dosen?.user.namaLengkap ?? "Dosen Pembimbing",
+                fotoProfil: review.dosen?.user.fotoProfil,
+              },
+            })),
+          }
+        : undefined,
+    };
+  } catch (error) {
+    console.log("❌ Get Mahasiswa Resume Management Data Error :", error);
     throw new Error("Terjadi kesalahan pada server!");
   }
 }
