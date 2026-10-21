@@ -1,6 +1,6 @@
 import { TimForm } from "@/features/tim/components/tim-form";
 import { TeamOverview } from "@/features/tim/components/team-overview";
-import { TeamInvitationAlert } from "@/features/tim/components/team-invitation-alert";
+import { TeamInvitationCallout } from "@/features/tim/components/team-invitation-callout";
 import { getMahasiswaTeamManagementData } from "@/features/tim/queries";
 
 export default async function KelolaTimPage() {
@@ -12,7 +12,7 @@ export default async function KelolaTimPage() {
   const mahasiswaNotAllowedToChangeTeam = hasTeam && teamIsLocked;
 
   if (mahasiswaIsInvited) {
-    return <TeamInvitationAlert teamMembers={tim.anggota} teamName={tim.nama} />;
+    return <TeamInvitationCallout teamMembers={tim.anggota} teamName={tim.nama} />;
   }
 
   if (mahasiswaNotAllowedToChangeTeam) {

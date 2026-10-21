@@ -1,18 +1,16 @@
 "use client";
 
 import Link from "next/link";
-
-import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { StatusProposal } from "@/generated/prisma/enums";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { IconCircleCheck, IconCircleX, IconEdit, IconHourglass } from "@tabler/icons-react";
+import { Callout, CalloutIcon, CalloutContent, CalloutTitle, CalloutDescription, CalloutAction } from "@/components/ui/callout";
 
-interface ProposalStatusAlertProps {
+interface ProposalStatusCalloutProps {
   proposalStatus: StatusProposal;
 }
 
-export function ProposalStatusAlert({ proposalStatus }: ProposalStatusAlertProps) {
+export function ProposalStatusCallout({ proposalStatus }: ProposalStatusCalloutProps) {
   let alertTitle = "Proposal Tim Sedang Direview!";
   let alertDescription = "Proposal telah dikirim dan sedang ditinjau oleh Dosen Capstone Project.";
   let alertIcon = <IconHourglass />;
@@ -40,19 +38,21 @@ export function ProposalStatusAlert({ proposalStatus }: ProposalStatusAlertProps
   }
 
   return (
-    <Card className="p-0">
-      <CardHeader className="p-6 flex items-center flex-col gap-3 lg:flex-row">
-        <div className={cn("size-12 grid place-content-center rounded-full shrink-0", alertIconColor)}>{alertIcon}</div>
-        <div className="text-center lg:text-left">
-          <CardTitle>{alertTitle}</CardTitle>
-          <CardDescription>{alertDescription}</CardDescription>
-        </div>
-        {proposalStatus === "Disetujui" && (
-          <Link href="/mahasiswa/upload-resume" className="w-full lg:w-auto lg:ml-auto">
-            <Button className="w-full">Upload Resume</Button>
-          </Link>
-        )}
-      </CardHeader>
-    </Card>
+    <Callout>
+      <CalloutIcon className={alertIconColor}>{alertIcon}</CalloutIcon>
+      <CalloutContent>
+        <CalloutTitle>{alertTitle}</CalloutTitle>
+        <CalloutDescription>{alertDescription}</CalloutDescription>
+      </CalloutContent>
+      {proposalStatus === "Disetujui" && (
+        <CalloutAction
+          render={
+            <Link href="/mahasiswa/kelola-tim" className="w-full">
+              <Button className="w-full">Buat Tim</Button>
+            </Link>
+          }
+        />
+      )}
+    </Callout>
   );
 }

@@ -3,9 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { StatusProposal } from "@/generated/prisma/enums";
 import { TeamMemberInput } from "../schemas";
 import { generateNameInitials } from "@/utils/generate-name-initials";
+import { Card, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { IconCircleCheck, IconInfoCircle, IconLock, IconNut } from "@tabler/icons-react";
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Callout, CalloutIcon, CalloutContent, CalloutTitle, CalloutDescription } from "@/components/ui/callout";
 
 interface TeamOverviewProps {
   teamName: string;
@@ -36,23 +37,21 @@ export function TeamOverview({ teamMembers, statusProposal, teamName }: TeamOver
         <h1 className="font-semibold text-lg">Detail Tim Capstone Project</h1>
         <p className="text-muted-foreground text-sm">{teamName}</p>
       </div>
-      <Card className="p-0">
-        <CardHeader className="p-6 flex items-center flex-col gap-3 lg:flex-row">
-          <div
-            className={cn(
-              "size-12 grid place-content-center rounded-full shrink-0 bg-blue-500/15 text-blue-500",
-              proposalApproved && "bg-green-500/15 text-green-500",
-              proposalUploaded && "bg-yellow-500/15 text-yellow-500",
-            )}
-          >
-            {proposalApproved ? <IconCircleCheck /> : proposalUploaded ? <IconLock /> : <IconInfoCircle />}
-          </div>
-          <div className="text-center lg:text-left">
-            <CardTitle>{alertTitle}</CardTitle>
-            <CardDescription>{alertDescription}</CardDescription>
-          </div>
-        </CardHeader>
-      </Card>
+      <Callout>
+        <CalloutIcon
+          className={cn(
+            "bg-blue-500/15 text-blue-500",
+            proposalApproved && "bg-green-500/15 text-green-500",
+            proposalUploaded && "bg-yellow-500/15 text-yellow-500",
+          )}
+        >
+          {proposalApproved ? <IconCircleCheck /> : proposalUploaded ? <IconLock /> : <IconInfoCircle />}
+        </CalloutIcon>
+        <CalloutContent>
+          <CalloutTitle>{alertTitle}</CalloutTitle>
+          <CalloutDescription>{alertDescription}</CalloutDescription>
+        </CalloutContent>
+      </Callout>
       {teamMembers.map((member) => (
         <Card key={member.id} className="p-0 gap-0 divide-y">
           <CardHeader className="p-4 flex items-center gap-3 relative">
