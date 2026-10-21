@@ -117,3 +117,64 @@ export async function getAllDosenRoles() {
     throw new Error("Terjadi kesalahan pada server!");
   }
 }
+
+export async function getAllDosenPembimbing() {
+  try {
+    const dosenPembimbingList = await prisma.dosen.findMany({
+      where: {
+        status: "Aktif",
+        dosenPembimbingDetail: { status: "Buka" },
+        user: {
+          isActive: true,
+          userRoles: { some: { role: { nama: "Dosen Pembimbing" } } },
+        },
+      },
+      select: {
+        id: true,
+        user: {
+          select: {
+            identifier: true,
+            namaLengkap: true,
+            fotoProfil: true,
+          },
+        },
+        dosenPembimbingDetail: {
+          select: {
+            batasBimbingan: true,
+          },
+        },
+        _count: {
+          select: {
+            mahasiswaBimbingan: {
+              where: { status: "Aktif" },
+            },
+          },
+        },
+      },
+      orderBy: { user: { namaLengkap: "asc" } },
+    });
+
+    return dosenPembimbingList
+      .map((dosen) => {
+        const { user, dosenPembimbingDetail, _count } = dosen;
+
+        const batasBimbingan = dosenPembimbingDetail?.batasBimbingan ?? 0;
+        const totalBimbingan = _count.mahasiswaBimbingan;
+        const sisaKuota = Math.max(batasBimbingan - totalBimbingan, 0);
+
+        return {
+          id: dosen.id,
+          nip: user.identifier,
+          namaLengkap: user.namaLengkap,
+          fotoProfil: user.fotoProfil,
+          batasBimbingan,
+          totalBimbingan,
+          sisaKuota,
+        };
+      })
+      .filter((dosen) => dosen.sisaKuota > 0);
+  } catch (error) {
+    console.error("❌ Get All Dosen Pembimbing Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
