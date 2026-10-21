@@ -59,7 +59,7 @@ export async function createMahasiswa(data: CreateMahasiswaInput): Promise<Actio
 
     if (!mahasiswaRole) throw new Error("Role mahasiswa tidak ditemukan di database!");
 
-    const uploadedImage = await uploadFileOptional({ file: fotoProfil, uploadPath: "/images/profile/mahasiswa/" });
+    const uploadedImage = await uploadFileOptional({ file: fotoProfil, uploadPath: "/images/mahasiswa/" });
 
     await prisma
       .$transaction(async (transaction) => {
@@ -168,7 +168,7 @@ export async function updateMahasiswa(id: string, data: UpdateMahasiswaInput): P
     }
 
     if (isNewProfilePhotoUploaded) {
-      newUploadedPhotoPath = await uploadFileOptional({ file: fotoProfil, uploadPath: "/images/profile/mahasiswa/" });
+      newUploadedPhotoPath = await uploadFileOptional({ file: fotoProfil, uploadPath: "/images/mahasiswa/" });
       finalProfilePhotoPath = newUploadedPhotoPath;
     }
 

@@ -72,7 +72,7 @@ export async function createDosen(data: CreateDosenInput): Promise<ActionRespons
       };
     }
 
-    const uploadedImage = await uploadFileOptional({ file: fotoProfil, uploadPath: "/images/profile/dosen/" });
+    const uploadedImage = await uploadFileOptional({ file: fotoProfil, uploadPath: "/images/dosen/" });
 
     await prisma
       .$transaction(async (transaction) => {
@@ -210,7 +210,7 @@ export async function updateDosen(id: string, data: UpdateDosenInput): Promise<A
     }
 
     if (isNewProfilePhotoUploaded) {
-      newUploadedPhotoPath = await uploadFileOptional({ file: fotoProfil, uploadPath: "/images/profile/dosen/" });
+      newUploadedPhotoPath = await uploadFileOptional({ file: fotoProfil, uploadPath: "/images/dosen/" });
       finalProfilePhotoPath = newUploadedPhotoPath;
     }
 
