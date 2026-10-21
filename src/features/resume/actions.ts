@@ -5,12 +5,12 @@ import { formatZodError } from "@/utils/format-zod-error";
 import { ActionResponse } from "@/types";
 import { userIsValidAndHasRole } from "@/libs/dal";
 import { deleteFile, uploadFile } from "@/utils/file";
-import { validateDosenPembimbing } from "./services";
+import { validateDosenPembimbing } from "@/features/dosen/services";
 import { getResumeStatusLogMessage, resumeStatusColors } from "./utils";
-import { ResumeSchema, ResumeInput, ReviewResumeSchema, ReviewResumeInput } from "./schemas";
+import { SubmitResumeSchema, UpdateResumeSchema, ResumeInput, ReviewResumeSchema, ReviewResumeInput } from "./schemas";
 
 export async function submitResume(data: ResumeInput): Promise<ActionResponse> {
-  const parsed = ResumeSchema.safeParse(data);
+  const parsed = SubmitResumeSchema.safeParse(data);
 
   if (!parsed.success) {
     return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
@@ -73,25 +73,21 @@ export async function submitResume(data: ResumeInput): Promise<ActionResponse> {
     }
 
     // Validasi 6 : Cek apakah dosen pembimbing yang dipilih memang valid
-    const dosenPembimbingNotValid = await validateDosenPembimbing(dosenId);
+    const dosenPembimbingValidation = await validateDosenPembimbing(dosenId);
 
-    if (dosenPembimbingNotValid) {
-      return { success: false, message: dosenPembimbingNotValid };
+    if (!dosenPembimbingValidation.isValid) {
+      return { success: false, message: dosenPembimbingValidation.message };
     }
 
-    const uploadedResume = await uploadFile({ file, uploadPath: "/documents/resume/" });
+    const filePath = await uploadFile({ file, uploadPath: "/documents/resume/" });
+    const fileName = file.name;
+    const fileSize = file.size;
 
     await prisma
       .$transaction(async (transaction) => {
         // Membuat data resume mahasiswa
         const newResume = await transaction.resume.create({
-          data: {
-            subjudul,
-            dosenId,
-            mahasiswaId,
-            file: uploadedResume,
-            proposalId: proposal.id,
-          },
+          data: { subjudul, dosenId, mahasiswaId, filePath, fileName, fileSize, proposalId: proposal.id },
         });
 
         // Membuat log aktivitas resume
@@ -108,7 +104,7 @@ export async function submitResume(data: ResumeInput): Promise<ActionResponse> {
 
       // Rollback : Hapus file resume yang telah diupload jika transaction gagal
       .catch(async (error) => {
-        if (uploadedResume) await deleteFile(uploadedResume);
+        if (filePath) await deleteFile(filePath);
         throw error;
       });
 
@@ -120,7 +116,7 @@ export async function submitResume(data: ResumeInput): Promise<ActionResponse> {
 }
 
 export async function updateResume(id: string, data: ResumeInput): Promise<ActionResponse> {
-  const parsed = ResumeSchema.safeParse(data);
+  const parsed = UpdateResumeSchema.safeParse(data);
 
   if (!parsed.success) {
     return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
@@ -135,8 +131,10 @@ export async function updateResume(id: string, data: ResumeInput): Promise<Actio
       where: { id },
       select: {
         id: true,
-        file: true,
         status: true,
+        filePath: true,
+        fileName: true,
+        fileSize: true,
         mahasiswaId: true,
       },
     });
@@ -161,15 +159,15 @@ export async function updateResume(id: string, data: ResumeInput): Promise<Actio
     }
 
     // Validasi 4 : Cek apakah dosen pembimbing yang dipilih memenuhi syarat
-    const dosenPembimbingNotValid = await validateDosenPembimbing(dosenId);
+    const dosenPembimbingValidation = await validateDosenPembimbing(dosenId);
 
-    if (dosenPembimbingNotValid) {
-      return { success: false, message: dosenPembimbingNotValid };
+    if (!dosenPembimbingValidation.isValid) {
+      return { success: false, message: dosenPembimbingValidation.message };
     }
 
     // Validasi 5 : Cek apakah file resume harus direplace dengan yang baru
     let newUploadedResumePath = null;
-    let finalResumePath = resume.file;
+    let finalResumePath = resume.filePath;
 
     const isNewResumeUploaded = file instanceof File;
 
@@ -178,12 +176,15 @@ export async function updateResume(id: string, data: ResumeInput): Promise<Actio
       finalResumePath = newUploadedResumePath;
     }
 
+    const fileName = isNewResumeUploaded ? file.name : resume.fileName;
+    const fileSize = isNewResumeUploaded ? file.size : resume.fileSize;
+
     await prisma
       .$transaction(async (transaction) => {
         // Memperbaharui data resume dan reset status menjadi "Menunggu"
         await transaction.resume.update({
           where: { id: resume.id },
-          data: { subjudul, dosenId, file: finalResumePath, status: "Menunggu" },
+          data: { dosenId, subjudul, fileName, fileSize, filePath: finalResumePath, status: "Menunggu" },
         });
 
         // Membuat log aktivitas resume
@@ -205,8 +206,10 @@ export async function updateResume(id: string, data: ResumeInput): Promise<Actio
       });
 
     // Validasi 6 : Cek apakah file resume lama perlu dihapus
+    const oldResumeFile = resume.filePath;
+
     if (isNewResumeUploaded) {
-      await deleteFile(resume.file);
+      await deleteFile(oldResumeFile);
     }
 
     return { success: true, message: "Resume berhasil diperbaharui!" };

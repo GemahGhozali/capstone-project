@@ -41,7 +41,9 @@ export async function getResumeById(id: string) {
       where: { id },
       select: {
         id: true,
-        file: true,
+        filePath: true,
+        fileName: true,
+        fileSize: true,
         subjudul: true,
         status: true,
 
@@ -117,7 +119,9 @@ export async function getResumeById(id: string) {
 
     return {
       id: resume.id,
-      file: resume.file,
+      filePath: resume.filePath,
+      fileName: resume.fileName,
+      fileSize: resume.fileSize,
       subjudul: resume.subjudul,
       status: resume.status,
       mahasiswa: {
@@ -146,7 +150,7 @@ export async function getResumeById(id: string) {
       })),
     };
   } catch (error) {
-    console.error("❌ Get Proposal By Id Error :", error);
+    console.error("❌ Get Resume By Id Error :", error);
     throw new Error("Terjadi kesalahan pada server!");
   }
 }

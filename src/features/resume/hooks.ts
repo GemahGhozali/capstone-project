@@ -2,26 +2,29 @@
 
 import { toast } from "@/components/ui/toast";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { runAction } from "@/utils/action-runner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { getResumeById } from "./queries";
 import { ActionResponse } from "@/types";
 import { submitResume, updateResume, reviewResume } from "./actions";
-import { ResumeSchema, ResumeInput, ReviewResumeSchema, ReviewResumeInput } from "./schemas";
+import { UpdateResumeSchema, ResumeInput, ReviewResumeSchema, ReviewResumeInput, SubmitResumeSchema } from "./schemas";
 
 interface UseResumeForm {
   resume?: Awaited<ReturnType<typeof getResumeById>>;
 }
 
 export function useResumeForm({ resume }: UseResumeForm) {
+  const router = useRouter();
+
   const form = useForm({
-    resolver: zodResolver(ResumeSchema),
+    resolver: zodResolver(resume ? UpdateResumeSchema : SubmitResumeSchema),
     mode: "onTouched",
     defaultValues: {
       subjudul: resume?.subjudul ?? "",
       dosenId: resume?.dosen.id ?? "",
-      file: resume?.file ?? undefined,
+      file: resume?.fileName ?? undefined,
     },
   });
 
@@ -33,6 +36,7 @@ export function useResumeForm({ resume }: UseResumeForm) {
 
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });
+      router.refresh();
     },
 
     onError: (response: ActionResponse) => {
@@ -50,6 +54,8 @@ export function useResumeForm({ resume }: UseResumeForm) {
 }
 
 export function useReviewResumeForm(resumeId: string) {
+  const router = useRouter();
+
   const form = useForm({
     resolver: zodResolver(ReviewResumeSchema),
     mode: "onTouched",
@@ -60,6 +66,7 @@ export function useReviewResumeForm(resumeId: string) {
 
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });
+      router.refresh();
     },
 
     onError: (response: ActionResponse) => {

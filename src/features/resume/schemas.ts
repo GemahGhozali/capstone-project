@@ -1,14 +1,18 @@
 import * as z from "zod";
 
 const ResumeFileSchema = z
-  .file()
+  .file("File resume wajib diupload!")
   .max(5 * 1024 * 1024, "Maksimal ukuran file resume adalah 5 MB!")
   .mime(["application/pdf"], "File resume harus berformat PDF!");
 
-export const ResumeSchema = z.object({
-  subjudul: z.string().min(1, "Subjudul proposal wajib diisi!"),
+export const SubmitResumeSchema = z.object({
+  subjudul: z.string().min(1, "Subjudul resume wajib diisi!"),
   dosenId: z.uuid("Dosen pembimbing wajib dipilih!"),
-  file: z.union([ResumeFileSchema, z.string()]),
+  file: ResumeFileSchema,
+});
+
+export const UpdateResumeSchema = SubmitResumeSchema.extend({
+  file: z.union([ResumeFileSchema, z.string()], "File resume wajib diupload!"),
 });
 
 export const ReviewResumeSchema = z.object({
@@ -16,5 +20,7 @@ export const ReviewResumeSchema = z.object({
   catatan: z.string().min(1, "Catatan review wajib diisi!"),
 });
 
-export type ResumeInput = z.infer<typeof ResumeSchema>;
+export type SubmitResumeInput = z.infer<typeof SubmitResumeSchema>;
+export type UpdateResumeInput = z.infer<typeof UpdateResumeSchema>;
 export type ReviewResumeInput = z.infer<typeof ReviewResumeSchema>;
+export type ResumeInput = SubmitResumeInput | UpdateResumeInput;
