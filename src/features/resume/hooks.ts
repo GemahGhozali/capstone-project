@@ -6,13 +6,13 @@ import { useRouter } from "next/navigation";
 import { runAction } from "@/utils/action-runner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { getResumeById } from "./queries";
 import { ActionResponse } from "@/types";
+import { ResumeManagementData } from "./types";
 import { submitResume, updateResume, reviewResume } from "./actions";
 import { UpdateResumeSchema, ResumeInput, ReviewResumeSchema, ReviewResumeInput, SubmitResumeSchema } from "./schemas";
 
 interface UseResumeForm {
-  resume?: Awaited<ReturnType<typeof getResumeById>>;
+  resume: ResumeManagementData;
 }
 
 export function useResumeForm({ resume }: UseResumeForm) {
