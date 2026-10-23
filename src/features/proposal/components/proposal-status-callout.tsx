@@ -7,7 +7,7 @@ import { Callout, CalloutIcon, CalloutContent, CalloutTitle, CalloutDescription,
 type ProposalViewer = "Mahasiswa" | "Dosen";
 
 interface ProposalStatusCalloutProps {
-  proposalStatus: StatusProposal;
+  currentProposalStatus: StatusProposal;
   viewer: ProposalViewer;
 }
 
@@ -51,7 +51,7 @@ const calloutMessages: Record<ProposalViewer, Record<StatusProposal, { title: st
   },
   Dosen: {
     Menunggu: {
-      title: "Proposal Tim Belum Direview!",
+      title: "Proposal Tim Perlu Direview!",
       description: "Silahkan tentukan status proposal dan berikan review anda kepada tim.",
     },
     Ditolak: {
@@ -69,9 +69,9 @@ const calloutMessages: Record<ProposalViewer, Record<StatusProposal, { title: st
   },
 };
 
-export function ProposalStatusCallout({ proposalStatus, viewer }: ProposalStatusCalloutProps) {
-  const { icon, iconColor } = statusStyles[proposalStatus];
-  const { title, description } = calloutMessages[viewer][proposalStatus];
+export function ProposalStatusCallout({ currentProposalStatus, viewer }: ProposalStatusCalloutProps) {
+  const { icon, iconColor } = statusStyles[currentProposalStatus];
+  const { title, description } = calloutMessages[viewer][currentProposalStatus];
 
   return (
     <Callout>
@@ -80,7 +80,7 @@ export function ProposalStatusCallout({ proposalStatus, viewer }: ProposalStatus
         <CalloutTitle>{title}</CalloutTitle>
         <CalloutDescription>{description}</CalloutDescription>
       </CalloutContent>
-      {viewer === "Mahasiswa" && proposalStatus === "Disetujui" && (
+      {viewer === "Mahasiswa" && currentProposalStatus === "Disetujui" && (
         <CalloutAction
           render={
             <Link href="/mahasiswa/upload-resume" className="w-full">
