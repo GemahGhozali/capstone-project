@@ -46,6 +46,7 @@ export async function getProposalById(id: string) {
         status: true,
         createdAt: true,
         reviews: {
+          orderBy: { createdAt: "desc" },
           select: {
             id: true,
             status: true,
@@ -112,8 +113,11 @@ export async function getProposalById(id: string) {
         id: review.id,
         status: review.status,
         catatan: review.catatan,
-        namaDosenReviewer: review.dosen?.user.namaLengkap,
-        tanggalReview: review.createdAt,
+        tanggal: review.createdAt,
+        dosen: {
+          namaLengkap: review.dosen?.user?.namaLengkap ?? "Dosen Capstone Project",
+          fotoProfil: review.dosen?.user?.fotoProfil,
+        },
       })),
     };
   } catch (error) {
