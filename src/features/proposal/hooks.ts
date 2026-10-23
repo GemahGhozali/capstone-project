@@ -59,12 +59,12 @@ export function useReviewProposalForm(currentProposalStatus: StatusProposal) {
 
   const { id } = useParams<{ id: string }>();
 
-  const defaultValueProposalStatus = currentProposalStatus === "Menunggu" ? undefined : currentProposalStatus;
+  const proposalStatusDefaultValue = currentProposalStatus === "Menunggu" ? undefined : currentProposalStatus;
 
   const form = useForm<ReviewProposalInput>({
     resolver: zodResolver(ReviewProposalSchema),
     defaultValues: {
-      status: defaultValueProposalStatus,
+      status: proposalStatusDefaultValue,
       catatan: "",
     },
   });
@@ -74,7 +74,7 @@ export function useReviewProposalForm(currentProposalStatus: StatusProposal) {
 
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });
-      form.reset({ status: defaultValueProposalStatus, catatan: "" });
+      form.reset({ status: proposalStatusDefaultValue, catatan: "" });
       router.refresh();
     },
 
