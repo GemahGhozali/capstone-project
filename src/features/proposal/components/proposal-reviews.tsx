@@ -1,20 +1,29 @@
+import { Button } from "@/components/ui/button";
 import { Accordion } from "@/components/ui/accordion";
-import { IconMessageDots } from "@tabler/icons-react";
 import { ProposalManagementData } from "../types";
 import { ProposalReviewAccordion } from "./proposal-review-accordion";
+import { IconMessageDots, IconPlus } from "@tabler/icons-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 interface ProposalReviewsProps {
   reviews: NonNullable<ProposalManagementData>["reviews"];
+  viewer: "Mahasiswa" | "Dosen";
 }
 
-export function ProposalReviews({ reviews }: ProposalReviewsProps) {
+export function ProposalReviews({ reviews, viewer }: ProposalReviewsProps) {
   return (
     <Card className="p-0 gap-0">
-      <CardHeader className="pt-6">
-        <CardTitle>Riwayat Review Proposal</CardTitle>
-        <CardDescription>List riwayat review dan status proposal tim anda</CardDescription>
+      <CardHeader className="pt-6 flex gap-3 max-sm:flex-col sm:justify-between sm:items-end">
+        <div className="space-y-1">
+          <CardTitle>Riwayat Review Proposal</CardTitle>
+          <CardDescription>Riwayat review dan status proposal tim {viewer === "Mahasiswa" && "anda"}</CardDescription>
+        </div>
+        {viewer === "Dosen" && (
+          <Button className="max-sm:w-full">
+            Beri Review <IconPlus data-icon="inline-end" />
+          </Button>
+        )}
       </CardHeader>
       <CardContent className="p-6">
         {reviews.length > 0 ? (
