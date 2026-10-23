@@ -38,11 +38,11 @@ const calloutMessages: Record<ProposalViewer, Record<StatusProposal, { title: st
     },
     Ditolak: {
       title: "Proposal Tim Ditolak!",
-      description: "Silahkan periksa catatan evaluasi dari dosen dan tinjau ulang proposal anda.",
+      description: "Silahkan periksa review dari dosen dan tinjau ulang proposal anda.",
     },
     Revisi: {
       title: "Proposal Tim Perlu Direvisi!",
-      description: "Silahkan periksa catatan evaluasi dari dosen dan perbaharui proposal anda.",
+      description: "Silahkan periksa review dari dosen dan perbaiki proposal anda.",
     },
     Disetujui: {
       title: "Proposal Tim Telah Disetujui!",
@@ -55,16 +55,16 @@ const calloutMessages: Record<ProposalViewer, Record<StatusProposal, { title: st
       description: "Silahkan tentukan status proposal dan berikan review anda kepada tim.",
     },
     Ditolak: {
-      title: "Proposal Tim Ditolak!",
-      description: "Status proposal telah ditentukan. Anda hanya bisa memberikan feedback.",
+      title: "Status Proposal : Ditolak",
+      description: "Status proposal telah ditentukan. Anda hanya bisa memberikan review.",
     },
     Revisi: {
-      title: "Proposal Tim Perlu Direvisi!",
-      description: "Status proposal telah ditentukan. Anda hanya bisa memberikan feedback.",
+      title: "Status Proposal : Perlu Revisi",
+      description: "Status proposal telah ditentukan. Anda hanya bisa memberikan review.",
     },
     Disetujui: {
-      title: "Proposal Tim Telah Disetujui!",
-      description: "Status proposal telah ditentukan. Anda hanya bisa memberikan feedback.",
+      title: "Status Proposal : Disetujui",
+      description: "Status proposal telah ditentukan. Anda hanya bisa memberikan review.",
     },
   },
 };
