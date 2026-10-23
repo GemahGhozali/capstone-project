@@ -3,10 +3,11 @@
 import { toast } from "@/components/ui/toast";
 import { useForm } from "react-hook-form";
 import { runAction } from "@/utils/action-runner";
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { ActionResponse } from "@/types";
+import { StatusProposal } from "@/generated/prisma/enums";
+import { useParams, useRouter } from "next/navigation";
 import { ProposalManagementData } from "./types";
 import { submitProposal, updateProposal, reviewProposal } from "./actions";
 import { SubmitProposalSchema, UpdateProposalSchema, ProposalInput, ReviewProposalSchema, ReviewProposalInput } from "./schemas";
@@ -53,19 +54,27 @@ export function useProposalForm({ proposal }: UseProposalForm) {
   return { form, mutation };
 }
 
-export function useReviewProposalForm(proposalId: string) {
+export function useReviewProposalForm(currentProposalStatus: StatusProposal) {
   const router = useRouter();
 
-  const form = useForm({
+  const { id } = useParams<{ id: string }>();
+
+  const defaultValueProposalStatus = currentProposalStatus === "Menunggu" ? undefined : currentProposalStatus;
+
+  const form = useForm<ReviewProposalInput>({
     resolver: zodResolver(ReviewProposalSchema),
-    mode: "onTouched",
+    defaultValues: {
+      status: defaultValueProposalStatus,
+      catatan: "",
+    },
   });
 
   const mutation = useMutation({
-    mutationFn: (data: ReviewProposalInput) => runAction(() => reviewProposal(proposalId, data)),
+    mutationFn: (data: ReviewProposalInput) => runAction(() => reviewProposal(id, data)),
 
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });
+      form.reset({ status: defaultValueProposalStatus, catatan: "" });
       router.refresh();
     },
 
