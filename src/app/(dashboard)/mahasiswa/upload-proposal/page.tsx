@@ -72,8 +72,8 @@ export default async function UploadProposalPage() {
 
   return (
     <div className="space-y-6">
-      <ProposalStatusCallout proposalStatus={proposal.status} />
-      <ProposalReviews reviews={proposal.reviews} />
+      <ProposalStatusCallout currentProposalStatus={proposal.status} viewer="Mahasiswa" />
+      <ProposalReviews reviews={proposal.reviews} currentProposalStatus={proposal.status} viewer="Mahasiswa" />
       {showOverview ? <ProposalOverview proposal={proposal} /> : <ProposalForm proposal={proposal} />}
     </div>
   );
