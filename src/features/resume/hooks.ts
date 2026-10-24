@@ -2,11 +2,12 @@
 
 import { toast } from "@/components/ui/toast";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
 import { runAction } from "@/utils/action-runner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { StatusResume } from "@/generated/prisma/enums";
 import { ActionResponse } from "@/types";
+import { useParams, useRouter } from "next/navigation";
 import { ResumeManagementData } from "./types";
 import { submitResume, updateResume, reviewResume } from "./actions";
 import { UpdateResumeSchema, ResumeInput, ReviewResumeSchema, ReviewResumeInput, SubmitResumeSchema } from "./schemas";
@@ -53,19 +54,27 @@ export function useResumeForm({ resume }: UseResumeForm) {
   return { form, mutation };
 }
 
-export function useReviewResumeForm(resumeId: string) {
+export function useReviewResumeForm(currentResumeStatus: StatusResume) {
   const router = useRouter();
 
-  const form = useForm({
+  const { id } = useParams<{ id: string }>();
+
+  const resumeStatusDefaultValue = currentResumeStatus === "Menunggu" ? undefined : currentResumeStatus;
+
+  const form = useForm<ReviewResumeInput>({
     resolver: zodResolver(ReviewResumeSchema),
-    mode: "onTouched",
+    defaultValues: {
+      status: resumeStatusDefaultValue,
+      catatan: "",
+    },
   });
 
   const mutation = useMutation({
-    mutationFn: (data: ReviewResumeInput) => runAction(() => reviewResume(resumeId, data)),
+    mutationFn: (data: ReviewResumeInput) => runAction(() => reviewResume(id, data)),
 
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });
+      form.reset({ status: resumeStatusDefaultValue, catatan: "" });
       router.refresh();
     },
 
