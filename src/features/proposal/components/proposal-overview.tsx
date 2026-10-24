@@ -14,8 +14,8 @@ export function ProposalOverview({ proposal }: ProposalOverviewProps) {
   return (
     <Card className="p-0 gap-0 divide-y">
       <CardHeader className="p-6">
-        <CardTitle>Informasi Proposal</CardTitle>
-        <CardDescription>Detail proposal tim capstone project anda</CardDescription>
+        <CardTitle>Informasi Proposal Tim</CardTitle>
+        <CardDescription>Detail pengajuan proposal beserta berkas yang dilampirkan.</CardDescription>
       </CardHeader>
       <CardContent className="p-6 gap-6">
         <div className="space-y-2">

@@ -19,7 +19,7 @@ export function ProposalReviews({ reviews, viewer, currentProposalStatus }: Prop
       <CardHeader className="pt-6 flex gap-3 max-sm:flex-col sm:justify-between sm:items-end">
         <div className="space-y-1">
           <CardTitle>Riwayat Review Proposal</CardTitle>
-          <CardDescription>Riwayat review dan status proposal tim {viewer === "Mahasiswa" && "anda"}</CardDescription>
+          <CardDescription>Daftar catatan dan status evaluasi proposal.</CardDescription>
         </div>
         {viewer === "Dosen" && <ReviewProposalForm currentProposalStatus={currentProposalStatus} />}
       </CardHeader>
