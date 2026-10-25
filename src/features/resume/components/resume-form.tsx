@@ -73,6 +73,14 @@ export function ResumeForm({ resume, dosenPembimbingList }: ResumeFormProps) {
                     <FieldLabel htmlFor="dosenId">
                       Dosen Pembimbing <span className="text-red-600">*</span>
                     </FieldLabel>
+                    {resume && resume.dosen.id !== field.value && (
+                      <FieldDescription>
+                        Kembali ke pilihan Dosen Pembimbing awal :{" "}
+                        <span onClick={() => field.onChange(resume.dosen.id)} className="underline cursor-pointer">
+                          {resume.dosen.namaLengkap}
+                        </span>
+                      </FieldDescription>
+                    )}
                     <Select
                       disabled={isDisabled}
                       value={field.value}
