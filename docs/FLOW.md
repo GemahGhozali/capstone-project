@@ -116,6 +116,7 @@ Prasyarat: Proposal tim = Disetujui
   Upload resume (subjudul, file PDF, pilih 1 Dosen Pembimbing)
     → jika replace (resume lama Ditolak): hapus Resume lama + ResumeReview + file dari disk
     → Resume: status=Menunggu, dosen_id=dospem pilihan
+    → slot kuota dospem pilihan terpakai (reservasi)
     → ActivityLog(entity=Resume)
 
 [Dosen Pembimbing terpilih SAJA]
@@ -125,9 +126,11 @@ Prasyarat: Proposal tim = Disetujui
 
 [Jika Disetujui]
   → Mahasiswa.dosen_id = Resume.dosen_id (dospem tetap)
+  → reservasi menjadi bimbingan aktif (kuota tetap terpakai)
   → mahasiswa eligible booking bimbingan
 
 [Jika Ditolak]
+  → slot kuota dospem sebelumnya dilepas
   → mahasiswa boleh upload resume baru (REPLACE)
 ```
 

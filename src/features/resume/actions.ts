@@ -159,7 +159,7 @@ export async function updateResume(id: string, data: ResumeInput): Promise<Actio
     }
 
     // Validasi 4 : Cek apakah dosen pembimbing yang dipilih memenuhi syarat
-    const dosenPembimbingValidation = await validateDosenPembimbing(dosenId);
+    const dosenPembimbingValidation = await validateDosenPembimbing(dosenId, { excludeResumeId: resume.id });
 
     if (!dosenPembimbingValidation.isValid) {
       return { success: false, message: dosenPembimbingValidation.message };

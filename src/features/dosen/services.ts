@@ -2,13 +2,16 @@ import "server-only";
 
 import { prisma } from "@/libs/prisma";
 
-export async function validateDosenPembimbing(dosenId: string) {
+export async function validateDosenPembimbing(dosenId: string, options: { excludeResumeId?: string } = {}) {
+  const { excludeResumeId } = options;
+
   const dosen = await prisma.dosen.findUnique({
     where: { id: dosenId },
     select: {
       status: true,
       user: {
         select: {
+          isActive: true,
           userRoles: {
             select: {
               role: { select: { nama: true } },
@@ -22,6 +25,20 @@ export async function validateDosenPembimbing(dosenId: string) {
           batasBimbingan: true,
         },
       },
+      _count: {
+        select: {
+          mahasiswaBimbingan: {
+            where: { status: "Aktif" },
+          },
+          resumes: {
+            where: {
+              status: "Menunggu",
+              mahasiswa: { status: "Aktif" },
+              ...(excludeResumeId && { id: { not: excludeResumeId } }),
+            },
+          },
+        },
+      },
     },
   });
 
@@ -29,7 +46,7 @@ export async function validateDosenPembimbing(dosenId: string) {
     return { isValid: false, message: "Dosen pembimbing tidak ditemukan!" };
   }
 
-  if (dosen.status !== "Aktif") {
+  if (dosen.status !== "Aktif" || !dosen.user.isActive) {
     return { isValid: false, message: "Dosen pembimbing sedang tidak aktif!" };
   }
 
@@ -47,7 +64,7 @@ export async function validateDosenPembimbing(dosenId: string) {
     return { isValid: false, message: "Dosen pembimbing sedang tidak menerima bimbingan!" };
   }
 
-  const currentTotalBimbingan = await prisma.mahasiswa.count({ where: { dosenId, status: "Aktif" } });
+  const currentTotalBimbingan = dosen._count.mahasiswaBimbingan + dosen._count.resumes;
   const bimbinganQuotaIsFull = currentTotalBimbingan >= dosenPembimbingDetail.batasBimbingan;
 
   if (bimbinganQuotaIsFull) {

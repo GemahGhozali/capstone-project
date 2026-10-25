@@ -93,6 +93,7 @@ Dokumen ini adalah **single source of truth** untuk aturan bisnis. Baca sebelum 
 - **Setiap anggota tim** mengupload resume-nya sendiri (individu, bukan tim).
 - Saat upload, mahasiswa **memilih 1 Dosen Pembimbing** (`Resume.dosen_id`).
 - Field: **subjudul**, **file (PDF)**, **dosen pembimbing**.
+- **Reservasi kuota**: resume berstatus `Menunggu` menempati **1 slot** `batas_bimbingan` dosen terpilih. Slot dilepas saat resume `Ditolak` atau dipindahkan ke dosen lain.
 - **Upload menggantikan (replace)** saat resume `Ditolak`: record lama dihapus + file lama dihapus dari disk.
 - **Keterkuncian edit resume**:
   - Setelah upload (status `Menunggu`) atau `Disetujui`: **tidak bisa diedit**.
@@ -117,7 +118,7 @@ Dokumen ini adalah **single source of truth** untuk aturan bisnis. Baca sebelum 
   - `tanggal` (DATE), `jam_mulai` (TIME), `jam_tutup` (TIME), `kuota` (INT).
 - **Kuota = slot per jadwal** (contoh: jadwal Senin pagi, kuota 5 → maksimal 5 mahasiswa bisa booking jadwal itu).
 - `DosenPembimbingDetail`:
-  - `batas_bimbingan` = maksimal jumlah **mahasiswa aktif** yang bisa menjadi bimbingan dosen tersebut. **Diisi manual oleh Kaprodi.**
+  - `batas_bimbingan` = maksimal jumlah **mahasiswa aktif** yang bisa menjadi bimbingan dosen tersebut. Perhitungan kuota mencakup mahasiswa aktif yang sudah disetujui **dan** resume berstatus `Menunggu` (reservasi). **Diisi manual oleh Kaprodi.**
   - `status` (`Buka`/`Tutup`) = apakah dosen menerima bimbingan baru. **Ditentukan/diubah oleh Kaprodi.**
 
 ### 5b. Mahasiswa — booking

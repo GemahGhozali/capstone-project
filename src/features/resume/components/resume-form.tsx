@@ -9,7 +9,7 @@ import { formatFileSize } from "@/utils/format-file-size";
 import { useResumeForm } from "../hooks";
 import { ResumeManagementData } from "../types";
 import { getAllDosenPembimbing } from "@/features/dosen/queries";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -65,7 +65,7 @@ export function ResumeForm({ resume, dosenPembimbingList }: ResumeFormProps) {
               control={control}
               name="dosenId"
               render={({ field, fieldState }) => {
-                const selectedDosenPembimbing = dosenPembimbingList.find((kelas) => kelas.id === field.value);
+                const selectedDosenPembimbing = dosenPembimbingList.find((dosen) => dosen.id === field.value);
                 const isDisabled = isPending || dosenPembimbingList.length === 0;
 
                 return (
@@ -100,12 +100,13 @@ export function ResumeForm({ resume, dosenPembimbingList }: ResumeFormProps) {
                               <SelectItem
                                 key={dosenPembimbing.id}
                                 value={dosenPembimbing.id}
+                                disabled={dosenPembimbing.isFull}
                                 className="py-2 [&>div:first-child]:min-w-0 [&>div:first-child]:shrink"
                               >
                                 <div className="min-w-0 flex-1 space-y-0.5">
                                   <p className="font-medium truncate">{dosenPembimbing.namaLengkap}</p>
                                   <p className="text-muted-foreground text-xs">
-                                    Sisa Kuota : {dosenPembimbing.totalBimbingan}/{dosenPembimbing.batasBimbingan}
+                                    Kuota Bimbingan : {dosenPembimbing.totalBimbingan}/{dosenPembimbing.batasBimbingan}
                                   </p>
                                 </div>
                               </SelectItem>

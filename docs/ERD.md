@@ -235,7 +235,7 @@ erDiagram
 |---|---|---|---|
 | id | UUID | PK | — |
 | dosen_id | UUID | FK → Dosen.id, UNIQUE (1–1), NOT NULL | CASCADE |
-| batas_bimbingan | INT | NOT NULL (maks. mahasiswa aktif bimbingan; diisi Kaprodi) | — |
+| batas_bimbingan | INT | NOT NULL (maks. mahasiswa aktif bimbingan + reservasi resume `Menunggu`; diisi Kaprodi) | — |
 | status | ENUM(Buka, Tutup) | NOT NULL (diatur Kaprodi) | — |
 | created_at | TIMESTAMPTZ | NOT NULL | — |
 | updated_at | TIMESTAMPTZ | NOT NULL | — |
@@ -304,6 +304,8 @@ erDiagram
 | status | ENUM(Menunggu, Disetujui, Ditolak) | NOT NULL (tanpa `Revisi`) | — |
 | created_at | TIMESTAMPTZ | NOT NULL | — |
 | updated_at | TIMESTAMPTZ | NOT NULL | — |
+
+> Validasi app-level: resume berstatus `Menunggu` menempati 1 slot `DosenPembimbingDetail.batas_bimbingan`; slot dilepas saat resume `Ditolak` atau dipindahkan ke dosen lain. Resume `Disetujui` dihitung lewat `Mahasiswa.dosen_id`.
 
 **ResumeReview**
 | Field | Tipe | Constraint | On Delete |

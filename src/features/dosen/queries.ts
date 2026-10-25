@@ -146,29 +146,34 @@ export async function getAllDosenPembimbing() {
             mahasiswaBimbingan: {
               where: { status: "Aktif" },
             },
+            resumes: {
+              where: {
+                status: "Menunggu",
+                mahasiswa: { status: "Aktif" },
+              },
+            },
           },
         },
       },
       orderBy: { user: { namaLengkap: "asc" } },
     });
 
-    return dosenPembimbingList
-      .map((dosen) => {
-        const { user, dosenPembimbingDetail, _count } = dosen;
+    return dosenPembimbingList.map((dosen) => {
+      const { user, dosenPembimbingDetail, _count } = dosen;
 
-        const batasBimbingan = dosenPembimbingDetail?.batasBimbingan ?? 0;
-        const totalBimbingan = _count.mahasiswaBimbingan;
-        const sisaKuota = Math.max(batasBimbingan - totalBimbingan, 0);
+      const batasBimbingan = dosenPembimbingDetail?.batasBimbingan ?? 0;
+      const totalBimbingan = _count.mahasiswaBimbingan + _count.resumes;
+      const sisaKuota = Math.max(batasBimbingan - totalBimbingan, 0);
 
-        return {
-          id: user.id,
-          namaLengkap: user.namaLengkap,
-          batasBimbingan,
-          totalBimbingan,
-          sisaKuota,
-        };
-      })
-      .filter((dosen) => dosen.sisaKuota > 0);
+      return {
+        id: user.id,
+        namaLengkap: user.namaLengkap,
+        batasBimbingan,
+        totalBimbingan,
+        sisaKuota,
+        isFull: totalBimbingan >= batasBimbingan,
+      };
+    });
   } catch (error) {
     console.error("❌ Get All Dosen Pembimbing Error :", error);
     throw new Error("Terjadi kesalahan pada server!");
