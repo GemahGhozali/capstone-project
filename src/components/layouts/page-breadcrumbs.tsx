@@ -28,7 +28,7 @@ const segmentTitles = Object.fromEntries(
   }),
 );
 
-const segmentLabels = { ...segmentTitles, tambah: "Tambah Data", edit: "Edit Data" };
+const segmentLabels = { ...segmentTitles, tambah: "Tambah Data", edit: "Edit Data", detail: "Detail" };
 
 function isNotUUIDSegment(segment: string) {
   return !z.uuid().safeParse(segment).success;
