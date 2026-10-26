@@ -1,11 +1,18 @@
 import "server-only";
 
 import { prisma } from "@/libs/prisma";
-import { userIsValidAndHasRole } from "@/libs/dal";
+import { requireSession, userIsValidAndHasRole } from "@/libs/dal";
 
 export async function getAllResume() {
+  const session = await requireSession();
+
   try {
+    const { id: dosenId } = await userIsValidAndHasRole("Kaprodi", "Dosen Pembimbing");
+
+    const isDosenPembimbing = session.currentRole === "Dosen Pembimbing";
+
     const allResume = await prisma.resume.findMany({
+      where: { ...(isDosenPembimbing && { dosenId }) },
       select: {
         id: true,
         subjudul: true,
@@ -37,9 +44,18 @@ export async function getAllResume() {
 }
 
 export async function getResumeById(id: string) {
+  const session = await requireSession();
+
   try {
+    const { id: dosenId } = await userIsValidAndHasRole("Kaprodi", "Dosen Pembimbing");
+
+    const isDosenPembimbing = session.currentRole === "Dosen Pembimbing";
+
     const resume = await prisma.resume.findUnique({
-      where: { id },
+      where: {
+        id,
+        ...(isDosenPembimbing && { dosenId }),
+      },
       select: {
         id: true,
         filePath: true,
@@ -51,12 +67,10 @@ export async function getResumeById(id: string) {
         // Informasi Dosen Pembimbing
         dosen: {
           select: {
-            id: true,
-            nip: true,
             user: {
               select: {
+                id: true,
                 namaLengkap: true,
-                fotoProfil: true,
               },
             },
           },
@@ -96,6 +110,7 @@ export async function getResumeById(id: string) {
 
         // List Riwayat Review
         reviews: {
+          orderBy: { createdAt: "desc" },
           select: {
             id: true,
             status: true,
@@ -125,6 +140,16 @@ export async function getResumeById(id: string) {
       fileSize: resume.fileSize,
       subjudul: resume.subjudul,
       status: resume.status,
+      reviews: resume.reviews.map((review) => ({
+        id: review.id,
+        status: review.status,
+        catatan: review.catatan,
+        tanggal: review.createdAt,
+        dosen: {
+          namaLengkap: review.dosen?.user.namaLengkap ?? "Dosen Pembimbing",
+          fotoProfil: review.dosen?.user.fotoProfil,
+        },
+      })),
       mahasiswa: {
         nim: resume.mahasiswa.nim,
         namaLengkap: resume.mahasiswa.user.namaLengkap,
@@ -137,18 +162,9 @@ export async function getResumeById(id: string) {
         mitra: resume.proposal.mitra,
       },
       dosen: {
-        id: resume.dosen?.id,
-        nip: resume.dosen?.nip,
-        namaLengkap: resume.dosen?.user.namaLengkap,
-        fotoProfil: resume.dosen?.user.fotoProfil,
+        id: resume.dosen?.user?.id,
+        namaLengkap: resume.dosen?.user.namaLengkap ?? "Dosen Pembimbing",
       },
-      reviews: resume.reviews.map((review) => ({
-        id: review.id,
-        status: review.status,
-        catatan: review.catatan,
-        namaDosenReviewer: review.dosen?.user.namaLengkap,
-        tanggalReview: review.createdAt,
-      })),
     };
   } catch (error) {
     console.error("❌ Get Resume By Id Error :", error);
@@ -160,7 +176,7 @@ export async function getMahasiswaResumeManagementData() {
   try {
     const { id: mahasiswaId } = await userIsValidAndHasRole("Mahasiswa");
 
-    const mahasiswa = await prisma.mahasiswa.findUnique({
+    const mahasiswa = await prisma.mahasiswa.findFirst({
       where: { id: mahasiswaId },
       select: {
         anggotaTim: {
@@ -231,10 +247,6 @@ export async function getMahasiswaResumeManagementData() {
             fileName: resume.fileName,
             fileSize: resume.fileSize,
             status: resume.status,
-            dosen: {
-              id: resume.dosen?.user?.id,
-              namaLengkap: resume.dosen?.user?.namaLengkap ?? "Dosen Pembimbing",
-            },
             reviews: resume.reviews.map((review) => ({
               id: review.id,
               status: review.status,
@@ -245,6 +257,10 @@ export async function getMahasiswaResumeManagementData() {
                 fotoProfil: review.dosen?.user.fotoProfil,
               },
             })),
+            dosen: {
+              id: resume.dosen?.user?.id,
+              namaLengkap: resume.dosen?.user?.namaLengkap ?? "Dosen Pembimbing",
+            },
           }
         : undefined,
     };
