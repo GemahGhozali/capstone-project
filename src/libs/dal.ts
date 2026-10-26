@@ -12,12 +12,15 @@ export const requireSession = cache(async (): Promise<SessionPayload> => {
   return session;
 });
 
-export async function userIsValidAndHasRole(...allowedRoles: Role[]) {
+export const requireRole = cache(async (...allowedRoles: Role[]): Promise<SessionPayload> => {
   const session = await requireSession();
-
   const isRoleInvalid = !allowedRoles.includes(session.currentRole);
-
   if (isRoleInvalid) redirect("/");
+  return session;
+});
+
+export async function userIsValidAndHasRole(...allowedRoles: Role[]) {
+  const session = await requireRole(...allowedRoles);
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId, isActive: true },
