@@ -1,28 +1,28 @@
 import "server-only";
 
 import { prisma } from "@/libs/prisma";
-import { requireSession, userIsValidAndHasRole } from "@/libs/dal";
+import { requireRole } from "@/libs/dal";
 
 export async function getAllResume() {
-  const session = await requireSession();
+  const session = await requireRole("Dosen Pembimbing", "Kaprodi");
 
   try {
-    const { id: dosenId } = await userIsValidAndHasRole("Kaprodi", "Dosen Pembimbing");
-
     const isDosenPembimbing = session.currentRole === "Dosen Pembimbing";
 
     const allResume = await prisma.resume.findMany({
-      where: { ...(isDosenPembimbing && { dosenId }) },
+      where: { ...(isDosenPembimbing && { dosenId: session.userId }) },
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
-        subjudul: true,
         status: true,
         createdAt: true,
         mahasiswa: {
           select: {
+            nim: true,
             user: {
               select: {
                 namaLengkap: true,
+                fotoProfil: true,
               },
             },
           },
@@ -32,9 +32,10 @@ export async function getAllResume() {
 
     return allResume.map((resume) => ({
       id: resume.id,
-      subjudul: resume.subjudul,
       status: resume.status,
       namaMahasiswa: resume.mahasiswa.user.namaLengkap,
+      nim: resume.mahasiswa.nim,
+      fotoProfil: resume.mahasiswa.user.fotoProfil,
       tanggalPengajuan: resume.createdAt,
     }));
   } catch (error) {
@@ -44,17 +45,15 @@ export async function getAllResume() {
 }
 
 export async function getResumeById(id: string) {
-  const session = await requireSession();
+  const session = await requireRole("Dosen Pembimbing", "Kaprodi");
 
   try {
-    const { id: dosenId } = await userIsValidAndHasRole("Kaprodi", "Dosen Pembimbing");
-
     const isDosenPembimbing = session.currentRole === "Dosen Pembimbing";
 
     const resume = await prisma.resume.findUnique({
       where: {
         id,
-        ...(isDosenPembimbing && { dosenId }),
+        ...(isDosenPembimbing && { dosenId: session.userId }),
       },
       select: {
         id: true,
@@ -173,11 +172,11 @@ export async function getResumeById(id: string) {
 }
 
 export async function getMahasiswaResumeManagementData() {
-  try {
-    const { id: mahasiswaId } = await userIsValidAndHasRole("Mahasiswa");
+  const session = await requireRole("Mahasiswa");
 
+  try {
     const mahasiswa = await prisma.mahasiswa.findFirst({
-      where: { id: mahasiswaId },
+      where: { id: session.userId },
       select: {
         anggotaTim: {
           select: {
