@@ -1,14 +1,16 @@
 import "server-only";
 
 import { prisma } from "@/libs/prisma";
-import { userIsValidAndHasRole } from "@/libs/dal";
+import { requireRole } from "@/libs/dal";
 
 export async function getAllProposal() {
+  await requireRole("Dosen Capstone Project", "Kaprodi");
+
   try {
     const allProposal = await prisma.proposal.findMany({
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
-        judul: true,
         status: true,
         createdAt: true,
         tim: {
@@ -21,7 +23,6 @@ export async function getAllProposal() {
 
     return allProposal.map((proposal) => ({
       id: proposal.id,
-      judul: proposal.judul,
       status: proposal.status,
       namaTim: proposal.tim.nama,
       tanggalPengajuan: proposal.createdAt,
@@ -33,6 +34,8 @@ export async function getAllProposal() {
 }
 
 export async function getProposalById(id: string) {
+  await requireRole("Dosen Capstone Project", "Kaprodi");
+
   try {
     const proposal = await prisma.proposal.findUnique({
       where: { id },
@@ -127,11 +130,11 @@ export async function getProposalById(id: string) {
 }
 
 export async function getMahasiswaProposalManagementData() {
-  try {
-    const { id: mahasiswaId } = await userIsValidAndHasRole("Mahasiswa");
+  const session = await requireRole("Mahasiswa");
 
+  try {
     const mahasiswaMembership = await prisma.anggotaTim.findUnique({
-      where: { mahasiswaId },
+      where: { mahasiswaId: session.userId },
       select: {
         peran: true,
         tim: {
