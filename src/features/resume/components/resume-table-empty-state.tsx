@@ -11,6 +11,7 @@ interface ResumeTableEmptyStateProps<TData extends RowData> {
 
 export function ResumeTableEmptyState<TData extends RowData>({ table }: ResumeTableEmptyStateProps<TData>) {
   const searchQuery = (table.getColumn("search")?.getFilterValue() as string) ?? "";
+  const selectedStatus = (table.getColumn("status")?.getFilterValue() as string) ?? "";
 
   return (
     <Empty>
@@ -18,14 +19,18 @@ export function ResumeTableEmptyState<TData extends RowData>({ table }: ResumeTa
         <EmptyMedia variant="icon">
           <IconFolderOpen />
         </EmptyMedia>
-        <EmptyTitle>{searchQuery ? "Resume Tidak Ditemukan" : "Tidak Ada Resume Masuk"}</EmptyTitle>
+        <EmptyTitle>{searchQuery || selectedStatus ? "Resume Tidak Ditemukan" : "Tidak Ada Resume"}</EmptyTitle>
         <EmptyDescription>
           {searchQuery ? (
             <>
-              Tidak ada resume dengan kata kunci <span className="font-medium">&ldquo;{searchQuery}&rdquo;</span>
+              Tidak ada mahasiswa dengan nama atau NIM <span className="font-medium">&ldquo;{searchQuery}&rdquo;</span>
+            </>
+          ) : selectedStatus ? (
+            <>
+              Tidak ada resume dengan status <span className="font-medium">&ldquo;{selectedStatus}&rdquo;</span>
             </>
           ) : (
-            "Resume yang masuk akan ditampilkan disini"
+            "Semua resume yang masuk akan ditampilkan disini"
           )}
         </EmptyDescription>
       </EmptyHeader>

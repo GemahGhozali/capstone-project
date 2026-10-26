@@ -11,6 +11,7 @@ interface ProposalTableEmptyStateProps<TData extends RowData> {
 
 export function ProposalTableEmptyState<TData extends RowData>({ table }: ProposalTableEmptyStateProps<TData>) {
   const searchQuery = (table.getColumn("namaTim")?.getFilterValue() as string) ?? "";
+  const selectedStatus = (table.getColumn("status")?.getFilterValue() as string) ?? "";
 
   return (
     <Empty>
@@ -18,14 +19,18 @@ export function ProposalTableEmptyState<TData extends RowData>({ table }: Propos
         <EmptyMedia variant="icon">
           <IconFolderOpen />
         </EmptyMedia>
-        <EmptyTitle>{searchQuery ? "Proposal Tidak Ditemukan" : "Tidak Ada Proposal Masuk"}</EmptyTitle>
+        <EmptyTitle>{searchQuery || selectedStatus ? "Proposal Tidak Ditemukan" : "Tidak Ada Proposal"}</EmptyTitle>
         <EmptyDescription>
           {searchQuery ? (
             <>
               Tidak ada proposal dengan nama tim <span className="font-medium">&ldquo;{searchQuery}&rdquo;</span>
             </>
+          ) : selectedStatus ? (
+            <>
+              Tidak ada proposal dengan status <span className="font-medium">&ldquo;{selectedStatus}&rdquo;</span>
+            </>
           ) : (
-            "Proposal yang masuk akan ditampilkan disini"
+            "Semua proposal yang masuk akan ditampilkan disini"
           )}
         </EmptyDescription>
       </EmptyHeader>
