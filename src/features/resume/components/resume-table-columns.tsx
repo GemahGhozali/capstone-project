@@ -1,0 +1,80 @@
+"use client";
+
+import Link from "next/link";
+import { cn } from "cn";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
+import { IconEye } from "@tabler/icons-react";
+import { StatusResume } from "@/generated/prisma/enums";
+import { ResumeListItem } from "../types";
+import { id as localeId } from "date-fns/locale";
+import { DataTableFeatures } from "@/components/data/features";
+import { createColumnHelper } from "@tanstack/react-table";
+import { generateNameInitials } from "@/utils/generate-name-initials";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+const columnHelper = createColumnHelper<DataTableFeatures, ResumeListItem>();
+
+const resumeStatusStyles: Record<StatusResume, string> = {
+  Menunggu: "bg-blue-500/15 text-blue-500",
+  Disetujui: "bg-green-500/15 text-green-500",
+  Ditolak: "bg-red-500/15 text-red-500",
+};
+
+export const resumeTableColumns = columnHelper.columns([
+  columnHelper.accessor((row) => `${row.namaMahasiswa} ${row.nim}`, {
+    id: "search",
+    filterFn: "includesString",
+  }),
+
+  columnHelper.accessor("namaMahasiswa", {
+    header: "Mahasiswa",
+    cell: ({ row, getValue }) => {
+      const nama = getValue();
+      const nim = row.original.nim;
+      const fotoProfil = row.original.fotoProfil;
+
+      return (
+        <div className="flex gap-4 items-center">
+          <Avatar size="lg">
+            <AvatarImage src={fotoProfil || ""} />
+            <AvatarFallback>{generateNameInitials(nama)}</AvatarFallback>
+          </Avatar>
+          <div className="space-y-0.5">
+            <p className="font-medium">{nama}</p>
+            <p className="text-muted-foreground">{nim}</p>
+          </div>
+        </div>
+      );
+    },
+  }),
+
+  columnHelper.accessor("status", {
+    header: "Status",
+    filterFn: "equalsString",
+    cell: ({ getValue }) => {
+      const status = getValue();
+
+      return <Badge className={cn(resumeStatusStyles[status])}>{status}</Badge>;
+    },
+  }),
+
+  columnHelper.accessor("tanggalPengajuan", {
+    header: "Tanggal Pengajuan",
+    cell: ({ getValue }) => format(getValue(), "eeee, d MMMM yyyy", { locale: localeId }),
+  }),
+
+  columnHelper.display({
+    id: "actions",
+    header: "Aksi",
+    cell: ({ row }) => (
+      <Link href={`/dosen-pembimbing/resume-masuk/${row.original.id}/detail`}>
+        <Button variant="outline" size="sm" aria-label="Lihat detail resume">
+          <IconEye stroke={1.75} data-icon="inline-start" />
+          Lihat Detail
+        </Button>
+      </Link>
+    ),
+  }),
+]);
