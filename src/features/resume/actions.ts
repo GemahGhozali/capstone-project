@@ -235,7 +235,6 @@ export async function reviewResume(id: string, data: ReviewResumeInput): Promise
       where: { id },
       select: {
         id: true,
-        status: true,
         dosenId: true,
         mahasiswaId: true,
       },
@@ -253,39 +252,26 @@ export async function reviewResume(id: string, data: ReviewResumeInput): Promise
       return { success: false, message: "Hanya dosen pembimbing terpilih yang berhak me-review resume ini!" };
     }
 
-    // Validasi 3 : Cek apakah status resume masih bisa diset (belum terkunci)
-    const currentResumeStatus = resume.status;
-    const resumeAvailableToSetStatus = resume.status === "Menunggu";
-    const finalResumeStatus = resumeAvailableToSetStatus ? newStatus : currentResumeStatus;
-    const resumeIsApproved = resumeAvailableToSetStatus && newStatus === "Disetujui";
-
+    // Validasi 3 : Sinkronkan status resume, dosen pembimbing mahasiswa, log, dan review
     await prisma.$transaction(async (transaction) => {
-      // Update status resume jika status resume saat ini masih terbuka (Menunggu)
-      if (resumeAvailableToSetStatus) {
-        await transaction.resume.update({ where: { id: resume.id }, data: { status: newStatus } });
+      await transaction.resume.update({ where: { id: resume.id }, data: { status: newStatus } });
 
-        // Membuat log aktivitas resume
-        await transaction.activityLog.create({
-          data: {
-            userId: dosenId,
-            entity: "Resume",
-            entityId: resume.id,
-            pesan: getResumeStatusLogMessage(newStatus),
-            warna: resumeStatusColors[newStatus],
-          },
-        });
-      }
+      await transaction.mahasiswa.update({
+        where: { id: resume.mahasiswaId },
+        data: { dosenId: newStatus === "Disetujui" ? resume.dosenId : null },
+      });
 
-      // Validasi 4 : Jika resume disetujui, set dosen pembimbing tetap pada mahasiswa
-      if (resumeIsApproved) {
-        await transaction.mahasiswa.update({
-          where: { id: resume.mahasiswaId },
-          data: { dosenId: resume.dosenId },
-        });
-      }
+      await transaction.activityLog.create({
+        data: {
+          userId: dosenId,
+          entity: "Resume",
+          entityId: resume.id,
+          pesan: getResumeStatusLogMessage(newStatus),
+          warna: resumeStatusColors[newStatus],
+        },
+      });
 
-      // Membuat data review resume
-      await transaction.resumeReview.create({ data: { resumeId: resume.id, dosenId, catatan, status: finalResumeStatus } });
+      await transaction.resumeReview.create({ data: { resumeId: resume.id, dosenId, catatan, status: newStatus } });
     });
 
     return { success: true, message: "Resume berhasil direview!" };
