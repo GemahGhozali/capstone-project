@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { StatusProposal } from "@/generated/prisma/enums";
+import { proposalStatusStyles } from "../utils";
 import { IconCircleCheck, IconCircleX, IconEdit, IconHourglass } from "@tabler/icons-react";
 import { Callout, CalloutIcon, CalloutContent, CalloutTitle, CalloutDescription, CalloutAction } from "@/components/ui/callout";
 
@@ -14,19 +15,19 @@ interface ProposalStatusCalloutProps {
 const statusStyles = {
   Menunggu: {
     icon: <IconHourglass />,
-    iconColor: "bg-yellow-500/15 text-yellow-500",
+    iconColor: proposalStatusStyles["Menunggu"],
   },
   Ditolak: {
     icon: <IconCircleX />,
-    iconColor: "bg-red-500/15 text-red-500",
+    iconColor: proposalStatusStyles["Ditolak"],
   },
   Revisi: {
     icon: <IconEdit />,
-    iconColor: "bg-yellow-500/15 text-yellow-500",
+    iconColor: proposalStatusStyles["Revisi"],
   },
   Disetujui: {
     icon: <IconCircleCheck />,
-    iconColor: "bg-green-500/15 text-green-500",
+    iconColor: proposalStatusStyles["Disetujui"],
   },
 } as const;
 
