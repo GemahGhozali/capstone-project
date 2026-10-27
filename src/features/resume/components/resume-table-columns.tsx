@@ -6,21 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { IconEye } from "@tabler/icons-react";
-import { StatusResume } from "@/generated/prisma/enums";
 import { ResumeListItem } from "../types";
 import { id as localeId } from "date-fns/locale";
 import { DataTableFeatures } from "@/components/data/features";
+import { resumeStatusStyles } from "../utils";
 import { createColumnHelper } from "@tanstack/react-table";
 import { generateNameInitials } from "@/utils/generate-name-initials";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ResumeListItem>();
-
-const resumeStatusStyles: Record<StatusResume, string> = {
-  Menunggu: "bg-blue-500/15 text-blue-500",
-  Disetujui: "bg-green-500/15 text-green-500",
-  Ditolak: "bg-red-500/15 text-red-500",
-};
 
 export const resumeTableColumns = columnHelper.columns([
   columnHelper.accessor((row) => `${row.namaMahasiswa} ${row.nim}`, {

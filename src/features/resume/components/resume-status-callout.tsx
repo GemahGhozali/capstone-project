@@ -1,4 +1,5 @@
 import { StatusResume } from "@/generated/prisma/enums";
+import { resumeStatusStyles } from "../utils";
 import { IconCircleCheck, IconCircleX, IconHourglass } from "@tabler/icons-react";
 import { Callout, CalloutIcon, CalloutContent, CalloutTitle, CalloutDescription } from "@/components/ui/callout";
 
@@ -13,15 +14,15 @@ interface ResumeStatusCalloutProps {
 const statusStyles = {
   Menunggu: {
     icon: <IconHourglass />,
-    iconColor: "bg-yellow-500/15 text-yellow-500",
+    iconColor: resumeStatusStyles["Menunggu"],
   },
   Ditolak: {
     icon: <IconCircleX />,
-    iconColor: "bg-red-500/15 text-red-500",
+    iconColor: resumeStatusStyles["Ditolak"],
   },
   Disetujui: {
     icon: <IconCircleCheck />,
-    iconColor: "bg-green-500/15 text-green-500",
+    iconColor: resumeStatusStyles["Disetujui"],
   },
 } as const;
 

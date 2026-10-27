@@ -2,6 +2,7 @@ import { cn } from "cn";
 import { id } from "date-fns/locale";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { resumeStatusStyles } from "../utils";
 import { generateNameInitials } from "@/utils/generate-name-initials";
 import { ResumeManagementData } from "../types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,12 +11,6 @@ import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/
 interface ResumeReviewAccordionProps {
   review: NonNullable<ResumeManagementData>["reviews"][number];
 }
-
-const reviewStatusStyles = {
-  Menunggu: "bg-blue-500/15 text-blue-500",
-  Disetujui: "bg-green-500/15 text-green-500",
-  Ditolak: "bg-red-500/15 text-red-500",
-} as const;
 
 export function ResumeReviewAccordion({ review }: ResumeReviewAccordionProps) {
   return (
@@ -36,7 +31,7 @@ export function ResumeReviewAccordion({ review }: ResumeReviewAccordionProps) {
             </p>
           </div>
         </div>
-        <Badge className={cn("h-6 ml-auto max-sm:absolute max-sm:top-4 max-sm:right-4", reviewStatusStyles[review.status])}>{review.status}</Badge>
+        <Badge className={cn("h-6 ml-auto max-sm:absolute max-sm:top-4 max-sm:right-4", resumeStatusStyles[review.status])}>{review.status}</Badge>
       </AccordionTrigger>
       <AccordionContent className="p-4">
         <p className="whitespace-pre-line text-white">{review.catatan}</p>
