@@ -22,3 +22,10 @@ export function getProposalStatusLogMessage(status: StatusProposal): string {
 
   return "Proposal sedang dalam proses review oleh Dosen Capstone Project";
 }
+
+export const proposalStatusStyles: Record<StatusProposal, string> = {
+  Menunggu: "bg-blue-500/15 text-blue-500",
+  Revisi: "bg-yellow-500/15 text-yellow-500",
+  Disetujui: "bg-green-500/15 text-green-500",
+  Ditolak: "bg-red-500/15 text-red-500",
+};

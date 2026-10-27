@@ -7,19 +7,12 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { IconEye } from "@tabler/icons-react";
 import { id as localeId } from "date-fns/locale";
-import { StatusProposal } from "@/generated/prisma/enums";
 import { ProposalListItem } from "../types";
 import { DataTableFeatures } from "@/components/data/features";
 import { createColumnHelper } from "@tanstack/react-table";
+import { proposalStatusStyles } from "../utils";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ProposalListItem>();
-
-const proposalStatusStyles: Record<StatusProposal, string> = {
-  Menunggu: "bg-blue-500/15 text-blue-500",
-  Revisi: "bg-yellow-500/15 text-yellow-500",
-  Disetujui: "bg-green-500/15 text-green-500",
-  Ditolak: "bg-red-500/15 text-red-500",
-};
 
 export const proposalTableColumns = columnHelper.columns([
   columnHelper.accessor("namaTim", {
