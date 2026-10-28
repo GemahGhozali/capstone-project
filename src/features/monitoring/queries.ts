@@ -3,6 +3,7 @@ import "server-only";
 import { prisma } from "@/libs/prisma";
 import { requireRole } from "@/libs/dal";
 import { StatusProposal } from "@/generated/prisma/enums";
+import { CapstoneProjectProgress } from "./types";
 
 export async function getProposalMonitoringOverview() {
   await requireRole("Dosen Capstone Project");
@@ -53,6 +54,57 @@ export async function getProposalMonitoringOverview() {
     };
   } catch (error) {
     console.error("❌ Get Proposal Monitoring Overview Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
+
+export async function getMahasiswaCapstoneProjectProgress(mahasiswaId: string): Promise<CapstoneProjectProgress> {
+  await requireRole("Mahasiswa", "Kaprodi");
+
+  try {
+    const mahasiswaProfile = await prisma.mahasiswa.findUnique({
+      where: { id: mahasiswaId },
+      select: {
+        anggotaTim: {
+          select: {
+            tim: {
+              select: {
+                anggotaTim: {
+                  select: { statusPersetujuan: true },
+                },
+                proposal: {
+                  select: { status: true },
+                },
+              },
+            },
+          },
+        },
+        resume: {
+          select: { status: true },
+        },
+      },
+    });
+
+    if (!mahasiswaProfile?.anggotaTim) {
+      return { statusTim: "Tidak Ada", statusProposal: "Tidak Ada", statusResume: "Tidak Ada" };
+    }
+
+    const teamMahasiswa = mahasiswaProfile.anggotaTim.tim;
+
+    const allTeamMembers = teamMahasiswa.anggotaTim;
+    const isEveryMemberApproved = allTeamMembers.length >= 2 && allTeamMembers.every((member) => member.statusPersetujuan === "Disetujui");
+
+    const statusTim = isEveryMemberApproved ? "Lengkap" : "Menunggu Persetujuan";
+
+    const teamProposal = teamMahasiswa.proposal;
+    const statusProposal = teamProposal ? teamProposal.status : "Tidak Ada";
+
+    const studentResume = mahasiswaProfile.resume;
+    const statusResume = studentResume ? studentResume.status : "Tidak Ada";
+
+    return { statusTim, statusProposal, statusResume };
+  } catch (error) {
+    console.error("❌ Get Mahasiswa Capstone Project Progress Error :", error);
     throw new Error("Terjadi kesalahan pada server!");
   }
 }
