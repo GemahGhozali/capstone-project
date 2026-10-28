@@ -8,13 +8,16 @@ import { useRender } from "@base-ui/react/use-render";
 import { cn } from "cn";
 
 // Types
+export type StepState = "active" | "completed" | "inactive" | "loading" | "error";
+
 type StepperOrientation = "horizontal" | "vertical";
-type StepState = "active" | "completed" | "inactive" | "loading";
+
 type StepIndicators = {
   active?: React.ReactNode;
   completed?: React.ReactNode;
   inactive?: React.ReactNode;
   loading?: React.ReactNode;
+  error?: React.ReactNode;
 };
 
 interface StepperContextValue {
@@ -129,14 +132,15 @@ function Stepper({ defaultValue = 1, value, onValueChange, orientation = "horizo
 interface StepperItemProps extends React.HTMLAttributes<HTMLDivElement> {
   step: number;
   completed?: boolean;
+  error?: boolean;
   disabled?: boolean;
   loading?: boolean;
 }
 
-function StepperItem({ step, completed = false, disabled = false, loading = false, className, children, ...props }: StepperItemProps) {
+function StepperItem({ step, completed = false, error = false, disabled = false, loading = false, className, children, ...props }: StepperItemProps) {
   const { activeStep } = useStepper();
 
-  const state: StepState = completed || step < activeStep ? "completed" : activeStep === step ? "active" : "inactive";
+  const state: StepState = error ? "error" : completed || step < activeStep ? "completed" : activeStep === step ? "active" : "inactive";
 
   const isLoading = loading && step === activeStep;
 
@@ -245,15 +249,23 @@ function StepperIndicator({ children, className }: React.ComponentProps<"div">) 
       data-slot="stepper-indicator"
       data-state={state}
       className={cn(
-        "border-background bg-accent text-accent-foreground data-[state=completed]:bg-primary data-[state=completed]:text-primary-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground relative flex size-6 shrink-0 items-center justify-center overflow-hidden",
+        "border-background bg-accent text-foreground data-[state=completed]:bg-primary data-[state=completed]:text-primary-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=error]:bg-red-500 data-[state=error]:text-white relative flex size-6 shrink-0 items-center justify-center overflow-hidden",
         "rounded-full text-xs",
         className,
       )}
     >
       <div className="absolute">
         {indicators &&
-        ((isLoading && indicators.loading) || (state === "completed" && indicators.completed) || (state === "active" && indicators.active) || (state === "inactive" && indicators.inactive))
-          ? (isLoading && indicators.loading) || (state === "completed" && indicators.completed) || (state === "active" && indicators.active) || (state === "inactive" && indicators.inactive)
+        ((isLoading && indicators.loading) ||
+          (state === "completed" && indicators.completed) ||
+          (state === "active" && indicators.active) ||
+          (state === "error" && indicators.error) ||
+          (state === "inactive" && indicators.inactive))
+          ? (isLoading && indicators.loading) ||
+            (state === "completed" && indicators.completed) ||
+            (state === "active" && indicators.active) ||
+            (state === "error" && indicators.error) ||
+            (state === "inactive" && indicators.inactive)
           : children}
       </div>
     </div>
