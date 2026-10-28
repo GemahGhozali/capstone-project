@@ -61,16 +61,7 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   indicators?: StepIndicators;
 }
 
-function Stepper({
-  defaultValue = 1,
-  value,
-  onValueChange,
-  orientation = "horizontal",
-  className,
-  children,
-  indicators = {},
-  ...props
-}: StepperProps) {
+function Stepper({ defaultValue = 1, value, onValueChange, orientation = "horizontal", className, children, indicators = {}, ...props }: StepperProps) {
   const [activeStep, setActiveStep] = useState(defaultValue);
   const [triggerNodes, setTriggerNodes] = useState<HTMLButtonElement[]>([]);
 
@@ -113,9 +104,7 @@ function Stepper({
     () => ({
       activeStep: currentStep,
       setActiveStep: handleSetActiveStep,
-      stepsCount: Children.toArray(children).filter(
-        (child): child is ReactElement => isValidElement(child) && (child.type as { displayName?: string }).displayName === "StepperItem",
-      ).length,
+      stepsCount: Children.toArray(children).filter((child): child is ReactElement => isValidElement(child) && (child.type as { displayName?: string }).displayName === "StepperItem").length,
       orientation,
       registerTrigger,
       focusNext,
@@ -130,14 +119,7 @@ function Stepper({
 
   return (
     <StepperContext.Provider value={contextValue}>
-      <div
-        role="tablist"
-        aria-orientation={orientation}
-        data-slot="stepper"
-        className={cn("w-full", className)}
-        data-orientation={orientation}
-        {...props}
-      >
+      <div role="tablist" aria-orientation={orientation} data-slot="stepper" className={cn("w-full", className)} data-orientation={orientation} {...props}>
         {children}
       </div>
     </StepperContext.Provider>
@@ -270,14 +252,8 @@ function StepperIndicator({ children, className }: React.ComponentProps<"div">) 
     >
       <div className="absolute">
         {indicators &&
-        ((isLoading && indicators.loading) ||
-          (state === "completed" && indicators.completed) ||
-          (state === "active" && indicators.active) ||
-          (state === "inactive" && indicators.inactive))
-          ? (isLoading && indicators.loading) ||
-            (state === "completed" && indicators.completed) ||
-            (state === "active" && indicators.active) ||
-            (state === "inactive" && indicators.inactive)
+        ((isLoading && indicators.loading) || (state === "completed" && indicators.completed) || (state === "active" && indicators.active) || (state === "inactive" && indicators.inactive))
+          ? (isLoading && indicators.loading) || (state === "completed" && indicators.completed) || (state === "active" && indicators.active) || (state === "inactive" && indicators.inactive)
           : children}
       </div>
     </div>
@@ -327,10 +303,7 @@ function StepperNav({ children, className }: React.ComponentProps<"nav">) {
       data-slot="stepper-nav"
       data-state={activeStep}
       data-orientation={orientation}
-      className={cn(
-        "group/stepper-nav inline-flex data-[orientation=horizontal]:w-full data-[orientation=horizontal]:flex-row data-[orientation=vertical]:flex-col",
-        className,
-      )}
+      className={cn("group/stepper-nav inline-flex data-[orientation=horizontal]:w-full data-[orientation=horizontal]:flex-row data-[orientation=vertical]:flex-col", className)}
     >
       {children}
     </nav>
@@ -361,12 +334,7 @@ function StepperContent({ value, forceMount, children, className }: StepperConte
   }
 
   return (
-    <div
-      data-slot="stepper-content"
-      data-state={activeStep}
-      className={cn("w-full", className, !isActive && forceMount && "hidden")}
-      hidden={!isActive && forceMount}
-    >
+    <div data-slot="stepper-content" data-state={activeStep} className={cn("w-full", className, !isActive && forceMount && "hidden")} hidden={!isActive && forceMount}>
       {children}
     </div>
   );
