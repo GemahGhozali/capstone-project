@@ -1,6 +1,8 @@
 "use client";
 
+import { cn } from "cn";
 import { Separator } from "@/components/ui/separator";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { CapstoneProjectProgress } from "../types";
 import { IconCheck, IconClockHour3, IconX } from "@tabler/icons-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -66,6 +68,7 @@ interface MahasiswaCapstoneProjectProgressProps {
 }
 
 export function MahasiswaCapstoneProjectProgress({ progress, viewer }: MahasiswaCapstoneProjectProgressProps) {
+  const isMobile = useIsMobile({ breakpoint: 1024 });
   const capstoneProjectSteps = generateCapstoneProjectSteps(progress);
   const currentStep = getCurrentStep(capstoneProjectSteps);
 
@@ -79,23 +82,37 @@ export function MahasiswaCapstoneProjectProgress({ progress, viewer }: Mahasiswa
       <CardContent>
         <Stepper
           value={currentStep}
+          orientation={isMobile ? "vertical" : "horizontal"}
           indicators={{
             completed: <IconCheck className="size-4" />,
             active: <IconClockHour3 className="size-4" />,
             error: <IconX className="size-4" />,
           }}
-          className="w-full space-y-8"
+          className="w-full space-y-8 flex justify-center"
         >
           <StepperNav>
             {capstoneProjectSteps.map((step, index) => (
-              <StepperItem key={index} step={index + 1} completed={step.state === "completed"} error={step.state === "error"} disabled className="relative flex-1 items-start">
+              <StepperItem
+                disabled
+                key={index}
+                step={index + 1}
+                completed={step.state === "completed"}
+                error={step.state === "error"}
+                className={cn("relative flex-1", isMobile ? "items-center" : "items-start")}
+              >
                 <StepperTrigger className="flex flex-col gap-1 disabled:pointer-events-none disabled:opacity-100">
-                  <StepperIndicator className="mb-4">{index + 1}</StepperIndicator>
+                  <StepperIndicator className="mb-2 lg:mb-4">{index + 1}</StepperIndicator>
                   <StepperTitle>{step.title}</StepperTitle>
                   <StepperDescription className="text-xs">{step.description}</StepperDescription>
                 </StepperTrigger>
                 {capstoneProjectSteps.length > index + 1 && (
-                  <StepperSeparator className="group-data-[state=completed]/step:bg-primary absolute inset-x-0 top-2.5 left-[calc(50%+0.875rem)] m-0 group-data-[orientation=horizontal]/stepper-nav:w-[calc(100%-2rem+0.225rem)] group-data-[orientation=horizontal]/stepper-nav:flex-none" />
+                  <StepperSeparator
+                    className={cn(
+                      "group-data-[state=completed]/step:bg-primary m-0",
+                      !isMobile &&
+                        "absolute inset-x-0 top-2.5 left-[calc(50%+0.875rem)] group-data-[orientation=horizontal]/stepper-nav:w-[calc(100%-2rem+0.225rem)] group-data-[orientation=horizontal]/stepper-nav:flex-none",
+                    )}
+                  />
                 )}
               </StepperItem>
             ))}
