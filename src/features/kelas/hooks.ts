@@ -3,24 +3,26 @@
 import { toast } from "@/components/ui/toast";
 import { useForm } from "react-hook-form";
 import { runAction } from "@/utils/action-runner";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { getAllKelas } from "./queries";
+import { KelasOverview } from "./types";
 import { ActionResponse } from "@/types";
 import { KelasInput, KelasSchema } from "./schemas";
 import { createKelas, updateKelas } from "./actions";
 
 interface UseKelasForm {
-  kelas?: Awaited<ReturnType<typeof getAllKelas>>[number];
+  kelas?: KelasOverview;
 }
 
 export function useKelasForm({ kelas }: UseKelasForm) {
+  const router = useRouter();
+
   const form = useForm<KelasInput>({
     resolver: zodResolver(KelasSchema),
-    mode: "onTouched",
     defaultValues: {
       nama: kelas?.nama ?? "",
-      angkatan: kelas?.angkatan ?? 2024,
+      angkatan: kelas?.angkatan ?? new Date().getFullYear(),
     },
   });
 
@@ -32,6 +34,7 @@ export function useKelasForm({ kelas }: UseKelasForm) {
 
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });
+      router.refresh();
     },
 
     onError: (response: ActionResponse) => {
