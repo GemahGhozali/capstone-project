@@ -1,7 +1,8 @@
 import "server-only";
 
 import { prisma } from "@/libs/prisma";
-import { userIsValidAndHasRole } from "@/libs/dal";
+import { requireRole } from "@/libs/dal";
+import { getTeamStatus } from "./services";
 import { getAuthenticatedUserData } from "../auth/queries";
 import { KategoriCapstone, PeranAnggotaTim, StatusMahasiswa, StatusPersetujuan } from "@/generated/prisma/enums";
 
@@ -18,9 +19,7 @@ export async function searchInvitableMahasiswa({ query, authenticatedMahasiswaId
 
   const mahasiswaTeamId = mahasiswaMembership?.timId;
 
-  const invitableTeamFilter = mahasiswaTeamId
-    ? { OR: [{ anggotaTim: { is: null } }, { anggotaTim: { is: { timId: mahasiswaTeamId } } }] }
-    : { anggotaTim: { is: null } };
+  const invitableTeamFilter = mahasiswaTeamId ? { OR: [{ anggotaTim: { is: null } }, { anggotaTim: { is: { timId: mahasiswaTeamId } } }] } : { anggotaTim: { is: null } };
 
   const foundedMahasiswa = await prisma.mahasiswa.findMany({
     take: 5,
@@ -76,9 +75,9 @@ export async function searchInvitableMahasiswa({ query, authenticatedMahasiswaId
 }
 
 export async function getMahasiswaTeamManagementData() {
-  try {
-    await userIsValidAndHasRole("Mahasiswa");
+  requireRole("Mahasiswa");
 
+  try {
     const mahasiswa = await getAuthenticatedUserData();
 
     const mahasiswaMembership = await prisma.anggotaTim.findUnique({
@@ -171,6 +170,88 @@ export async function getMahasiswaTeamManagementData() {
     };
   } catch (error) {
     console.log("❌ Get Mahasiswa Team Management Data Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
+
+export async function getAllTeam() {
+  await requireRole("Kaprodi");
+
+  try {
+    const allTeam = await prisma.tim.findMany({
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        nama: true,
+        createdAt: true,
+        anggotaTim: {
+          select: { statusPersetujuan: true },
+        },
+      },
+    });
+
+    return allTeam.map((tim) => ({
+      id: tim.id,
+      nama: tim.nama,
+      status: getTeamStatus(tim.anggotaTim.map((anggota) => anggota.statusPersetujuan)),
+      jumlahAnggota: tim.anggotaTim.length,
+      tanggalPembuatan: tim.createdAt,
+    }));
+  } catch (error) {
+    console.error("❌ Get All Team Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
+
+export async function getTeamById(id: string) {
+  await requireRole("Kaprodi");
+
+  try {
+    const team = await prisma.tim.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        nama: true,
+        createdAt: true,
+        anggotaTim: {
+          orderBy: [{ peran: "asc" }, { mahasiswa: { nim: "asc" } }],
+          select: {
+            peran: true,
+            kategoriCapstone: true,
+            statusPersetujuan: true,
+            mahasiswa: {
+              select: {
+                nim: true,
+                user: {
+                  select: {
+                    namaLengkap: true,
+                    fotoProfil: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!team) return null;
+
+    return {
+      id: team.id,
+      nama: team.nama,
+      status: getTeamStatus(team.anggotaTim.map((anggota) => anggota.statusPersetujuan)),
+      anggota: team.anggotaTim.map((anggota) => ({
+        nama: anggota.mahasiswa.user.namaLengkap,
+        nim: anggota.mahasiswa.nim,
+        fotoProfil: anggota.mahasiswa.user.fotoProfil,
+        peran: anggota.peran,
+        kategoriCapstone: anggota.kategoriCapstone,
+        statusPersetujuan: anggota.statusPersetujuan,
+      })),
+    };
+  } catch (error) {
+    console.error("❌ Get Team By Id Error :", error);
     throw new Error("Terjadi kesalahan pada server!");
   }
 }

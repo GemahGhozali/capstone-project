@@ -1,7 +1,9 @@
 import "server-only";
 
 import { prisma } from "@/libs/prisma";
+import { TeamStatus } from "./types";
 import { TeamMemberInput } from "./schemas";
+import { StatusPersetujuan } from "@/generated/prisma/enums";
 
 export function validateTeamLeaderDuplication(leaderId: string, teamMembers: TeamMemberInput[]) {
   const totalMatchingLeaderId = teamMembers.filter((member) => member.id === leaderId).length;
@@ -54,4 +56,8 @@ export async function ensureAllTeamMembersIsValid(teamMembers: TeamMemberInput[]
   }
 
   return { isValid: true, message: "Semua anggota tim yang diundang valid!" };
+}
+
+export function getTeamStatus(statusPersetujuan: StatusPersetujuan[]): TeamStatus {
+  return statusPersetujuan.every((status) => status === StatusPersetujuan.Disetujui) ? "Lengkap" : "Belum Lengkap";
 }
