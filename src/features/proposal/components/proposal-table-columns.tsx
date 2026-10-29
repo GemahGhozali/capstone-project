@@ -14,35 +14,37 @@ import { proposalStatusStyles } from "../utils";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ProposalListItem>();
 
-export const proposalTableColumns = columnHelper.columns([
-  columnHelper.accessor("namaTim", {
-    header: "Nama Tim",
-  }),
+export function proposalTableColumns({ basePath }: { basePath: string }) {
+  return columnHelper.columns([
+    columnHelper.accessor("namaTim", {
+      header: "Nama Tim",
+    }),
 
-  columnHelper.accessor("status", {
-    header: "Status",
-    filterFn: "equalsString",
-    cell: ({ getValue }) => {
-      const status = getValue();
-      return <Badge className={cn(proposalStatusStyles[status])}>{status}</Badge>;
-    },
-  }),
+    columnHelper.accessor("status", {
+      header: "Status",
+      filterFn: "equalsString",
+      cell: ({ getValue }) => {
+        const status = getValue();
+        return <Badge className={cn(proposalStatusStyles[status])}>{status}</Badge>;
+      },
+    }),
 
-  columnHelper.accessor("tanggalPengajuan", {
-    header: "Tanggal Pengajuan",
-    cell: ({ getValue }) => format(getValue(), "eeee, dd MMMM yyyy", { locale: localeId }),
-  }),
+    columnHelper.accessor("tanggalPengajuan", {
+      header: "Tanggal Pengajuan",
+      cell: ({ getValue }) => format(getValue(), "eeee, dd MMMM yyyy", { locale: localeId }),
+    }),
 
-  columnHelper.display({
-    id: "actions",
-    header: "Aksi",
-    cell: ({ row }) => (
-      <Link href={`/dosen-capstone-project/proposal-masuk/${row.original.id}/detail`}>
-        <Button variant="outline" size="sm" aria-label="Lihat detail proposal">
-          <IconEye stroke={1.75} data-icon="inline-start" />
-          Lihat Detail
-        </Button>
-      </Link>
-    ),
-  }),
-]);
+    columnHelper.display({
+      id: "actions",
+      header: "Aksi",
+      cell: ({ row }) => (
+        <Link href={`${basePath}/${row.original.id}/detail`}>
+          <Button variant="outline" size="sm" aria-label="Lihat detail proposal">
+            <IconEye stroke={1.75} data-icon="inline-start" />
+            Lihat Detail
+          </Button>
+        </Link>
+      ),
+    }),
+  ]);
+}
