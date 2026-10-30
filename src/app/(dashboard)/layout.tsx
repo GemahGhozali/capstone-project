@@ -10,7 +10,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/">) {
   return (
     <SidebarProvider>
       <DashboardSidebar session={session} user={user} />
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <DashboardHeader />
         <div className="p-6">{children}</div>
       </SidebarInset>
