@@ -8,7 +8,7 @@ export default async function DaftarProposalPage() {
     <div className="space-y-4">
       <div className="space-y-0.5">
         <h1 className="font-semibold text-lg">Daftar Proposal</h1>
-        <p className="text-muted-foreground text-sm">Daftar proposal dari tim capstone project.</p>
+        <p className="text-muted-foreground text-sm">Semua data proposal dari tim capstone project.</p>
       </div>
       <ProposalTable data={proposal} />
     </div>

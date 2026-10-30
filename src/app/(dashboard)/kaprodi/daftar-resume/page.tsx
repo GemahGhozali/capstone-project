@@ -8,7 +8,7 @@ export default async function DaftarResumePage() {
     <div className="space-y-4">
       <div className="space-y-0.5">
         <h1 className="font-semibold text-lg">Daftar Resume</h1>
-        <p className="text-muted-foreground text-sm">Daftar mahasiswa yang mengajukan resume.</p>
+        <p className="text-muted-foreground text-sm">Semua data resume yang diajukan mahasiswa.</p>
       </div>
       <ResumeTable data={resume} />
     </div>
