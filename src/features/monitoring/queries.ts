@@ -108,3 +108,77 @@ export async function getMahasiswaCapstoneProjectProgress(mahasiswaId: string): 
     throw new Error("Terjadi kesalahan pada server!");
   }
 }
+
+export async function getAllMahasiswaCapstoneProjectProgress() {
+  await requireRole("Kaprodi");
+
+  try {
+    const mahasiswaList = await prisma.mahasiswa.findMany({
+      orderBy: { nim: "asc" },
+      select: {
+        id: true,
+        nim: true,
+        user: {
+          select: {
+            namaLengkap: true,
+          },
+        },
+        kelas: {
+          select: {
+            nama: true,
+            angkatan: true,
+          },
+        },
+        dosen: {
+          select: {
+            user: {
+              select: {
+                namaLengkap: true,
+              },
+            },
+          },
+        },
+        anggotaTim: {
+          select: {
+            tim: {
+              select: {
+                id: true,
+                proposal: { select: { id: true, status: true } },
+              },
+            },
+          },
+        },
+        resume: {
+          select: {
+            id: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    return mahasiswaList.map((mahasiswa) => {
+      const anggotaTim = mahasiswa.anggotaTim;
+      const tim = anggotaTim?.tim && { id: anggotaTim.tim.id };
+      const proposal = mahasiswa?.anggotaTim?.tim?.proposal;
+      const resume = mahasiswa.resume;
+
+      return {
+        id: mahasiswa.id,
+        namaLengkap: mahasiswa.user.namaLengkap,
+        nim: mahasiswa.nim,
+        dosenPembimbing: mahasiswa?.dosen?.user?.namaLengkap,
+        tim,
+        proposal,
+        resume,
+        kelas: {
+          nama: mahasiswa.kelas.nama,
+          angkatan: mahasiswa.kelas.angkatan,
+        },
+      };
+    });
+  } catch (error) {
+    console.error("❌ Get All Mahasiswa Capstone Project Progress Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
