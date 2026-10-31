@@ -36,7 +36,7 @@ export function proposalTableColumns({ basePath }: { basePath: string }) {
 
     columnHelper.display({
       id: "actions",
-      header: "Aksi",
+      header: "Actions",
       cell: ({ row }) => (
         <Link href={`${basePath}/${row.original.id}/detail`}>
           <Button variant="outline" size="sm" aria-label="Lihat detail proposal">

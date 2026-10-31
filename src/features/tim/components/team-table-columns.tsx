@@ -46,11 +46,12 @@ export function teamTableColumns() {
 
     columnHelper.display({
       id: "actions",
-      header: "Aksi",
+      header: "Actions",
       cell: ({ row }) => (
         <Link href={`/kaprodi/daftar-tim/${row.original.id}/detail`}>
-          <Button variant="outline" size="icon-sm" aria-label="Lihat detail tim">
-            <IconEye stroke={1.75} />
+          <Button variant="outline" size="sm" aria-label="Lihat detail tim">
+            <IconEye stroke={1.75} data-icon="inline-start" />
+            Lihat Detail
           </Button>
         </Link>
       ),
