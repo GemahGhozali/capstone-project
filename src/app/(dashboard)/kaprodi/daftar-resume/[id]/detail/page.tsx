@@ -17,8 +17,8 @@ export default async function ResumeDetailPage({ params }: ResumeDetailPageProps
 
   return (
     <div className="space-y-6">
-      <ResumeStatusCallout viewer="Dosen" dosenPembimbing={resume.dosen.namaLengkap} resumeStatus={resume.status} />
-      <ResumeReviews viewer="Dosen" currentResumeStatus={resume.status} reviews={resume.reviews} />
+      <ResumeStatusCallout viewer="Kaprodi" dosenPembimbing={resume.dosen.namaLengkap} resumeStatus={resume.status} />
+      <ResumeReviews viewer="Kaprodi" currentResumeStatus={resume.status} reviews={resume.reviews} />
       <ResumeOverview resume={resume} />
     </div>
   );

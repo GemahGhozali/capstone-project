@@ -1,14 +1,14 @@
 import { Accordion } from "@/components/ui/accordion";
 import { StatusResume } from "@/generated/prisma/enums";
 import { IconMessageDots } from "@tabler/icons-react";
-import { ResumeManagementData } from "../types";
 import { ReviewResumeForm } from "./review-resume-form";
 import { ResumeReviewAccordion } from "./resume-review-accordion";
+import { ResumeManagementData, ResumeViewer } from "../types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 interface ResumeReviewsProps {
-  viewer: "Mahasiswa" | "Dosen";
+  viewer: ResumeViewer;
   currentResumeStatus: StatusResume;
   reviews: NonNullable<ResumeManagementData>["reviews"];
 }

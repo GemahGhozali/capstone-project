@@ -1,9 +1,8 @@
+import { ResumeViewer } from "../types";
 import { StatusResume } from "@/generated/prisma/enums";
 import { resumeStatusStyles } from "../utils";
 import { IconCircleCheck, IconCircleX, IconHourglass } from "@tabler/icons-react";
 import { Callout, CalloutIcon, CalloutContent, CalloutTitle, CalloutDescription } from "@/components/ui/callout";
-
-type ResumeViewer = "Mahasiswa" | "Dosen";
 
 interface ResumeStatusCalloutProps {
   resumeStatus: StatusResume;
@@ -53,6 +52,20 @@ const calloutMessages: Record<ResumeViewer, Record<StatusResume, { title: string
     Disetujui: {
       title: "Status Resume : Disetujui",
       description: "Mahasiswa telah resmi diterima masuk ke dalam bimbingan Anda.",
+    },
+  },
+  Kaprodi: {
+    Menunggu: {
+      title: "Resume Mahasiswa Belum Direview.",
+      description: "Dosen pembimbing belum memberikan review apapun pada resume ini.",
+    },
+    Ditolak: {
+      title: "Status Resume : Ditolak",
+      description: "Dosen pembimbing telah menolak pengajuan resume ini.",
+    },
+    Disetujui: {
+      title: "Status Resume : Disetujui",
+      description: "Dosen pembimbing telah resmi menerima mahasiswa dalam daftar bimbingannya.",
     },
   },
 };
