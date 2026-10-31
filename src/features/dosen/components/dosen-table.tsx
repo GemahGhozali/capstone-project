@@ -22,7 +22,7 @@ export function DosenTable({ data }: DosenTableProps) {
       <DataTable
         data={data}
         columns={columns}
-        initialState={{ columnVisibility: { role: false } }}
+        initialState={{ columnVisibility: { role: false, search: false } }}
         renderToolbar={(table) => <DosenTableToolbar table={table} />}
         renderEmptyState={(table) => <DosenTableEmptyState table={table} />}
       />

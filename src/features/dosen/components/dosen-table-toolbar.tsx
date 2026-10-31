@@ -26,12 +26,12 @@ interface DosenTableToolbarProps<TData extends RowData> {
 }
 
 export function DosenTableToolbar<TData extends RowData>({ table }: DosenTableToolbarProps<TData>) {
-  const searchQuery = (table.getColumn("namaLengkap")?.getFilterValue() as string) ?? "";
+  const searchQuery = (table.getColumn("search")?.getFilterValue() as string) ?? "";
   const statusFilter = (table.getColumn("status")?.getFilterValue() as string) ?? "";
   const roleFilter = (table.getColumn("role")?.getFilterValue() as string) ?? "";
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
-    table.getColumn("namaLengkap")?.setFilterValue(event.target.value);
+    table.getColumn("search")?.setFilterValue(event.target.value);
   };
 
   const handleFilterStatus = (value: any) => {
@@ -54,7 +54,7 @@ export function DosenTableToolbar<TData extends RowData>({ table }: DosenTableTo
         <InputGroupAddon align="inline-start">
           <IconSearch className="text-muted-foreground" />
         </InputGroupAddon>
-        <InputGroupInput placeholder="Cari nama dosen disini..." value={searchQuery} onChange={handleSearch} />
+        <InputGroupInput placeholder="Cari NIP atau nama dosen disini..." value={searchQuery} onChange={handleSearch} />
       </InputGroup>
       <div className="flex gap-3 max-sm:*:grow">
         <DropdownMenu>

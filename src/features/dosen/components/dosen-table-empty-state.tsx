@@ -10,7 +10,11 @@ interface DosenTableEmptyStateProps<TData extends RowData> {
 }
 
 export function DosenTableEmptyState<TData extends RowData>({ table }: DosenTableEmptyStateProps<TData>) {
-  const searchQuery = (table.getColumn("namaLengkap")?.getFilterValue() as string) ?? "";
+  const searchQuery = (table.getColumn("search")?.getFilterValue() as string) ?? "";
+  const selectedStatus = (table.getColumn("status")?.getFilterValue() as string) ?? "";
+  const selectedRole = (table.getColumn("role")?.getFilterValue() as string) ?? "";
+
+  const hasActiveFilter = searchQuery || selectedStatus || selectedRole;
 
   return (
     <Empty>
@@ -18,14 +22,22 @@ export function DosenTableEmptyState<TData extends RowData>({ table }: DosenTabl
         <EmptyMedia variant="icon">
           <IconFolderOpen />
         </EmptyMedia>
-        <EmptyTitle>{searchQuery ? "Dosen Tidak Ditemukan" : "Tidak Ada Data Dosen"}</EmptyTitle>
+        <EmptyTitle>{hasActiveFilter ? "Dosen Tidak Ditemukan" : "Tidak Ada Data Dosen"}</EmptyTitle>
         <EmptyDescription>
           {searchQuery ? (
             <>
-              Tidak ada dosen dengan nama <span className="font-medium">"{searchQuery}"</span>
+              Tidak ada dosen dengan nama atau NIP <span className="font-medium">"{searchQuery}"</span>
+            </>
+          ) : selectedStatus ? (
+            <>
+              Tidak ada dosen dengan status <span className="font-medium">&ldquo;{selectedStatus}&rdquo;</span>
+            </>
+          ) : selectedRole ? (
+            <>
+              Tidak ada dosen dengan role <span className="font-medium">&ldquo;{selectedRole}&rdquo;</span>
             </>
           ) : (
-            "Data dosen akan ditampilkan disini"
+            "Semua data dosen akan ditampilkan disini"
           )}
         </EmptyDescription>
       </EmptyHeader>
