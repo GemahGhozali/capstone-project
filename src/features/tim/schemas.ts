@@ -9,7 +9,6 @@ const TeamMemberSchema = z.object({
   kategoriCapstone: z.enum(KategoriCapstone),
   peran: z.enum(PeranAnggotaTim),
   statusPersetujuan: z.enum(StatusPersetujuan),
-  isCurrentLoginUser: z.boolean(),
 });
 
 export const TeamSchema = z.object({

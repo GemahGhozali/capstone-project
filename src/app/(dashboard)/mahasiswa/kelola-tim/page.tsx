@@ -1,9 +1,12 @@
 import { TimForm } from "@/features/tim/components/tim-form";
+import { requireRole } from "@/libs/dal";
 import { TeamOverview } from "@/features/tim/components/team-overview";
 import { TeamInvitationCallout } from "@/features/tim/components/team-invitation-callout";
 import { getMahasiswaTeamManagementData } from "@/features/tim/queries";
 
 export default async function KelolaTimPage() {
+  const { userId } = await requireRole("Mahasiswa");
+
   const { hasTeam, isInvited, isKetua, statusProposal, tim } = await getMahasiswaTeamManagementData();
 
   const teamIsLocked = !isKetua || statusProposal === "Menunggu" || statusProposal === "Disetujui";
@@ -12,7 +15,7 @@ export default async function KelolaTimPage() {
   const mahasiswaNotAllowedToChangeTeam = hasTeam && teamIsLocked;
 
   if (mahasiswaIsInvited) {
-    return <TeamInvitationCallout teamMembers={tim.anggota} teamName={tim.nama} />;
+    return <TeamInvitationCallout teamMembers={tim.anggota} teamName={tim.nama} authenticatedUserId={userId} />;
   }
 
   if (mahasiswaNotAllowedToChangeTeam) {

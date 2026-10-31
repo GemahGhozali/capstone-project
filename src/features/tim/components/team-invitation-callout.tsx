@@ -17,14 +17,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 interface TeamInvitationCalloutProps {
   teamMembers: TeamMemberInput[];
   teamName: string;
+  authenticatedUserId: string;
 }
 
-export function TeamInvitationCallout({ teamMembers, teamName }: TeamInvitationCalloutProps) {
+export function TeamInvitationCallout({ teamMembers, teamName, authenticatedUserId }: TeamInvitationCalloutProps) {
   const { mutate: acceptTeamInvitation, isPending: acceptInviationPending } = useAcceptTeamInvitation();
   const { mutate: rejectTeamInvitation, isPending: rejectInviationPending } = useRejectTeamInvitation();
 
-  const membersInTeam = teamMembers.filter((member) => !member.isCurrentLoginUser);
-  const invitedMahasiswa = teamMembers.find((member) => member.isCurrentLoginUser);
+  const membersInTeam = teamMembers.filter((member) => member.id !== authenticatedUserId);
+  const invitedMahasiswa = teamMembers.find((member) => member.id === authenticatedUserId);
 
   return (
     <Callout>
