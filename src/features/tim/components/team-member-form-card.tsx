@@ -14,12 +14,12 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 
 type TeamMember = FieldArrayWithId<TeamInput, "anggota", "fieldId">;
 
-interface TeamMemberCardProps {
+interface TeamMemberFormCardProps {
   member: TeamMember;
   index: number;
 }
 
-export function TeamMemberCard({ member, index }: TeamMemberCardProps) {
+export function TeamMemberFormCard({ member, index }: TeamMemberFormCardProps) {
   const { mutation, isEditMode, removeMember } = useTeamFormContext();
 
   const disabled = mutation.isPending;

@@ -1,9 +1,9 @@
 "use client";
 
 import { cn } from "cn";
-import { TeamMemberCard } from "./team-member-card";
 import { TeamMemberInviter } from "./team-member-inviter";
 import { useTeamFormContext } from "./team-form-provider";
+import { TeamMemberFormCard } from "./team-member-form-card";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 
 export function TeamMemberField() {
@@ -32,7 +32,7 @@ export function TeamMemberField() {
         {canInviteMember && <TeamMemberInviter />}
 
         {teamMembers.map((member, index) => (
-          <TeamMemberCard key={member.fieldId} member={member} index={index} />
+          <TeamMemberFormCard key={member.fieldId} member={member} index={index} />
         ))}
       </div>
     </Field>

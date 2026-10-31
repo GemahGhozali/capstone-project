@@ -1,11 +1,8 @@
 import { cn } from "cn";
-import { Badge } from "@/components/ui/badge";
 import { StatusProposal } from "@/generated/prisma/enums";
 import { TeamMemberInput } from "../schemas";
-import { generateNameInitials } from "@/utils/generate-name-initials";
-import { Card, CardFooter, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { IconCircleCheck, IconInfoCircle, IconLock, IconNut } from "@tabler/icons-react";
+import { TeamMemberOverviewCard } from "./team-member-overview-card";
+import { IconCircleCheck, IconInfoCircle, IconLock } from "@tabler/icons-react";
 import { Callout, CalloutIcon, CalloutContent, CalloutTitle, CalloutDescription } from "@/components/ui/callout";
 
 interface TeamOverviewProps {
@@ -53,38 +50,7 @@ export function TeamOverview({ teamMembers, statusProposal, teamName }: TeamOver
         </CalloutContent>
       </Callout>
       {teamMembers.map((member) => (
-        <Card key={member.id} className="p-0 gap-0 divide-y">
-          <CardHeader className="p-4 flex items-center gap-3 relative">
-            <div className="flex gap-3 md:items-center max-md:flex-col">
-              <Avatar size="lg">
-                <AvatarImage src={member.fotoProfil ?? ""} alt={member.namaLengkap} />
-                <AvatarFallback>{generateNameInitials(member.namaLengkap)}</AvatarFallback>
-              </Avatar>
-              <div className="space-y-0.5">
-                <p className="line-clamp-1 text-sm font-medium">{member.namaLengkap}</p>
-                <p className="line-clamp-1 text-xs text-muted-foreground">
-                  {member.peran} - {member.nim}
-                </p>
-              </div>
-            </div>
-            <Badge variant="secondary" className="h-6 ml-auto max-md:absolute max-md:top-4 max-md:right-4">
-              {member.kategoriCapstone}
-            </Badge>
-          </CardHeader>
-          <CardFooter className="p-4! border-t justify-between">
-            <p className="text-sm flex items-center gap-1.5 text-muted-foreground">
-              <IconNut className="size-4" /> Persetujuan :
-            </p>
-            <Badge
-              className={cn(
-                member.statusPersetujuan === "Menunggu" && "text-yellow-500 bg-yellow-500/15",
-                member.statusPersetujuan === "Disetujui" && "text-green-500 bg-green-500/15",
-              )}
-            >
-              {member.statusPersetujuan}
-            </Badge>
-          </CardFooter>
-        </Card>
+        <TeamMemberOverviewCard key={member.id} member={member} />
       ))}
     </div>
   );
