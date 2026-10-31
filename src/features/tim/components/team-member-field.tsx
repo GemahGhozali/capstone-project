@@ -1,40 +1,18 @@
 "use client";
 
 import { cn } from "cn";
-import { TeamInput } from "../schemas";
 import { TeamMemberCard } from "./team-member-card";
 import { TeamMemberInviter } from "./team-member-inviter";
-import { SearchMahasiswaResult } from "../types";
-import { useFormContext, FieldArrayWithId } from "react-hook-form";
+import { useTeamFormContext } from "./team-form-provider";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 
-type TeamMemberItem = FieldArrayWithId<TeamInput, "anggota", "fieldId">;
+export function TeamMemberField() {
+  const { isTeamFull, teamMembers, form } = useTeamFormContext();
 
-interface TeamMemberFieldProps {
-  teamMembers: TeamMemberItem[];
-  addMember: (mahasiswa: SearchMahasiswaResult) => void;
-  removeMember: (index: number) => void;
-  mahasiswaAlreadyInTeam: (id: string) => boolean;
-  isTeamFull: boolean;
-  isEditMode: boolean;
-  disabled: boolean;
-}
-
-export function TeamMemberField({
-  isTeamFull,
-  isEditMode,
-  teamMembers,
-  addMember,
-  removeMember,
-  mahasiswaAlreadyInTeam,
-  disabled,
-}: TeamMemberFieldProps) {
-  const form = useFormContext<TeamInput>();
+  const canInviteMember = !isTeamFull;
 
   const anggotaErrorFormState = form.formState.errors.anggota;
   const anggotaTimFieldError = anggotaErrorFormState?.root ?? anggotaErrorFormState;
-
-  const canInviteMember = !isTeamFull;
 
   return (
     <Field>
@@ -51,12 +29,10 @@ export function TeamMemberField({
       )}
 
       <div className="space-y-4">
-        {canInviteMember && (
-          <TeamMemberInviter isTeamFull={isTeamFull} disabled={disabled} mahasiswaAlreadyInTeam={mahasiswaAlreadyInTeam} onInvite={addMember} />
-        )}
+        {canInviteMember && <TeamMemberInviter />}
 
         {teamMembers.map((member, index) => (
-          <TeamMemberCard key={member.fieldId} member={member} index={index} disabled={disabled} onRemove={removeMember} isEditMode={isEditMode} />
+          <TeamMemberCard key={member.fieldId} member={member} index={index} />
         ))}
       </div>
     </Field>

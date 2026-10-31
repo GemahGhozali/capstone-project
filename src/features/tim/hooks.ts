@@ -107,10 +107,10 @@ export function useTeamForm({ teamData }: UseTeamFormProps) {
 
   const members = form.watch("anggota");
   const isTeamFull = fields.length >= 5;
-  const mahasiswaAlreadyInTeam = (id: string) => members.some((member) => member.id === id);
+  const isMahasiswaAlreadyInTeam = (id: string) => members.some((member) => member.id === id);
 
   const addMember = (mahasiswa: SearchMahasiswaResult) => {
-    if (isTeamFull || mahasiswaAlreadyInTeam(mahasiswa.id)) return;
+    if (isTeamFull || isMahasiswaAlreadyInTeam(mahasiswa.id)) return;
 
     append({
       id: mahasiswa.id,
@@ -149,7 +149,16 @@ export function useTeamForm({ teamData }: UseTeamFormProps) {
     },
   });
 
-  return { form, mutation, isTeamFull, teamMembers: fields, addMember, removeMember, mahasiswaAlreadyInTeam };
+  return {
+    form,
+    mutation,
+    isTeamFull,
+    teamMembers: fields,
+    isEditMode: Boolean(teamData.id),
+    addMember,
+    removeMember,
+    isMahasiswaAlreadyInTeam,
+  };
 }
 
 export function useAcceptTeamInvitation() {

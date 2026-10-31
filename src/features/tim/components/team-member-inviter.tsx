@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Fragment } from "react";
 import { useSearchMahasiswa } from "../hooks";
+import { useTeamFormContext } from "./team-form-provider";
 import { generateNameInitials } from "@/utils/generate-name-initials";
 import { SearchMahasiswaResult } from "../types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,18 +11,15 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/in
 import { IconAlertCircle, IconFolderOpen, IconPlus, IconSearch } from "@tabler/icons-react";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
-interface TeamMemberInviterProps {
-  isTeamFull: boolean;
-  disabled: boolean;
-  mahasiswaAlreadyInTeam: (id: string) => boolean;
-  onInvite: (mahasiswa: SearchMahasiswaResult) => void;
-}
-
-export function TeamMemberInviter({ isTeamFull, disabled, mahasiswaAlreadyInTeam, onInvite }: TeamMemberInviterProps) {
+export function TeamMemberInviter() {
   const { searchQuery, setSearchQuery, error, results } = useSearchMahasiswa();
 
+  const { mutation, isTeamFull, addMember, isMahasiswaAlreadyInTeam } = useTeamFormContext();
+
+  const disabled = mutation.isPending;
+
   const handleInvite = (mahasiswa: SearchMahasiswaResult) => {
-    onInvite(mahasiswa);
+    addMember(mahasiswa);
     setSearchQuery("");
   };
 
@@ -42,7 +40,7 @@ export function TeamMemberInviter({ isTeamFull, disabled, mahasiswaAlreadyInTeam
 
     if (!results) return null;
 
-    const filteredData = results.filter((mahasiswa) => !mahasiswaAlreadyInTeam(mahasiswa.id));
+    const filteredData = results.filter((mahasiswa) => !isMahasiswaAlreadyInTeam(mahasiswa.id));
 
     if (filteredData.length === 0) {
       return (

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { TeamInput } from "../schemas";
 import { FieldArrayWithId } from "react-hook-form";
 import { IconNut, IconTrash } from "@tabler/icons-react";
+import { useTeamFormContext } from "./team-form-provider";
 import { generateNameInitials } from "@/utils/generate-name-initials";
 import { CapstoneCategoryRadioGroup } from "./capstone-category-radio-group";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,12 +17,12 @@ type TeamMember = FieldArrayWithId<TeamInput, "anggota", "fieldId">;
 interface TeamMemberCardProps {
   member: TeamMember;
   index: number;
-  disabled: boolean;
-  onRemove: (index: number) => void;
-  isEditMode: boolean;
 }
 
-export function TeamMemberCard({ isEditMode, member, index, disabled, onRemove }: TeamMemberCardProps) {
+export function TeamMemberCard({ member, index }: TeamMemberCardProps) {
+  const { mutation, isEditMode, removeMember } = useTeamFormContext();
+
+  const disabled = mutation.isPending;
   const canRemove = member.peran !== "Ketua";
 
   return (
@@ -46,7 +47,7 @@ export function TeamMemberCard({ isEditMode, member, index, disabled, onRemove }
               size="sm"
               variant="destructive"
               className="ml-auto max-md:hidden"
-              onClick={() => onRemove(index)}
+              onClick={() => removeMember(index)}
               disabled={disabled}
             >
               Hapus
@@ -57,7 +58,7 @@ export function TeamMemberCard({ isEditMode, member, index, disabled, onRemove }
               size="icon-sm"
               variant="destructive"
               className="absolute top-4 right-4 md:hidden"
-              onClick={() => onRemove(index)}
+              onClick={() => removeMember(index)}
               disabled={disabled}
             >
               <IconTrash data-icon="inline-end" />

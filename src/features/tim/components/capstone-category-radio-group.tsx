@@ -1,7 +1,7 @@
 "use client";
 
-import { TeamInput } from "../schemas";
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller } from "react-hook-form";
+import { useTeamFormContext } from "./team-form-provider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Field, FieldContent, FieldError, FieldLabel, FieldTitle } from "@/components/ui/field";
 
@@ -10,12 +10,12 @@ interface CapstoneCategoryRadioGroupProps {
 }
 
 export function CapstoneCategoryRadioGroup({ memberIndex }: CapstoneCategoryRadioGroupProps) {
-  const { control } = useFormContext<TeamInput>();
+  const { form } = useTeamFormContext();
 
   return (
     <Controller
       name={`anggota.${memberIndex}.kategoriCapstone`}
-      control={control}
+      control={form.control}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
           <RadioGroup name={field.name} value={field.value} onValueChange={field.onChange} aria-invalid={fieldState.invalid} className="grid-cols-2">
