@@ -10,7 +10,7 @@ import { TeamMemberField } from "./team-member-field";
 import { TeamMemberInput } from "../schemas";
 import { Controller, FormProvider } from "react-hook-form";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Callout, CalloutAction, CalloutContent, CalloutDescription, CalloutIcon, CalloutTitle } from "@/components/ui/callout";
 
 interface TimFormProps {
   teamData: {
@@ -40,23 +40,20 @@ export function TimForm({ teamData }: TimFormProps) {
 
         {/* Quick Action (Upload Proposal) */}
         {canUploadProposal && (
-          <Card className="p-0 mb-6">
-            <CardHeader className="flex flex-col items-center gap-4 p-6 lg:flex-row">
-              <div className="flex items-center flex-col gap-3 lg:flex-row">
-                <div className="bg-green-500/15 text-green-500 size-12 grid place-content-center rounded-full shrink-0 ">
-                  <IconCircleCheck />
-                </div>
-                <div className="text-center lg:text-left">
-                  <CardTitle>Anda Sudah Bisa Upload Proposal!</CardTitle>
-                  <CardDescription>Semua anggota tim telah menyetujui undangan.</CardDescription>
-                </div>
-              </div>
-              <Link href="/mahasiswa/upload-proposal" className="w-full lg:w-auto lg:ml-auto">
-                <Button className="w-full">Upload Proposal</Button>
-              </Link>
-            </CardHeader>
-          </Card>
+          <Callout>
+            <CalloutIcon className="bg-green-500/15 text-green-500">
+              <IconCircleCheck />
+            </CalloutIcon>
+            <CalloutContent>
+              <CalloutTitle>Anda Sudah Bisa Upload Proposal!</CalloutTitle>
+              <CalloutDescription>Semua anggota tim telah menyetujui undangan.</CalloutDescription>
+            </CalloutContent>
+            <CalloutAction render={<Link href="/mahasiswa/upload-proposal" />}>
+              <Button className="w-full">Upload Proposal</Button>
+            </CalloutAction>
+          </Callout>
         )}
+
         <FieldGroup>
           {/* Nama Tim */}
           <Controller
