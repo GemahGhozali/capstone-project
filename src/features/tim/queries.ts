@@ -19,7 +19,9 @@ export async function searchInvitableMahasiswa({ query, authenticatedMahasiswaId
 
   const mahasiswaTeamId = mahasiswaMembership?.timId;
 
-  const invitableTeamFilter = mahasiswaTeamId ? { OR: [{ anggotaTim: { is: null } }, { anggotaTim: { is: { timId: mahasiswaTeamId } } }] } : { anggotaTim: { is: null } };
+  const invitableTeamFilter = mahasiswaTeamId
+    ? { OR: [{ anggotaTim: { is: null } }, { anggotaTim: { is: { timId: mahasiswaTeamId } } }] }
+    : { anggotaTim: { is: null } };
 
   const foundedMahasiswa = await prisma.mahasiswa.findMany({
     take: 5,
@@ -221,6 +223,7 @@ export async function getTeamById(id: string) {
             statusPersetujuan: true,
             mahasiswa: {
               select: {
+                id: true,
                 nim: true,
                 user: {
                   select: {
@@ -241,8 +244,10 @@ export async function getTeamById(id: string) {
       id: team.id,
       nama: team.nama,
       status: getTeamStatus(team.anggotaTim.map((anggota) => anggota.statusPersetujuan)),
+      tanggalPembuatan: team.createdAt,
       anggota: team.anggotaTim.map((anggota) => ({
-        nama: anggota.mahasiswa.user.namaLengkap,
+        id: anggota.mahasiswa.id,
+        namaLengkap: anggota.mahasiswa.user.namaLengkap,
         nim: anggota.mahasiswa.nim,
         fotoProfil: anggota.mahasiswa.user.fotoProfil,
         peran: anggota.peran,
