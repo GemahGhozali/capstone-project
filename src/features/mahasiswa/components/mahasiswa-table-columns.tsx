@@ -20,6 +20,12 @@ export interface MahasiswaTableActions {
 
 export function mahasiswaTableColumns({ onDelete }: MahasiswaTableActions) {
   return columnHelper.columns([
+    columnHelper.accessor((row) => `${row.namaLengkap} ${row.nim}`, {
+      id: "search",
+      enableHiding: false,
+      filterFn: "includesString",
+    }),
+
     columnHelper.accessor("namaLengkap", {
       header: "Nama Lengkap",
       cell: ({ row, getValue }) => {
@@ -53,8 +59,8 @@ export function mahasiswaTableColumns({ onDelete }: MahasiswaTableActions) {
     columnHelper.accessor("status", {
       header: "Status",
       filterFn: "equalsString",
-      cell: ({ row }) => {
-        const { status } = row.original;
+      cell: ({ getValue }) => {
+        const status = getValue();
 
         return (
           <Badge
@@ -78,7 +84,7 @@ export function mahasiswaTableColumns({ onDelete }: MahasiswaTableActions) {
 
         return (
           <div className="space-x-3">
-            <Link href={`/kaprodi/daftar-mahasiswa/${mahasiswa.id}`}>
+            <Link href={`/kaprodi/daftar-mahasiswa/${mahasiswa.id}/detail`}>
               <Button variant="outline" size="icon-sm">
                 <IconEye stroke={1.75} />
               </Button>

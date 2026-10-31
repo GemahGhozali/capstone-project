@@ -22,6 +22,7 @@ export function MahasiswaTable({ data }: MahasiswaTableProps) {
       <DataTable
         data={data}
         columns={columns}
+        initialState={{ columnVisibility: { search: false } }}
         renderToolbar={(table) => <MahasiswaTableToolbar table={table} />}
         renderEmptyState={(table) => <MahasiswaTableEmptyState table={table} />}
       />

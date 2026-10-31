@@ -26,11 +26,11 @@ interface MahasiswaTableToolbarProps<TData extends RowData> {
 }
 
 export function MahasiswaTableToolbar<TData extends RowData>({ table }: MahasiswaTableToolbarProps<TData>) {
-  const searchQuery = (table.getColumn("namaLengkap")?.getFilterValue() as string) ?? "";
+  const searchQuery = (table.getColumn("search")?.getFilterValue() as string) ?? "";
   const statusFilter = (table.getColumn("status")?.getFilterValue() as string) ?? "";
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
-    table.getColumn("namaLengkap")?.setFilterValue(event.target.value);
+    table.getColumn("search")?.setFilterValue(event.target.value);
   };
 
   const handleFilterStatus = (value: any) => {
@@ -48,7 +48,7 @@ export function MahasiswaTableToolbar<TData extends RowData>({ table }: Mahasisw
         <InputGroupAddon align="inline-start">
           <IconSearch className="text-muted-foreground" />
         </InputGroupAddon>
-        <InputGroupInput placeholder="Cari nama mahasiswa disini..." value={searchQuery} onChange={handleSearch} />
+        <InputGroupInput placeholder="Cari NIM atau nama mahasiswa disini..." value={searchQuery} onChange={handleSearch} />
       </InputGroup>
       <DropdownMenu>
         <DropdownMenuTrigger
