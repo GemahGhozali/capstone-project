@@ -115,6 +115,10 @@ export async function getAllMahasiswaCapstoneProjectProgress() {
   try {
     const mahasiswaList = await prisma.mahasiswa.findMany({
       orderBy: { nim: "asc" },
+      where: {
+        status: "Aktif",
+        user: { isActive: true },
+      },
       select: {
         id: true,
         nim: true,
