@@ -70,6 +70,7 @@ model UserRole {
 model Prodi {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nama      String   @unique @db.VarChar
+  kode      String   @unique @db.VarChar(20)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -81,6 +82,7 @@ model Prodi {
 model Kelas {
   id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nama      String      @db.VarChar(20)
+  kode      String      @unique @db.VarChar(20)
   angkatan  Int         @db.SmallInt
   createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime    @updatedAt @map("updated_at") @db.Timestamptz
