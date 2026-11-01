@@ -22,6 +22,7 @@ export function useKelasForm({ kelas }: UseKelasForm) {
     resolver: zodResolver(KelasSchema),
     defaultValues: {
       nama: kelas?.nama ?? "",
+      kode: kelas?.kode ?? "",
       angkatan: kelas?.angkatan ?? new Date().getFullYear(),
     },
   });

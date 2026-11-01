@@ -13,7 +13,7 @@ export async function createKelas(data: KelasInput): Promise<ActionResponse> {
     return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
   }
 
-  const { nama, angkatan } = parsed.data;
+  const { nama, kode, angkatan } = parsed.data;
 
   try {
     await userIsValidAndHasRole("Kaprodi");
@@ -21,12 +21,26 @@ export async function createKelas(data: KelasInput): Promise<ActionResponse> {
     const classAlreadyExist = await prisma.kelas.findUnique({ where: { nama_angkatan: { nama, angkatan } } });
 
     if (classAlreadyExist) {
-      return { success: false, message: `Kelas '${nama}' untuk angkatan ${angkatan} sudah terdaftar!` };
+      return {
+        success: false,
+        message: "Gagal menambah kelas!",
+        errors: { nama: `Kelas dengan nama '${nama}' di angkatan ${angkatan} sudah terdaftar!` },
+      };
     }
 
-    await prisma.kelas.create({ data: { nama, angkatan } });
+    const classCodeAlreadyExist = await prisma.kelas.findUnique({ where: { kode } });
 
-    return { success: true, message: "Kelas berhasil dibuat!" };
+    if (classCodeAlreadyExist) {
+      return {
+        success: false,
+        message: "Gagal menambah kelas!",
+        errors: { kode: "Kode kelas sudah digunakan! Silahkan gunakan kombinasi lain." },
+      };
+    }
+
+    await prisma.kelas.create({ data: { nama, kode, angkatan } });
+
+    return { success: true, message: "Kelas berhasil ditambahkan!" };
   } catch (error) {
     console.log("❌ Create Kelas Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
@@ -40,7 +54,7 @@ export async function updateKelas(id: string, data: KelasInput): Promise<ActionR
     return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
   }
 
-  const { nama, angkatan } = parsed.data;
+  const { nama, kode, angkatan } = parsed.data;
 
   try {
     await userIsValidAndHasRole("Kaprodi");
@@ -51,15 +65,29 @@ export async function updateKelas(id: string, data: KelasInput): Promise<ActionR
       return { success: false, message: "Data kelas tidak ditemukan!" };
     }
 
-    const classAlreadyExist = await prisma.kelas.findFirst({ where: { nama, angkatan, NOT: { id } } });
+    const classAlreadyExist = await prisma.kelas.findUnique({ where: { nama_angkatan: { nama, angkatan }, NOT: { id } } });
 
     if (classAlreadyExist) {
-      return { success: false, message: `Kelas '${nama}' untuk angkatan ${angkatan} sudah terdaftar!` };
+      return {
+        success: false,
+        message: "Gagal memperbaharui kelas!",
+        errors: { nama: `Kelas dengan nama '${nama}' di angkatan ${angkatan} sudah terdaftar!` },
+      };
     }
 
-    await prisma.kelas.update({ where: { id }, data: { nama, angkatan } });
+    const classCodeAlreadyExist = await prisma.kelas.findUnique({ where: { kode, NOT: { id } } });
 
-    return { success: true, message: "Kelas berhasil dibuat!" };
+    if (classCodeAlreadyExist) {
+      return {
+        success: false,
+        message: "Gagal memperbaharui kelas!",
+        errors: { kode: "Kode kelas sudah digunakan! Silahkan gunakan kombinasi lain." },
+      };
+    }
+
+    await prisma.kelas.update({ where: { id }, data: { nama, kode, angkatan } });
+
+    return { success: true, message: "Kelas berhasil diperbaharui!" };
   } catch (error) {
     console.log("❌ Create Kelas Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };

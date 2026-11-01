@@ -7,6 +7,7 @@ export async function getAllKelas() {
     select: {
       id: true,
       nama: true,
+      kode: true,
       angkatan: true,
       _count: {
         select: {
@@ -19,6 +20,7 @@ export async function getAllKelas() {
   return classList.map((kelas) => ({
     id: kelas.id,
     nama: kelas.nama,
+    kode: kelas.kode,
     angkatan: kelas.angkatan,
     totalMahasiswa: kelas._count.mahasiswa,
   }));

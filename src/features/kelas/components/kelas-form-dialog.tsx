@@ -26,13 +26,21 @@ export function KelasFormDialog({ kelas, open, onOpenChange }: KelasFormDialogPr
 
   useEffect(() => {
     if (open) {
-      reset({ nama: kelas?.nama ?? "", angkatan: kelas?.angkatan ?? new Date().getFullYear() });
+      reset({
+        nama: kelas?.nama ?? "",
+        kode: kelas?.kode ?? "",
+        angkatan: kelas?.angkatan ?? new Date().getFullYear(),
+      });
     }
   }, [open, kelas, reset]);
 
   const onSubmit = handleSubmit(async (data) => {
-    await mutateAsync(data);
-    onOpenChange(false);
+    try {
+      await mutateAsync(data);
+      onOpenChange(false);
+    } catch {
+      // Error dihandle otomatis oleh useMutation
+    }
   });
 
   return (
@@ -53,7 +61,15 @@ export function KelasFormDialog({ kelas, open, onOpenChange }: KelasFormDialogPr
                   <FieldLabel htmlFor="nama">
                     Nama Kelas <span className="text-red-600">*</span>
                   </FieldLabel>
-                  <Input {...field} type="text" id="nama" aria-invalid={fieldState.invalid} placeholder="Masukkan nama kelas disini..." autoComplete="off" disabled={isPending} />
+                  <Input
+                    {...field}
+                    type="text"
+                    id="nama"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Masukkan nama kelas disini..."
+                    autoComplete="off"
+                    disabled={isPending}
+                  />
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
@@ -67,7 +83,37 @@ export function KelasFormDialog({ kelas, open, onOpenChange }: KelasFormDialogPr
                   <FieldLabel htmlFor="angkatan">
                     Tahun Angkatan <span className="text-red-600">*</span>
                   </FieldLabel>
-                  <Input {...field} type="number" id="angkatan" aria-invalid={fieldState.invalid} placeholder="Masukkan tahun angkatan disini..." autoComplete="off" disabled={isPending} />
+                  <Input
+                    {...field}
+                    type="number"
+                    id="angkatan"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Masukkan tahun angkatan disini..."
+                    autoComplete="off"
+                    disabled={isPending}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="kode"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="kode">
+                    Kode Kelas <span className="text-red-600">*</span>
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    type="text"
+                    id="kode"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Masukkan kode kelas disini..."
+                    autoComplete="off"
+                    disabled={isPending}
+                  />
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}

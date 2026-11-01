@@ -14,6 +14,10 @@ export interface KelasTableActions {
 
 export function kelasTableColumns({ onEdit }: KelasTableActions) {
   return columnHelper.columns([
+    columnHelper.accessor("kode", {
+      header: "Kode Kelas",
+    }),
+
     columnHelper.accessor("nama", {
       header: "Nama Kelas",
     }),
