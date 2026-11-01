@@ -27,6 +27,15 @@ export async function getAllResume() {
             },
           },
         },
+        dosen: {
+          select: {
+            user: {
+              select: {
+                namaLengkap: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -37,6 +46,7 @@ export async function getAllResume() {
       nim: resume.mahasiswa.nim,
       fotoProfil: resume.mahasiswa.user.fotoProfil,
       tanggalPengajuan: resume.createdAt,
+      dosenPembimbing: resume.dosen?.user.namaLengkap,
     }));
   } catch (error) {
     console.error("❌ Get All Resume Error :", error);

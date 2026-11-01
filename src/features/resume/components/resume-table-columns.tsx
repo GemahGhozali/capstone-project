@@ -6,17 +6,22 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { IconEye } from "@tabler/icons-react";
-import { ResumeListItem } from "../types";
 import { id as localeId } from "date-fns/locale";
 import { DataTableFeatures } from "@/components/data/features";
 import { resumeStatusStyles } from "../utils";
 import { createColumnHelper } from "@tanstack/react-table";
 import { generateNameInitials } from "@/utils/generate-name-initials";
+import { ResumeListItem, ResumeViewer } from "../types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ResumeListItem>();
 
-export function resumeTableColumns({ basePath }: { basePath: string }) {
+const dosenPembimbingColumn = columnHelper.accessor("dosenPembimbing", {
+  header: "Dosen Pembimbing",
+  cell: ({ getValue }) => (getValue() ? <span>{getValue()}</span> : <Badge className="bg-neutral-500/15 text-neutral-500">Tidak Ditemukan</Badge>),
+});
+
+export function resumeTableColumns({ basePath, viewer }: { basePath: string; viewer: ResumeViewer }) {
   return columnHelper.columns([
     columnHelper.accessor((row) => `${row.namaMahasiswa} ${row.nim}`, {
       id: "search",
@@ -45,6 +50,11 @@ export function resumeTableColumns({ basePath }: { basePath: string }) {
       },
     }),
 
+    columnHelper.accessor("tanggalPengajuan", {
+      header: "Tanggal Pengajuan",
+      cell: ({ getValue }) => format(getValue(), "eeee, d MMMM yyyy", { locale: localeId }),
+    }),
+
     columnHelper.accessor("status", {
       header: "Status",
       filterFn: "equalsString",
@@ -55,10 +65,7 @@ export function resumeTableColumns({ basePath }: { basePath: string }) {
       },
     }),
 
-    columnHelper.accessor("tanggalPengajuan", {
-      header: "Tanggal Pengajuan",
-      cell: ({ getValue }) => format(getValue(), "eeee, d MMMM yyyy", { locale: localeId }),
-    }),
+    ...(viewer === "Kaprodi" ? [dosenPembimbingColumn] : []),
 
     columnHelper.display({
       id: "actions",

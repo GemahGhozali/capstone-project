@@ -10,7 +10,7 @@ export default async function DaftarResumePage() {
         <h1 className="font-semibold text-lg">Daftar Resume</h1>
         <p className="text-muted-foreground text-sm">Semua data resume yang diajukan mahasiswa.</p>
       </div>
-      <ResumeTable data={resume} />
+      <ResumeTable data={resume} viewer="Kaprodi" />
     </div>
   );
 }

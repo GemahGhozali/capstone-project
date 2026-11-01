@@ -1,20 +1,21 @@
 "use client";
 
 import { useMemo } from "react";
-import { usePathname } from "next/navigation";
 import { DataTable } from "@/components/data/data-table";
-import { ResumeListItem } from "../types";
+import { usePathname } from "next/navigation";
 import { ResumeTableToolbar } from "./resume-table-toolbar";
 import { resumeTableColumns } from "./resume-table-columns";
 import { ResumeTableEmptyState } from "./resume-table-empty-state";
+import { ResumeListItem, ResumeViewer } from "../types";
 
 interface ResumeTableProps {
   data: ResumeListItem[];
+  viewer: ResumeViewer;
 }
 
-export function ResumeTable({ data }: ResumeTableProps) {
+export function ResumeTable({ data, viewer }: ResumeTableProps) {
   const pathname = usePathname();
-  const columns = useMemo(() => resumeTableColumns({ basePath: pathname }), [pathname]);
+  const columns = useMemo(() => resumeTableColumns({ basePath: pathname, viewer }), [pathname, viewer]);
 
   return (
     <DataTable

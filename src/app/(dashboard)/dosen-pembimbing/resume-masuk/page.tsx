@@ -10,7 +10,7 @@ export default async function ResumeMasukPage() {
         <h1 className="font-semibold text-lg">Resume Masuk</h1>
         <p className="text-muted-foreground text-sm">Daftar mahasiswa yang mengajukan resume.</p>
       </div>
-      <ResumeTable data={resume} />
+      <ResumeTable data={resume} viewer="Dosen" />
     </div>
   );
 }
