@@ -89,7 +89,7 @@ export function capstoneProjectMonitoringTableColumns() {
 
     columnHelper.accessor("dosenPembimbing", {
       header: "Dosen Pembimbing",
-      cell: ({ getValue }) => (getValue() ? <span>{getValue()}</span> : <Badge className={neutralBadge}>Belum Ada</Badge>),
+      cell: ({ getValue }) => (getValue() ? <span>{getValue()}</span> : <Badge className={neutralBadge}>Belum Ditentukan</Badge>),
     }),
 
     columnHelper.display({
