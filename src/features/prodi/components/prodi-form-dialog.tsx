@@ -26,13 +26,17 @@ export function ProdiFormDialog({ prodi, open, onOpenChange }: ProdiFormDialogPr
 
   useEffect(() => {
     if (open) {
-      reset({ nama: prodi?.nama ?? "" });
+      reset({ kode: prodi?.kode ?? "", nama: prodi?.nama ?? "" });
     }
   }, [open, prodi, reset]);
 
   const onSubmit = handleSubmit(async (data) => {
-    await mutateAsync(data);
-    onOpenChange(false);
+    try {
+      await mutateAsync(data);
+      onOpenChange(false);
+    } catch {
+      // Error dihandle otomatis oleh useMutation
+    }
   });
 
   return (
@@ -54,7 +58,37 @@ export function ProdiFormDialog({ prodi, open, onOpenChange }: ProdiFormDialogPr
                     <FieldLabel htmlFor="nama">
                       Nama Prodi <span className="text-red-600">*</span>
                     </FieldLabel>
-                    <Input {...field} type="text" id="nama" aria-invalid={fieldState.invalid} placeholder="Masukkan nama prodi disini..." autoComplete="off" disabled={isPending} />
+                    <Input
+                      {...field}
+                      type="text"
+                      id="nama"
+                      aria-invalid={fieldState.invalid}
+                      placeholder="Masukkan nama prodi disini..."
+                      autoComplete="off"
+                      disabled={isPending}
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+
+              <Controller
+                name="kode"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="kode">
+                      Kode Prodi <span className="text-red-600">*</span>
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      type="text"
+                      id="kode"
+                      aria-invalid={fieldState.invalid}
+                      placeholder="Masukkan kode prodi disini..."
+                      autoComplete="off"
+                      disabled={isPending}
+                    />
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}

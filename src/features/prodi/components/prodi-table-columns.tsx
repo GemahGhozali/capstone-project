@@ -18,6 +18,10 @@ export function prodiTableColumns({ onEdit }: ProdiTableActions) {
       header: "Nama Prodi",
     }),
 
+    columnHelper.accessor("kode", {
+      header: "Kode Prodi",
+    }),
+
     columnHelper.display({
       id: "actions",
       header: "Actions",

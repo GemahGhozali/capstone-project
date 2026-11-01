@@ -13,7 +13,7 @@ export async function createProdi(data: ProdiInput): Promise<ActionResponse> {
     return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
   }
 
-  const { nama } = parsed.data;
+  const { nama, kode } = parsed.data;
 
   try {
     await userIsValidAndHasRole("Kaprodi");
@@ -21,12 +21,26 @@ export async function createProdi(data: ProdiInput): Promise<ActionResponse> {
     const prodiAlreadyExist = await prisma.prodi.findUnique({ where: { nama } });
 
     if (prodiAlreadyExist) {
-      return { success: false, message: `Prodi '${nama}' sudah terdaftar!` };
+      return {
+        success: false,
+        message: "Gagal menambah data prodi!",
+        errors: { nama: `Prodi dengan nama '${nama}' sudah terdaftar!` },
+      };
     }
 
-    await prisma.prodi.create({ data: { nama } });
+    const prodiCodeAlreadyExist = await prisma.prodi.findUnique({ where: { kode } });
 
-    return { success: true, message: "Prodi berhasil dibuat!" };
+    if (prodiCodeAlreadyExist) {
+      return {
+        success: false,
+        message: "Gagal menambah data prodi!",
+        errors: { kode: `Kode prodi sudah digunakan! Silahkan gunakan kombinasi lain.` },
+      };
+    }
+
+    await prisma.prodi.create({ data: { nama, kode } });
+
+    return { success: true, message: "Prodi berhasil ditambahkan!" };
   } catch (error) {
     console.log("❌ Create Prodi Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
@@ -40,7 +54,7 @@ export async function updateProdi(id: string, data: ProdiInput): Promise<ActionR
     return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
   }
 
-  const { nama } = parsed.data;
+  const { nama, kode } = parsed.data;
 
   try {
     await userIsValidAndHasRole("Kaprodi");
@@ -51,15 +65,29 @@ export async function updateProdi(id: string, data: ProdiInput): Promise<ActionR
       return { success: false, message: "Data prodi tidak ditemukan!" };
     }
 
-    const prodiAlreadyExist = await prisma.prodi.findFirst({ where: { nama, NOT: { id } } });
+    const prodiAlreadyExist = await prisma.prodi.findUnique({ where: { nama, NOT: { id } } });
 
     if (prodiAlreadyExist) {
-      return { success: false, message: `Prodi '${nama}' sudah terdaftar!` };
+      return {
+        success: false,
+        message: "Gagal memperbaharui data prodi!",
+        errors: { nama: `Prodi dengan nama '${nama}' sudah terdaftar!` },
+      };
     }
 
-    await prisma.prodi.update({ where: { id }, data: { nama } });
+    const prodiCodeAlreadyExist = await prisma.prodi.findUnique({ where: { kode, NOT: { id } } });
 
-    return { success: true, message: "Prodi berhasil diperbarui!" };
+    if (prodiCodeAlreadyExist) {
+      return {
+        success: false,
+        message: "Gagal memperbaharui data prodi!",
+        errors: { kode: `Kode prodi sudah digunakan! Silahkan gunakan kombinasi lain.` },
+      };
+    }
+
+    await prisma.prodi.update({ where: { id }, data: { nama, kode } });
+
+    return { success: true, message: "Prodi berhasil diperbaharui!" };
   } catch (error) {
     console.log("❌ Update Prodi Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };

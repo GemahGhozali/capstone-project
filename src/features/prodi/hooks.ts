@@ -21,6 +21,7 @@ export function useProdiForm({ prodi }: UseProdiForm) {
   const form = useForm<ProdiInput>({
     resolver: zodResolver(ProdiSchema),
     defaultValues: {
+      kode: prodi?.kode ?? "",
       nama: prodi?.nama ?? "",
     },
   });
