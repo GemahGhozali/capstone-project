@@ -6,6 +6,7 @@ import { cn } from "cn";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DosenOverview } from "../types";
+import { dosenStatusStyles } from "../utils";
 import { DataTableFeatures } from "@/components/data/features";
 import { createColumnHelper } from "@tanstack/react-table";
 import { generateNameInitials } from "@/utils/generate-name-initials";
@@ -58,17 +59,7 @@ export function dosenTableColumns({ onDelete }: DosenTableActions) {
       cell: ({ getValue }) => {
         const status = getValue();
 
-        return (
-          <Badge
-            className={cn(
-              status === "Aktif" && "bg-green-500/15 text-green-500",
-              status === "Nonaktif" && "bg-red-500/15 text-red-500",
-              status === "Pindah" && "bg-neutral-500/15 text-neutral-500",
-            )}
-          >
-            {status}
-          </Badge>
-        );
+        return <Badge className={cn(dosenStatusStyles[status])}>{status}</Badge>;
       },
     }),
 

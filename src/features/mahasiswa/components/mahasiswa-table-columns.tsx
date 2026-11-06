@@ -9,6 +9,7 @@ import { MahasiswaOverview } from "../types";
 import { DataTableFeatures } from "@/components/data/features";
 import { createColumnHelper } from "@tanstack/react-table";
 import { generateNameInitials } from "@/utils/generate-name-initials";
+import { mahasiswaStatusStyles } from "../utils";
 import { IconEdit, IconEye, IconTrash } from "@tabler/icons-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -62,17 +63,7 @@ export function mahasiswaTableColumns({ onDelete }: MahasiswaTableActions) {
       cell: ({ getValue }) => {
         const status = getValue();
 
-        return (
-          <Badge
-            className={cn(
-              status === "Aktif" && "bg-green-500/15 text-green-500",
-              status === "Nonaktif" && "bg-red-500/15 text-red-500",
-              status === "Arsip" && "bg-neutral-500/15 text-neutral-500",
-            )}
-          >
-            {status}
-          </Badge>
-        );
+        return <Badge className={cn(mahasiswaStatusStyles[status])}>{status}</Badge>;
       },
     }),
 
