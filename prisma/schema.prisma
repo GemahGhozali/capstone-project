@@ -94,21 +94,22 @@ model Kelas {
 }
 
 model Mahasiswa {
-  id           String              @id @db.Uuid
-  nim          String              @unique @db.VarChar
-  tanggalMasuk DateTime            @map("tanggal_masuk") @db.Date
-  status       StatusMahasiswa     @default(Aktif)
-  dosenId      String?             @map("dosen_id") @db.Uuid
-  kelasId      String              @map("kelas_id") @db.Uuid
-  createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+  id              String              @id @db.Uuid
+  nim             String              @unique @db.VarChar
+  tanggalMasuk    DateTime            @map("tanggal_masuk") @db.Date
+  status          StatusMahasiswa     @default(Aktif)
+  dosenId         String?             @map("dosen_id") @db.Uuid
+  kelasId         String              @map("kelas_id") @db.Uuid
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz
 
-  user         User                @relation(fields: [id], references: [id], onDelete: Cascade)
-  dosen        Dosen?              @relation(fields: [dosenId], references: [id], onDelete: SetNull)
-  kelas        Kelas               @relation(fields: [kelasId], references: [id], onDelete: Restrict)
-  anggotaTim   AnggotaTim?
-  resume       Resume?
-  bookings     BookingKonsultasi[] 
+  user            User                @relation(fields: [id], references: [id], onDelete: Cascade)
+  dosen           Dosen?              @relation(fields: [dosenId], references: [id], onDelete: SetNull)
+  kelas           Kelas               @relation(fields: [kelasId], references: [id], onDelete: Restrict)
+  anggotaTim      AnggotaTim?
+  resume          Resume?
+  bookings        BookingKonsultasi[]
+  responKuesioner ResponKuesioner[]
 
   @@map("mahasiswa")
 }
@@ -280,6 +281,86 @@ model BookingKonsultasi {
   @@map("booking_konsultasi")
 }
 
+model Kuesioner {
+  id        String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  judul     String            @db.VarChar
+  deskripsi String?
+  periode   String            @db.VarChar
+  status    StatusKuesioner   @default(Draf)
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+
+  bagian    BagianKuesioner[]
+  respon    ResponKuesioner[]
+
+  @@map("kuesioner")
+}
+
+model BagianKuesioner {
+  id          String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kuesionerId String                @map("kuesioner_id") @db.Uuid
+  judul       String                @db.VarChar
+  urutan      Int
+  createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime              @updatedAt @map("updated_at") @db.Timestamptz
+
+  kuesioner   Kuesioner             @relation(fields: [kuesionerId], references: [id], onDelete: Cascade)
+  pertanyaan  PertanyaanKuesioner[]
+
+  @@unique([kuesionerId, urutan])
+  @@map("bagian_kuesioner")
+}
+
+model PertanyaanKuesioner {
+  id        String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bagianId  String             @map("bagian_id") @db.Uuid
+  tipe      TipePertanyaan     @default(Likert)
+  teks      String
+  wajib     Boolean            @default(true)
+  urutan    Int
+  createdAt DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+
+  bagian    BagianKuesioner    @relation(fields: [bagianId], references: [id], onDelete: Cascade)
+  jawaban   JawabanKuesioner[]
+
+  @@unique([bagianId, urutan])
+  @@map("pertanyaan_kuesioner")
+}
+
+model ResponKuesioner {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kuesionerId String           @map("kuesioner_id") @db.Uuid
+  mahasiswaId String           @map("mahasiswa_id") @db.Uuid
+  status      StatusRespon     @default(Draf)
+  submittedAt DateTime?        @map("submitted_at") @db.Timestamptz
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  kuesioner Kuesioner          @relation(fields: [kuesionerId], references: [id], onDelete: Cascade)
+  mahasiswa Mahasiswa          @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  jawaban   JawabanKuesioner[]
+
+  @@unique([kuesionerId, mahasiswaId])
+  @@map("respon_kuesioner")
+}
+
+model JawabanKuesioner {
+  id           String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  responId     String            @map("respon_id") @db.Uuid
+  pertanyaanId String            @map("pertanyaan_id") @db.Uuid
+  nilai        Int?              @db.SmallInt
+  jawabanTeks  String?           @map("jawaban_teks")
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+
+  respon     ResponKuesioner     @relation(fields: [responId], references: [id], onDelete: Cascade)
+  pertanyaan PertanyaanKuesioner @relation(fields: [pertanyaanId], references: [id], onDelete: Cascade)
+
+  @@unique([responId, pertanyaanId])
+  @@map("jawaban_kuesioner")
+}
+
 model ActivityLog {
   id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   entity    EntityLog
@@ -343,6 +424,22 @@ enum StatusResume {
 enum StatusBooking {
   Dipesan
   Dibatalkan
+  Selesai
+}
+
+enum StatusKuesioner {
+  Draf
+  Aktif
+  Ditutup
+}
+
+enum TipePertanyaan {
+  Likert
+  Esai
+}
+
+enum StatusRespon {
+  Draf
   Selesai
 }
 
