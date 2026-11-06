@@ -76,6 +76,13 @@ src/
       dosen-pembimbing/page.tsx     # /dosen-pembimbing
       kaprodi/page.tsx              # /kaprodi
       # sub-route per fitur (tim/proposal/resume/bimbingan/dsb) menyusul
+      # ── KUESIONER (spesifikasi; implementasi menyusul):
+      kaprodi/kuesioner/page.tsx               # /kaprodi/kuesioner              — list + aksi status
+      kaprodi/kuesioner/tambah/page.tsx        # /kaprodi/kuesioner/tambah       — form metadata
+      kaprodi/kuesioner/[id]/edit/page.tsx     # /kaprodi/kuesioner/[id]/edit    — builder bagian & pertanyaan
+      kaprodi/kuesioner/[id]/detail/page.tsx   # /kaprodi/kuesioner/[id]/detail  — aksi status + rekap hasil
+      mahasiswa/kuesioner/page.tsx             # /mahasiswa/kuesioner            — daftar kuesioner
+      mahasiswa/kuesioner/[id]/page.tsx        # /mahasiswa/kuesioner/[id]       — wizard pengisian per bagian
     layout.tsx
     globals.css
     not-found.tsx
@@ -88,6 +95,8 @@ src/
     proposal/      # Proposal, ProposalReview (folder ada, isi menyusul)
     resume/        # Resume, ResumeReview (folder ada, isi menyusul)
     konsultasi/    # JadwalKonsultasi, BookingKonsultasi (folder ada, isi menyusul)
+    kuesioner/     # Kuesioner → BagianKuesioner → PertanyaanKuesioner + ResponKuesioner → JawabanKuesioner
+                   # ── SPESIFIKASI SAJA (BUSINESS_RULES §10, ERD, FLOW §7) — folder & implementasi MENYUSUL
     monitoring/    # read-only, tanpa tabel sendiri — FOLDER MENYUSUL
 
   components/
@@ -129,6 +138,17 @@ features/<domain>/
 - Import: `@/features/tim/schemas`, `@/features/tim/components/...`.
 - Fitur boleh dilayani >1 role (mis. `mahasiswa` juga dibaca `monitoring` via `queries`) — route segment ≠ folder fitur.
 - `queries.ts` ditandai `"use server"` (dipanggil dari server component / server action lain); `hooks.ts` ditandai `"use client"`.
+
+#### Pola khusus fitur Kuesioner (spesifikasi — implementasi menyusul)
+
+- Sumber aturan: `docs/BUSINESS_RULES.md` §10; skema: `docs/ERD.md` (Kuesioner); flow: `docs/FLOW.md` §7.
+- **Bagian & pertanyaan dikelola dengan action granular per operasi** — `addBagian`, `updateBagian`, `deleteBagian`, `addPertanyaan`, `updatePertanyaan`, `deletePertanyaan` (plus `createKuesioner` metadata, `updateKuesionerMetadata`, `publishKuesioner`, `closeKuesioner`, `duplicateKuesioner`, `deleteKuesioner`) — **BUKAN** satu action besar create/update seluruh struktur. Halaman edit tetap satu halaman; tambah/edit memakai `Dialog`, hapus memakai `AlertDialog`.
+- Validasi kelengkapan struktur (≥1 bagian, tiap bagian ≥1 pertanyaan) **hanya saat publish**; selama `Draf` boleh kosong.
+- `urutan` bagian/pertanyaan diisi **otomatis** (`max + 1` di parent masing-masing) — tanpa input manual, tanpa reorder di MVP.
+- Respons mahasiswa: **draft disimpan per bagian** via `saveBagianJawaban` (dipicu tombol Lanjutkan/Kembali/Keluar — simpan dulu, baru validasi wajib), lalu `submitKuesioner` memvalidasi semua pertanyaan wajib di server. Terjawab = ada baris `JawabanKuesioner`; kosongkan jawaban = baris dihapus.
+- Initial load wizard: mulai di **bagian pertama yang belum selesai** (semua wajib terjawab); semua selesai → bagian terakhir / "siap dikirim".
+- Rekap hasil: agregat (Likert distribusi + rata-rata 1–5, Esai anonim) + status pengisian — respons `Draf` tidak dihitung; **tanpa** jawaban individual.
+- Kuesioner **tidak** menulis `ActivityLog`.
 
 ## Konvensi penting
 

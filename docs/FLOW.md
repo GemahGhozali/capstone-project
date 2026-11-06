@@ -204,6 +204,73 @@ Edit DosenPembimbingDetail (batas_bimbingan, Buka/Tutup)
 
 ---
 
+## 7. Kuesioner (spesifikasi — implementasi menyusul)
+
+Ejaan resmi: **Kuesioner**. Aturan lengkap di `docs/BUSINESS_RULES.md` §10; skema di `docs/ERD.md`.
+
+### Kaprodi: kelola kuesioner
+
+```
+Buat kuesioner (judul, periode, deskripsi)
+  → status Draf (boleh 0 bagian, boleh ditutup browser tanpa ribet)
+
+Halaman edit [satu halaman, action granular per operasi — setiap operasi langsung tersimpan]
+  Tambah bagian (judul)                  → urutan otomatis (max + 1)
+  Tambah pertanyaan (teks, tipe, wajib)  → urutan otomatis (max + 1), bagian boleh masih kosong
+  Edit / Hapus bagian atau pertanyaan    → langsung tersimpan
+  Duplikat                               → kuesioner Draf baru, struktur sama, respons TIDAK ikut
+  Hapus                                  → HANYA saat Draf (cascade bagian & pertanyaan)
+
+Publikasikan (Draf → Aktif)
+  → validasi: ≥1 bagian, tiap bagian ≥1 pertanyaan, teks + tipe + judul + periode valid
+  → gagal → pesan spesifik (mis. "Bagian "Sarana Prasarana" belum memiliki pertanyaan.")
+  → lolos → struktur & metadata TERKUNCI
+
+Tutup (Aktif → Ditutup)
+  → pengisian berhenti, hasil tetap terbaca, TANPA jawaban individual
+```
+
+### Mahasiswa: isi kuesioner
+
+```
+Prasyarat: Resume.status = Disetujui (belum → halaman callout informasi)
+
+List kuesioner Aktif (+ status: Belum Mengisi | Sedang Mengisi | Selesai)
+Buka wizard → mulai di BAGIAN PERTAMA YANG BELUM SELESAI
+  (bagian Selesai = semua pertanyaan wajibnya terjawab; opsional tidak menghalangi)
+  Jawaban tersimpan di-prefill
+
+Per bagian [TANPA auto-save penuh — penyimpanan dipicu tombol navigasi]:
+  Likert (Kurang|Cukup|Cukup Baik|Baik|Baik Sekali) / Esai(textarea)
+  Lanjutkan  → simpan bagian aktif dulu → validasi wajib bagian itu → pindah
+               tidak lolos → tetap di bagian (isian tetap tersimpan)
+  Kembali    → simpan bagian aktif → pindah ke bagian sebelumnya
+  Keluar dari Kuesioner → simpan bagian aktif → kembali ke daftar
+  Isian yang belum melewati tombol navigasi = belum tersimpan
+
+Mekanisme draft:
+  saveBagianJawaban → upsert ResponKuesioner (Draf) + upsert/hapus JawabanKuesioner
+  ada baris jawaban = terjawab; kosongkan jawaban = baris dihapus
+  UNIQUE(kuesioner_id, mahasiswa_id) & UNIQUE(respon_id, pertanyaan_id)
+
+Kirim Jawaban (bagian terakhir)
+  → simpan bagian terakhir → server validasi SELURUH pertanyaan wajib dari DB
+  → lolos: ResponKuesioner = Selesai + submitted_at → jawaban terkunci
+  → gagal: tolak + info bagian/pertanyaan pertama yang belum lengkap
+```
+
+### Rekap hasil (Kaprodi)
+
+```
+Hanya respons Selesai yang masuk rekap
+Likert → distribusi jumlah per opsi + rata-rata berbobot 1–5
+Esai   → daftar jawaban ANONIM per pertanyaan
+Daftar pengisian → mahasiswa eligible + status (Belum / Sedang Mengisi / Selesai + tanggal kirim)
+TANPA jawaban individual mahasiswa
+```
+
+---
+
 ## State diagram ringkas
 
 ### Proposal
@@ -230,4 +297,17 @@ Dipesan → Selesai
 Menunggu → Disetujui
          → (tolak) HAPUS baris
 Disetujui → (keluar/dikeluarkan, jika tim belum lock) HAPUS baris
+```
+
+### Kuesioner
+```
+Draf → Aktif (publish — validasi kelengkapan, struktur terkunci)
+Aktif → Ditutup (final — tidak bisa dibuka kembali)
+Draf → (hapus) HAPUS data + bagian + pertanyaan
+```
+
+### ResponKuesioner
+```
+(tidak ada) → Draf (dibuat saat jawaban pertama tersimpan) → Selesai (final, terkunci)
+Draf di kuesioner Ditutup → tidak bisa dilanjutkan / dikirim
 ```

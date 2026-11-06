@@ -18,6 +18,12 @@ erDiagram
     Dosen ||--o{ JadwalKonsultasi : ""
     JadwalKonsultasi ||--o{ BookingKonsultasi : ""
     Mahasiswa ||--o{ BookingKonsultasi : ""
+    Kuesioner ||--o{ BagianKuesioner : ""
+    BagianKuesioner ||--o{ PertanyaanKuesioner : ""
+    Kuesioner ||--o{ ResponKuesioner : ""
+    Mahasiswa ||--o{ ResponKuesioner : ""
+    ResponKuesioner ||--o{ JawabanKuesioner : ""
+    PertanyaanKuesioner ||--o{ JawabanKuesioner : ""
     User ||--o{ ActivityLog : ""
     Prodi ||--o{ Dosen : ""
     Mahasiswa }o--o| Dosen : "dosen_id (pembimbing tetap)"
@@ -137,6 +143,51 @@ erDiagram
         timestamptz tanggal_pembatalan "wajib jika Dibatalkan"
         text alasan_pembatalan "wajib jika Dibatalkan"
         enum dibatalkan_oleh "Mahasiswa|Dosen, wajib jika Dibatalkan"
+    }
+    Kuesioner {
+        uuid id PK
+        varchar judul
+        text deskripsi "NULLABLE"
+        varchar periode "teks, mis. 2026I"
+        enum status "Draf|Aktif|Ditutup"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    BagianKuesioner {
+        uuid id PK
+        uuid kuesioner_id FK
+        varchar judul
+        int urutan "UNIQUE(kuesioner_id, urutan), auto max+1"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    PertanyaanKuesioner {
+        uuid id PK
+        uuid bagian_id FK
+        enum tipe "Likert|Esai"
+        text teks
+        boolean wajib "default true"
+        int urutan "UNIQUE(bagian_id, urutan), auto max+1"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    ResponKuesioner {
+        uuid id PK
+        uuid kuesioner_id FK
+        uuid mahasiswa_id FK "UNIQUE(kuesioner_id, mahasiswa_id)"
+        enum status "Draf|Selesai"
+        timestamptz submitted_at "NULLABLE, wajib saat Selesai"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    JawabanKuesioner {
+        uuid id PK
+        uuid respon_id FK
+        uuid pertanyaan_id FK "UNIQUE(respon_id, pertanyaan_id)"
+        smallint nilai "1–5 (CHECK), NULLABLE (Likert)"
+        text jawaban_teks "NULLABLE (Esai)"
+        timestamptz created_at
+        timestamptz updated_at
     }
     ActivityLog {
         uuid id PK
@@ -349,6 +400,67 @@ erDiagram
 
 > Tidak ada composite unique. Validasi app-level: (1) tidak boleh ada 2 booking **aktif** (`Dipesan`) mahasiswa yang sama pada jadwal yang sama; (2) jumlah booking `Dipesan` < `kuota`; (3) hanya jadwal milik `Mahasiswa.dosen_id`; (4) syarat `Resume.status = Disetujui`.
 
+### Kuesioner
+
+> **Spesifikasi — implementasi menyusul** (`src/features/kuesioner/`). Aturan lengkap: `docs/BUSINESS_RULES.md` §10, flow: `docs/FLOW.md` §7.
+
+**Kuesioner**
+| Field | Tipe | Constraint | On Delete |
+|---|---|---|---|
+| id | UUID | PK | — |
+| judul | VARCHAR | NOT NULL | — |
+| deskripsi | TEXT | NULLABLE | — |
+| periode | VARCHAR | NOT NULL (teks bebas, mis. `2026I`) | — |
+| status | ENUM(Draf, Aktif, Ditutup) | NOT NULL, DEFAULT `Draf` | — |
+| created_at | TIMESTAMPTZ | NOT NULL | — |
+| updated_at | TIMESTAMPTZ | NOT NULL | — |
+
+**BagianKuesioner**
+| Field | Tipe | Constraint | On Delete |
+|---|---|---|---|
+| id | UUID | PK | — |
+| kuesioner_id | UUID | FK → Kuesioner.id, NOT NULL | CASCADE |
+| judul | VARCHAR | NOT NULL | — |
+| urutan | INT | NOT NULL — `UNIQUE(kuesioner_id, urutan)`; diisi **otomatis** (`max + 1`), tanpa input manual | — |
+| created_at | TIMESTAMPTZ | NOT NULL | — |
+| updated_at | TIMESTAMPTZ | NOT NULL | — |
+
+**PertanyaanKuesioner**
+| Field | Tipe | Constraint | On Delete |
+|---|---|---|---|
+| id | UUID | PK | — |
+| bagian_id | UUID | FK → BagianKuesioner.id, NOT NULL | CASCADE |
+| tipe | ENUM(Likert, Esai) | NOT NULL, DEFAULT `Likert` | — |
+| teks | TEXT | NOT NULL | — |
+| wajib | BOOLEAN | NOT NULL, DEFAULT `true` | — |
+| urutan | INT | NOT NULL — `UNIQUE(bagian_id, urutan)`; diisi **otomatis** (`max + 1`) | — |
+| created_at | TIMESTAMPTZ | NOT NULL | — |
+| updated_at | TIMESTAMPTZ | NOT NULL | — |
+
+**ResponKuesioner** (respons mahasiswa terhadap 1 kuesioner)
+| Field | Tipe | Constraint | On Delete |
+|---|---|---|---|
+| id | UUID | PK | — |
+| kuesioner_id | UUID | FK → Kuesioner.id, NOT NULL | CASCADE |
+| mahasiswa_id | UUID | FK → Mahasiswa.id, NOT NULL — `UNIQUE(kuesioner_id, mahasiswa_id)` (1 respons per mahasiswa per kuesioner) | CASCADE |
+| status | ENUM(Draf, Selesai) | NOT NULL, DEFAULT `Draf` | — |
+| submitted_at | TIMESTAMPTZ | NULLABLE — wajib terisi saat `Selesai` | — |
+| created_at | TIMESTAMPTZ | NOT NULL | — |
+| updated_at | TIMESTAMPTZ | NOT NULL | — |
+
+**JawabanKuesioner** (jawaban per pertanyaan)
+| Field | Tipe | Constraint | On Delete |
+|---|---|---|---|
+| id | UUID | PK | — |
+| respon_id | UUID | FK → ResponKuesioner.id, NOT NULL | CASCADE |
+| pertanyaan_id | UUID | FK → PertanyaanKuesioner.id, NOT NULL — `UNIQUE(respon_id, pertanyaan_id)` | CASCADE |
+| nilai | SMALLINT | NULLABLE (untuk pertanyaan tipe `Likert`) — **CHECK 1–5 di DB** (`jawaban_nilai_range`); label UI dipetakan di aplikasi: 1=`Kurang`, 2=`Cukup`, 3=`Cukup Baik`, 4=`Baik`, 5=`Baik Sekali` | — |
+| jawaban_teks | TEXT | NULLABLE — untuk pertanyaan tipe `Esai` | — |
+| created_at | TIMESTAMPTZ | NOT NULL | — |
+| updated_at | TIMESTAMPTZ | NOT NULL | — |
+
+> Validasi app-level: `nilai` hanya terisi untuk pertanyaan `Likert` dan `jawaban_teks` hanya untuk `Esai` (saling eksklusif; `nilai` SMALLINT 1–5 dengan CHECK di DB — label 1–5 dipetakan di aplikasi, likert bukan enum DB). **Keberadaan baris = pertanyaan terjawab; baris dikosongkan = dihapus** (tanpa kolom `answered`). Aktivitas kuesioner **tidak** dicatat ke `ActivityLog` (entity log tidak berubah).
+
 ### Log
 
 **ActivityLog**
@@ -378,3 +490,5 @@ erDiagram
 9. Field `Dibatalkan` (alasan, oleh, tanggal) wajib — via Zod.
 10. Force **reset akun (ganti email + password)** saat `is_account_reset = false` — semua route ditolak kecuali `/reset-akun`.
 11. Reset password: input **email atau NIM/NIP**, token hash (UUID → SHA-256) 15 menit single-use, maks. 1 token aktif per user (request baru menimpa), hanya untuk akun `is_account_reset = true`, password baru min 8 karakter (lihat `docs/BUSINESS_RULES.md` §1).
+12. Kuesioner: struktur (metadata/bagian/pertanyaan) hanya editable saat `Draf`; kelengkapan struktur (≥1 bagian, tiap bagian ≥1 pertanyaan) divalidasi **hanya saat publish**; `Ditutup` final (tanpa reopen); hapus hanya `Draf`; `urutan` diisi otomatis.
+13. Pengisian kuesioner: prasyarat resume `Disetujui`; hanya kuesioner `Aktif`; 1 respons per mahasiswa per kuesioner; jawaban harus milik pertanyaan di kuesioner tersebut; draft disimpan per bagian (baris jawaban = terjawab, dikosongkan = dihapus); submit final memvalidasi **seluruh** pertanyaan wajib di server lalu set `Selesai` + `submitted_at`.

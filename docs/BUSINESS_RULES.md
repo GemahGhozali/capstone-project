@@ -188,7 +188,74 @@ Tidak ada fitur tulis — hanya baca. Tampilan:
 
 ---
 
-## 10. Delete Behavior (ringkas)
+## 10. Kuesioner
+
+> Ejaan resmi di aplikasi: **Kuesioner** (bukan "kuisioner"). Bagian ini adalah **spesifikasi final** — implementasi `src/features/kuesioner/` + route **menyusul** (skema di `docs/ERD.md`, flow di `docs/FLOW.md` §7).
+
+### 10a. Pengelolaan oleh Kaprodi
+
+- **Struktur dinamis 3 level**: `Kuesioner → Bagian → Pertanyaan`.
+- Field kuesioner: `judul`, `deskripsi` (opsional), `periode` (teks bebas, mis. `2026I`).
+- **Status**: `Draf` → `Aktif` → `Ditutup`. Beberapa kuesioner boleh `Aktif` bersamaan; tidak ada deadline otomatis.
+- **Pembuatan**: form metadata saja (judul/periode/deskripsi) → langsung berstatus `Draf` dan **boleh 0 bagian**; setelah tersimpan, lanjut ke halaman edit untuk membangun struktur.
+- Bagian & pertanyaan dikelola dengan **action granular per operasi** — tambah/edit/hapus bagian dan pertanyaan masing-masing action tersendiri, setiap operasi langsung tersimpan — **bukan** satu action besar yang memutasi seluruh struktur. UI: tambah/edit via Dialog, hapus via dialog konfirmasi (AlertDialog).
+- Membuat bagian **boleh tanpa pertanyaan**; pertanyaan wajib terikat ke bagian yang sudah ada (`bagian_id`).
+- `urutan` bagian/pertanyaan **diisi otomatis** oleh server (`max + 1` dalam parent masing-masing) — **tanpa input manual**, tanpa fitur reorder di MVP.
+- Setiap pertanyaan punya: `tipe` (`Likert` / `Esai`), `teks`, toggle `wajib` (default **wajib**).
+- **Validasi kelengkapan struktur hanya dilakukan saat publish** (`Draf → Aktif`):
+  1. minimal 1 bagian;
+  2. setiap bagian minimal 1 pertanyaan;
+  3. setiap pertanyaan punya teks + tipe valid;
+  4. judul dan periode terisi.
+  Bagian kosong → publish ditolak dengan pesan spesifik, mis. `Bagian "Sarana Prasarana" belum memiliki pertanyaan.`
+- **Setelah `Aktif`**: judul, periode, deskripsi, bagian, dan pertanyaan **terkunci**; satu-satunya perubahan adalah `Aktif → Ditutup`.
+- **`Ditutup` final**: tidak bisa dibuka kembali dan **tidak bisa dihapus**. Untuk periode berikutnya gunakan **Duplikat**.
+- **Duplikat**: menyalin metadata + seluruh bagian/pertanyaan (termasuk `urutan`) ke kuesioner baru berstatus `Draf`; **respons lama tidak ikut tersalin**.
+- **Hapus kuesioner hanya saat `Draf`** (cascade bagian/pertanyaan; kuesioner `Draf` belum mungkin punya respons).
+
+### 10b. Pengisian oleh Mahasiswa
+
+- **Prasyarat**: `Resume.status = Disetujui`. Selama belum memenuhi, halaman menampilkan callout (bukan form); menu tetap terlihat.
+- Mahasiswa hanya melihat kuesioner `Aktif`; kuesioner `Draf` tidak terlihat; `Ditutup` tampil sebagai riwayat dan tidak bisa diisi.
+- **1 mahasiswa = 1 respons per kuesioner** (`UNIQUE(kuesioner_id, mahasiswa_id)`).
+- Skala Likert (bobot naik), disimpan sebagai `nilai` SMALLINT 1–5 (CHECK di DB): `Kurang` (1), `Cukup` (2), `Cukup Baik` (3), `Baik` (4), `Baik Sekali` (5) — label dipetakan di UI (bukan enum DB).
+- Penyimpanan jawaban **per bagian**, dipicu tombol navigasi — **tanpa auto-save penuh**:
+  - `Lanjutkan`: simpan bagian aktif dulu → validasi pertanyaan wajib bagian itu → lolos = pindah bagian berikutnya; tidak lolos = tetap di bagian itu (isian yang sudah diketik tetap tersimpan).
+  - `Kembali`: simpan bagian aktif, lalu pindah ke bagian sebelumnya.
+  - `Keluar dari Kuesioner`: simpan bagian aktif, lalu kembali ke daftar.
+- Isian di bagian aktif yang **belum melewati tombol navigasi tidak tersimpan** (mis. menutup browser tanpa klik apa pun).
+- **Penanda "terjawab" = ada baris `JawabanKuesioner`**; jawaban yang dikosongkan = barisnya **dihapus**. Tidak ada kolom `answered`. `ResponKuesioner` dibuat saat jawaban pertama disimpan, status `Draf`.
+- **Submit final (tombol `Kirim Jawaban` di bagian terakhir)**:
+  1. simpan bagian terakhir;
+  2. server membaca ulang **seluruh** pertanyaan & jawaban dari DB (validasi server, bukan hanya client);
+  3. validasi semua pertanyaan `wajib` terjawab;
+  4. lolos → `ResponKuesioner.status = Selesai` + `submitted_at`; gagal → tolak dengan info bagian/pertanyaan pertama yang belum lengkap.
+- Setelah `Selesai`, jawaban **tidak bisa diubah** (mahasiswa melihat state konfirmasi "terima kasih"; menampilkan kembali jawaban secara read-only bersifat opsional).
+- Kuesioner yang sudah `Ditutup` tidak bisa diisi/lanjutkan/submitted.
+- Pertanyaan opsional boleh dikosongkan; hanya pertanyaan `wajib` yang memblokir.
+
+### 10c. Resume posisi pengisian
+
+- Status per bagian **dihitung dari data tersimpan** pada initial load (tanpa kolom tambahan):
+  - `Selesai` = semua pertanyaan **wajib** di bagian itu terjawab (pertanyaan opsional tidak menghalangi);
+  - `Sedang Diisi` = ada jawaban, tetapi wajib belum lengkap;
+  - `Belum Diisi` = belum ada jawaban sama sekali.
+- Wizard dibuka mulai dari **bagian pertama yang belum selesai**; bila semua bagian selesai → bagian terakhir / state "siap dikirim".
+- Jawaban yang tersimpan di-prefill ke form saat membuka lagi.
+- UI: `Bagian x dari y` + progress ring/bar; stepper/daftar status per bagian bersifat opsional.
+
+### 10d. Hasil & rekap (Kaprodi)
+
+- **Hanya respons `Selesai` yang masuk rekap**; respons `Draf` tidak dihitung.
+- Likert: distribusi jumlah tiap nilai 1–5 + rata-rata (`AVG(nilai)` langsung di SQL); label tiap nilai dipetakan di UI (1=`Kurang` … 5=`Baik Sekali`).
+- Esai: daftar jawaban **anonim** per pertanyaan (tanpa identitas responden).
+- Daftar pengisian: mahasiswa eligible + status pengisiannya (`Belum Mengisi` / `Sedang Mengisi` / `Selesai` + tanggal kirim).
+- **Jawaban individual mahasiswa tidak ditampilkan** ke siapa pun.
+- Di luar scope (untuk saat ini): export CSV/Excel, chart library, deadline otomatis, reopen `Ditutup`, edit jawaban setelah submit, ActivityLog kuesioner.
+
+---
+
+## 11. Delete Behavior (ringkas)
 
 | Aksi | Efek |
 |---|---|
@@ -197,3 +264,5 @@ Tidak ada fitur tulis — hanya baca. Tampilan:
 | Replace resume | Hapus `Resume` (+ `ResumeReview` cascade) + file dari disk |
 | Soft delete master | Set `status` enum / `is_active` |
 | User/role dihapus | `UserRole` cascade; `Mahasiswa`/`Dosen` cascade ke `User`; `PasswordResetToken` cascade ke `User` |
+| Hapus kuesioner (`Draf` saja) | Hapus `Kuesioner` + `BagianKuesioner` + `PertanyaanKuesioner` cascade (kuesioner yang pernah `Aktif` tidak bisa dihapus) |
+| Hapus bagian kuesioner (`Draf` saja) | Hapus `BagianKuesioner` + pertanyaan di dalamnya (cascade) |
