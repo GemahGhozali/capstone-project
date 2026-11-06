@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { getAllKelas } from "@/features/kelas/queries";
 import { MahasiswaForm } from "@/features/mahasiswa/components/mahasiswa-form";
 import { getMahasiswaById } from "@/features/mahasiswa/queries";
@@ -9,7 +10,9 @@ type EditMahasiswaPageProps = {
 export default async function EditMahasiswaPage({ params }: EditMahasiswaPageProps) {
   const { id } = await params;
 
-  const [kelasOptions, mahasiswaDetails] = await Promise.all([getAllKelas(), getMahasiswaById(id)]);
+  const [kelas, mahasiswa] = await Promise.all([getAllKelas(), getMahasiswaById(id)]);
 
-  return <MahasiswaForm kelas={kelasOptions} mahasiswa={mahasiswaDetails} />;
+  if (!mahasiswa) notFound();
+
+  return <MahasiswaForm kelas={kelas} mahasiswa={mahasiswa} />;
 }

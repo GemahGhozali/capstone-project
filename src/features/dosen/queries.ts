@@ -98,8 +98,8 @@ export async function getDosenById(id: string) {
       prodi: dosen.prodi,
       alamatEmail: user.alamatEmail,
       roles: user.userRoles.map(({ role }) => role),
-      kuotaBimbingan: dosen.dosenPembimbingDetail?.batasBimbingan ?? 10,
-      statusBimbingan: dosen.dosenPembimbingDetail?.status ?? "Buka",
+      kuotaBimbingan: dosen.dosenPembimbingDetail?.batasBimbingan,
+      statusBimbingan: dosen.dosenPembimbingDetail?.status,
     };
   } catch (error) {
     console.error("❌ Get Dosen By ID Error :", error);
