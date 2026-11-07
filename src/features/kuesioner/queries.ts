@@ -29,13 +29,14 @@ export async function getAllKuesioner() {
       totalRespon: kuesioner._count.respon,
     }));
   } catch (error) {
+    console.log("❌ Get All Kuesioner Error :", error);
     throw new Error("Terjadi kesalahan pada server!");
   }
 }
 
 export async function getKuesionerById(id: string) {
   try {
-    return prisma.kuesioner.findUnique({
+    const kuesioner = await prisma.kuesioner.findUnique({
       where: { id },
       select: {
         id: true,
@@ -45,6 +46,11 @@ export async function getKuesionerById(id: string) {
         status: true,
         createdAt: true,
         updatedAt: true,
+        _count: {
+          select: {
+            respon: true,
+          },
+        },
         bagian: {
           orderBy: { urutan: "asc" },
           select: {
@@ -65,7 +71,14 @@ export async function getKuesionerById(id: string) {
         },
       },
     });
+
+    if (!kuesioner) return null;
+
+    const { _count, ...data } = kuesioner;
+
+    return { ...data, totalRespon: _count.respon };
   } catch (error) {
+    console.log("❌ Get Kuesioner By ID Error :", error);
     throw new Error("Terjadi kesalahan pada server!");
   }
 }
