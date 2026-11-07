@@ -6,7 +6,7 @@ import { ActionResponse } from "@/types";
 import { userIsValidAndHasRole } from "@/libs/dal";
 import { BagianInput, BagianSchema, KuesionerInput, KuesionerSchema, PertanyaanInput, PertanyaanSchema } from "./schemas";
 
-export async function createKuesioner(data: KuesionerInput): Promise<ActionResponse> {
+export async function createKuesioner(data: KuesionerInput): Promise<ActionResponse<{ id: string }>> {
   const parsed = KuesionerSchema.safeParse(data);
 
   if (!parsed.success) {
@@ -18,16 +18,16 @@ export async function createKuesioner(data: KuesionerInput): Promise<ActionRespo
   try {
     await userIsValidAndHasRole("Kaprodi");
 
-    await prisma.kuesioner.create({ data: { judul, periode, deskripsi: deskripsi || null } });
+    const kuesioner = await prisma.kuesioner.create({ data: { judul, periode, deskripsi: deskripsi || null } });
 
-    return { success: true, message: "Kuesioner berhasil dibuat!" };
+    return { success: true, message: "Kuesioner berhasil dibuat!", data: { id: kuesioner.id } };
   } catch (error) {
     console.log("❌ Create Kuesioner Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }
 
-export async function updateKuesioner(id: string, data: KuesionerInput): Promise<ActionResponse> {
+export async function updateKuesioner(id: string, data: KuesionerInput): Promise<ActionResponse<{ id: string }>> {
   const parsed = KuesionerSchema.safeParse(data);
 
   if (!parsed.success) {
@@ -51,7 +51,7 @@ export async function updateKuesioner(id: string, data: KuesionerInput): Promise
 
     await prisma.kuesioner.update({ where: { id }, data: { judul, periode, deskripsi: deskripsi || null } });
 
-    return { success: true, message: "Kuesioner berhasil diperbaharui!" };
+    return { success: true, message: "Kuesioner berhasil diperbaharui!", data: { id } };
   } catch (error) {
     console.log("❌ Update Kuesioner Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
@@ -372,7 +372,7 @@ export async function duplicateKuesioner(id: string): Promise<ActionResponse> {
 
     await prisma.kuesioner.create({
       data: {
-        judul: kuesioner.judul,
+        judul: `${kuesioner.judul} (Duplikat)`,
         periode: kuesioner.periode,
         deskripsi: kuesioner.deskripsi,
         bagian: {
