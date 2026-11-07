@@ -7,8 +7,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { ActionResponse } from "@/types";
-import { KuesionerOverview } from "./types";
-import { BagianKuesioner, PertanyaanKuesioner } from "./types";
+import { BagianKuesioner, PertanyaanKuesioner, KuesionerOverview } from "./types";
 import { BagianInput, BagianSchema, KuesionerInput, KuesionerSchema, PertanyaanInput, PertanyaanSchema } from "./schemas";
 
 import { addBagian, updateBagian, deleteBagian } from "./actions";
@@ -32,6 +31,8 @@ interface UsePertanyaanForm {
 export function useKuesionerForm({ kuesioner }: UseKuesionerForm = {}) {
   const router = useRouter();
 
+  const isEditMode = Boolean(kuesioner);
+
   const form = useForm<KuesionerInput>({
     resolver: zodResolver(KuesionerSchema),
     defaultValues: {
@@ -44,12 +45,12 @@ export function useKuesionerForm({ kuesioner }: UseKuesionerForm = {}) {
   const mutation = useMutation({
     mutationFn: async (data: KuesionerInput) => {
       const actionFn = kuesioner ? updateKuesioner(kuesioner.id, data) : createKuesioner(data);
-      return runAction(() => actionFn);
+      return runAction<{ id: string }>(() => actionFn);
     },
 
-    onSuccess: (response: ActionResponse) => {
+    onSuccess: (response: ActionResponse<{ id: string }>) => {
       toast.add({ type: "success", description: response.message });
-      router.refresh();
+      !isEditMode && response.data ? router.push(`/kaprodi/daftar-kuesioner/${response.data.id}/edit`) : router.refresh();
     },
 
     onError: (response: ActionResponse) => {
@@ -189,15 +190,31 @@ export function useDeletePertanyaan() {
   });
 }
 
-export function useKuesionerStatus() {
+export function useChangeKuesionerStatus() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: async ({ id, mode }: { id: string; mode: "publish" | "close" | "duplicate" }) => {
-      if (mode === "publish") return runAction(() => publishKuesioner(id));
-      if (mode === "close") return runAction(() => closeKuesioner(id));
-      return runAction(() => duplicateKuesioner(id));
+    mutationFn: async ({ id, mode }: { id: string; mode: "publish" | "close" }) => {
+      const actionFn = mode === "publish" ? publishKuesioner(id) : closeKuesioner(id);
+      return runAction(() => actionFn);
     },
+
+    onSuccess: (response) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
+}
+
+export function useDuplicateKuesioner() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (id: string) => runAction(() => duplicateKuesioner(id)),
 
     onSuccess: (response) => {
       toast.add({ type: "success", description: response.message });
