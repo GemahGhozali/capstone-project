@@ -93,7 +93,7 @@ export function kuesionerTableColumns({ onEdit, onDelete, onDuplicate, onChangeS
                   <IconUsers />
                   Lihat Responden
                 </DropdownMenuItem>
-                <DropdownMenuItem render={<Link href={`/kaprodi/daftar-kuesioner/${kuesioner.id}/edit`} />}>
+                <DropdownMenuItem render={<Link href={`/kaprodi/daftar-kuesioner/${kuesioner.id}/kelola`} />}>
                   <IconListDetails />
                   Kelola Kuesioner
                 </DropdownMenuItem>
