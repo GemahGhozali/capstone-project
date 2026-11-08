@@ -19,7 +19,7 @@ import { KuesionerOverview } from "../types";
 import { DataTableFeatures } from "@/components/data/features";
 import { createColumnHelper } from "@tanstack/react-table";
 import { kuesionerStatusStyles } from "../utils";
-import { IconCloudUpload, IconCopy, IconDotsVertical, IconEdit, IconListDetails, IconLock, IconTrash } from "@tabler/icons-react";
+import { IconCloudUpload, IconCopy, IconDotsVertical, IconEdit, IconListDetails, IconLock, IconTrash, IconUsers } from "@tabler/icons-react";
 
 const columnHelper = createColumnHelper<DataTableFeatures, KuesionerOverview>();
 
@@ -86,11 +86,38 @@ export function kuesionerTableColumns({ onEdit, onDelete, onDuplicate, onChangeS
             <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label="Menu aksi" />}>
               <IconDotsVertical />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-fit">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem render={<Link href={`/kaprodi/daftar-kuesioner/${kuesioner.id}/detail`} />}>
+                  <IconUsers />
+                  Lihat Responden
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link href={`/kaprodi/daftar-kuesioner/${kuesioner.id}/edit`} />}>
+                  <IconListDetails />
+                  Kelola Kuesioner
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onDuplicate(kuesioner)}>
+                  <IconCopy />
+                  Duplikat Kuesioner
+                </DropdownMenuItem>
+                {isDraf && (
+                  <>
+                    <DropdownMenuItem onClick={() => onEdit(kuesioner)}>
+                      <IconEdit />
+                      Edit Kuesioner
+                    </DropdownMenuItem>
+                    <DropdownMenuItem variant="destructive" onClick={() => onDelete(kuesioner)}>
+                      <IconTrash />
+                      Hapus Kuesioner
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuGroup>
               {canChangeStatus && (
                 <>
                   <DropdownMenuGroup>
-                    <DropdownMenuLabel>Ubah Status</DropdownMenuLabel>
+                    <DropdownMenuLabel>Status Kuesioner</DropdownMenuLabel>
                     {isDraf && (
                       <DropdownMenuItem onClick={() => onChangeStatus(kuesioner, "publish")}>
                         <IconCloudUpload />
@@ -98,7 +125,7 @@ export function kuesionerTableColumns({ onEdit, onDelete, onDuplicate, onChangeS
                       </DropdownMenuItem>
                     )}
                     {isAktif && (
-                      <DropdownMenuItem onClick={() => onChangeStatus(kuesioner, "close")}>
+                      <DropdownMenuItem variant="destructive" onClick={() => onChangeStatus(kuesioner, "close")}>
                         <IconLock />
                         Tutup Kuesioner
                       </DropdownMenuItem>
@@ -107,30 +134,6 @@ export function kuesionerTableColumns({ onEdit, onDelete, onDuplicate, onChangeS
                   <DropdownMenuSeparator />
                 </>
               )}
-
-              <DropdownMenuGroup>
-                <DropdownMenuLabel>Aksi Lainnya</DropdownMenuLabel>
-                <DropdownMenuItem render={<Link href={`/kaprodi/daftar-kuesioner/${kuesioner.id}/edit`} />}>
-                  <IconListDetails />
-                  Kelola Kuesioner
-                </DropdownMenuItem>
-                {isDraf && (
-                  <DropdownMenuItem onClick={() => onEdit(kuesioner)}>
-                    <IconEdit />
-                    Edit Kuesioner
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onClick={() => onDuplicate(kuesioner)}>
-                  <IconCopy />
-                  Duplikat Kuesioner
-                </DropdownMenuItem>
-                {isDraf && (
-                  <DropdownMenuItem variant="destructive" onClick={() => onDelete(kuesioner)}>
-                    <IconTrash />
-                    Hapus Kuesioner
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         );

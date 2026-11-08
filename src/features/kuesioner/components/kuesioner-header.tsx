@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { cn } from "cn";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,7 +10,7 @@ import { KuesionerDetail } from "../types";
 import { KuesionerFormDialog } from "./kuesioner-form-dialog";
 import { kuesionerStatusStyles } from "../utils";
 import { ChangeStatusAlertDialog } from "./change-status-alert-dialog";
-import { IconCloudUpload, IconEdit, IconLock } from "@tabler/icons-react";
+import { IconCloudUpload, IconEdit, IconLock, IconUsers } from "@tabler/icons-react";
 
 interface KuesionerHeaderProps {
   kuesioner: NonNullable<KuesionerDetail>;
@@ -49,11 +51,21 @@ export function KuesionerHeader({ kuesioner }: KuesionerHeaderProps) {
             </Button>
           </div>
         )}
-        {isAktifStatus && (
-          <Button variant="outline" onClick={() => setDialog({ action: "change-status", mode: "close" })}>
-            <IconLock data-icon="inline-start" />
-            Tutup Kuesioner
-          </Button>
+        {!isDrafStatus && (
+          <div className="flex gap-3 max-lg:*:grow max-sm:flex-col">
+            <Link href={`/kaprodi/daftar-kuesioner/${kuesioner.id}/detail`} className="max-sm:grow">
+              <Button variant="outline" className="w-full">
+                <IconUsers data-icon="inline-start" />
+                Lihat Responden
+              </Button>
+            </Link>
+            {isAktifStatus && (
+              <Button variant="destructive" onClick={() => setDialog({ action: "change-status", mode: "close" })}>
+                <IconLock data-icon="inline-start" />
+                Tutup Kuesioner
+              </Button>
+            )}
+          </div>
         )}
       </header>
       <KuesionerFormDialog kuesioner={kuesioner} open={openKuesionerFormDialog} closeDialog={handleCloseDialog} />
