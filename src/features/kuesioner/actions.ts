@@ -301,13 +301,13 @@ export async function publishKuesioner(id: string): Promise<ActionResponse> {
     }
 
     if (kuesioner.bagian.length === 0) {
-      return { success: false, message: "Kuesioner belum memiliki bagian! Minimal 1 bagian berisi pertanyaan untuk publish." };
+      return { success: false, message: "Kuesioner masih kosong! Silahkan lengkapi bagian dan pertanyaan kuesioner sebelum di publish!" };
     }
 
     const emptyBagian = kuesioner.bagian.find((bagian) => bagian._count.pertanyaan === 0);
 
     if (emptyBagian) {
-      return { success: false, message: `Bagian "${emptyBagian.judul}" belum memiliki pertanyaan!` };
+      return { success: false, message: `Publish kuesiner gagal! Bagian "${emptyBagian.judul}" belum memiliki pertanyaan!` };
     }
 
     await prisma.kuesioner.update({ where: { id }, data: { status: "Aktif" } });
