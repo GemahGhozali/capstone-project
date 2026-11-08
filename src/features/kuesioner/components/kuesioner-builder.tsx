@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { KuesionerHeader } from "./kuesioner-header";
@@ -9,7 +10,7 @@ import { BagianKuesionerCard } from "./bagian-kuesioner-card";
 import { DeleteBagianAlertDialog } from "./delete-bagian-alert-dialog";
 import { DeletePertanyaanAlertDialog } from "./delete-pertanyaan-alert-dialog";
 import { PertanyaanKuesionerFormDialog } from "./pertanyaan-kuesioner-form-dialog";
-import { IconListDetails, IconLock, IconPlus } from "@tabler/icons-react";
+import { IconCloudUpload, IconListDetails, IconLock, IconPlus } from "@tabler/icons-react";
 import { BagianKuesioner, KuesionerDetail, PertanyaanKuesioner } from "../types";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Callout, CalloutContent, CalloutDescription, CalloutIcon, CalloutTitle } from "@/components/ui/callout";
@@ -40,15 +41,14 @@ export function KuesionerBuilder({ kuesioner }: KuesionerBuilderProps) {
   const pertanyaanToEdit = openPertanyaanForm && dialog ? { bagianId: dialog.bagianId, pertanyaan: "pertanyaan" in dialog ? dialog.pertanyaan : undefined } : undefined;
 
   const isDrafStatus = kuesioner.status === "Draf";
+  const isAktifStatus = kuesioner.status === "Aktif";
 
   return (
     <div className="space-y-6">
       <KuesionerHeader kuesioner={kuesioner} />
       {!isDrafStatus && (
         <Callout>
-          <CalloutIcon>
-            <IconLock />
-          </CalloutIcon>
+          <CalloutIcon className={cn(isAktifStatus && "bg-green-600/15 text-green-600")}>{isAktifStatus ? <IconCloudUpload /> : <IconLock />}</CalloutIcon>
           <CalloutContent>
             <CalloutTitle>Struktur Kuesioner Terkunci!</CalloutTitle>
             <CalloutDescription>
