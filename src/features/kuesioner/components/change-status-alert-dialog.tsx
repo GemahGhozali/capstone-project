@@ -67,8 +67,13 @@ export function ChangeStatusAlertDialog({ statusChange, closeDialog }: ChangeSta
 
   const handleChangeStatus = async () => {
     if (!statusChange) return;
-    await mutateAsync({ id: statusChange.kuesioner.id, mode: statusChange.mode });
-    closeDialog();
+
+    try {
+      const data = { id: statusChange.kuesioner.id, mode: statusChange.mode };
+      await mutateAsync(data, { onError: closeDialog, onSuccess: closeDialog });
+    } catch (error) {
+      // Error dihandle otomatis oleh useMutation
+    }
   };
 
   return (
