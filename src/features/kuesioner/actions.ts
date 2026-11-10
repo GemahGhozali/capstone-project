@@ -1,10 +1,19 @@
 "use server";
 
+import {
+  findUncompleteBagian,
+  checkIsBagianComplete,
+  validateJawabanEntries,
+  ensureMahasiswaCanFillKuesioner,
+  getActiveKuesionerAndMahasiswaResponse,
+} from "./services";
+
 import { prisma } from "@/libs/prisma";
 import { formatZodError } from "@/utils/format-zod-error";
 import { ActionResponse } from "@/types";
 import { userIsValidAndHasRole } from "@/libs/dal";
-import { BagianInput, BagianSchema, KuesionerInput, KuesionerSchema, PertanyaanInput, PertanyaanSchema } from "./schemas";
+import { BagianInput, KuesionerInput, PertanyaanInput, BagianJawabanInput } from "./schemas";
+import { BagianSchema, KuesionerSchema, PertanyaanSchema, BagianJawabanSchema } from "./schemas";
 
 export async function createKuesioner(data: KuesionerInput): Promise<ActionResponse<{ id: string }>> {
   const parsed = KuesionerSchema.safeParse(data);
@@ -395,6 +404,143 @@ export async function duplicateKuesioner(id: string): Promise<ActionResponse> {
     return { success: true, message: "Kuesioner berhasil diduplikat!" };
   } catch (error) {
     console.log("❌ Duplicate Kuesioner Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function saveBagianJawaban(kuesionerId: string, data: BagianJawabanInput): Promise<ActionResponse<{ isBagianComplete: boolean }>> {
+  const parsed = BagianJawabanSchema.safeParse(data);
+
+  if (!parsed.success) {
+    return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
+  }
+
+  const { bagianId, jawaban } = parsed.data;
+
+  try {
+    const { id: mahasiswaId } = await userIsValidAndHasRole("Mahasiswa");
+
+    const eligibilityValidation = await ensureMahasiswaCanFillKuesioner(mahasiswaId);
+
+    if (!eligibilityValidation.isValid) {
+      return { success: false, message: eligibilityValidation.message };
+    }
+
+    const kuesioner = await getActiveKuesionerAndMahasiswaResponse(kuesionerId, mahasiswaId);
+
+    if (!kuesioner) {
+      return { success: false, message: "Kuesioner tidak ditemukan atau sudah tidak aktif!" };
+    }
+
+    const existingResponse = kuesioner.respon[0] ?? null;
+
+    const responseIsLocked = existingResponse?.status === "Selesai";
+
+    if (responseIsLocked) {
+      return { success: false, message: "Jawaban kuesioner sudah terkirim dan tidak bisa diubah lagi!" };
+    }
+
+    const bagian = kuesioner.bagian.find((item) => item.id === bagianId);
+
+    if (!bagian) {
+      return { success: false, message: "Bagian kuesioner tidak ditemukan pada kuesioner ini!" };
+    }
+
+    const jawabanValidation = validateJawabanEntries(jawaban, bagian.pertanyaan);
+
+    if (!jawabanValidation.isValid) {
+      return { success: false, message: jawabanValidation.message };
+    }
+
+    const pertanyaanIds = bagian.pertanyaan.map((pertanyaan) => pertanyaan.id);
+    const submittedJawabanIds = jawaban.map((entry) => entry.pertanyaanId);
+    const pertanyaanMap = new Map(bagian.pertanyaan.map((item) => [item.id, item]));
+
+    await prisma.$transaction(async (transaction) => {
+      const respon = existingResponse ?? (await transaction.responKuesioner.create({ data: { kuesionerId, mahasiswaId, status: "Draf" } }));
+
+      for (const entry of jawaban) {
+        const pertanyaan = pertanyaanMap.get(entry.pertanyaanId)!;
+        const isLikert = pertanyaan.tipe === "Likert";
+        const isEsai = pertanyaan.tipe === "Esai";
+
+        await transaction.jawabanKuesioner.upsert({
+          where: { responId_pertanyaanId: { responId: respon.id, pertanyaanId: entry.pertanyaanId } },
+          create: {
+            responId: respon.id,
+            pertanyaanId: entry.pertanyaanId,
+            nilai: isLikert ? entry.nilai : null,
+            jawabanTeks: isEsai ? entry.jawabanTeks : null,
+          },
+          update: {
+            nilai: isLikert ? entry.nilai : null,
+            jawabanTeks: isEsai ? entry.jawabanTeks : null,
+          },
+        });
+      }
+
+      await transaction.jawabanKuesioner.deleteMany({
+        where: {
+          responId: respon.id,
+          pertanyaanId: { in: pertanyaanIds, notIn: submittedJawabanIds },
+        },
+      });
+    });
+
+    const isBagianComplete = checkIsBagianComplete(bagian.pertanyaan, jawaban);
+
+    return { success: true, message: "Jawaban bagian berhasil disimpan!", data: { isBagianComplete } };
+  } catch (error) {
+    console.log("❌ Save Bagian Jawaban Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function submitKuesioner(kuesionerId: string): Promise<ActionResponse<{ bagianId: string; pertanyaanId: string }>> {
+  try {
+    const { id: mahasiswaId } = await userIsValidAndHasRole("Mahasiswa");
+
+    const eligibility = await ensureMahasiswaCanFillKuesioner(mahasiswaId);
+
+    if (!eligibility.isValid) {
+      return { success: false, message: eligibility.message };
+    }
+
+    const kuesioner = await getActiveKuesionerAndMahasiswaResponse(kuesionerId, mahasiswaId);
+
+    if (!kuesioner) {
+      return { success: false, message: "Kuesioner tidak ditemukan atau sudah tidak aktif!" };
+    }
+
+    const respon = kuesioner.respon[0];
+
+    if (!respon) {
+      return { success: false, message: "Anda belum mengisi kuesioner ini!" };
+    }
+
+    if (respon.status === "Selesai") {
+      return { success: false, message: "Jawaban kuesioner sudah terkirim sebelumnya!" };
+    }
+
+    const uncompleteBagian = findUncompleteBagian(kuesioner.bagian, respon.jawaban);
+
+    if (uncompleteBagian) {
+      const { pertanyaanId, pertanyaanTeks, bagianId, bagianJudul } = uncompleteBagian;
+      return {
+        success: false,
+        message: `Kirim jawaban gagal! Pertanyaan "${pertanyaanTeks}" pada bagian "${bagianJudul}" belum dijawab.`,
+        data: { bagianId: bagianId, pertanyaanId: pertanyaanId },
+      };
+    }
+
+    await prisma.responKuesioner.update({
+      where: { id: respon.id },
+      data: { status: "Selesai", submittedAt: new Date() },
+    });
+
+    return { success: true, message: "Jawaban kuesioner berhasil dikirim!" };
+  } catch (error) {
+    console.log("❌ Submit Kuesioner Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }
