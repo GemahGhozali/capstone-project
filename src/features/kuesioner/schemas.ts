@@ -16,6 +16,31 @@ export const PertanyaanSchema = z.object({
   wajib: z.boolean().optional(),
 });
 
+export const JawabanSchema = z.object({
+  pertanyaanId: z.uuid("Pertanyaan tidak valid!"),
+  nilai: z.number().int().min(1, "Pilihan jawaban wajib dipilih!").max(5, "Pilihan jawaban tidak valid!").nullable(),
+  jawabanTeks: z.string().trim().max(1000, "Jawaban esai maksimal 1000 karakter!").nullable(),
+});
+
+export const BagianJawabanSchema = z.object({
+  bagianId: z.uuid("Bagian tidak valid!"),
+  jawaban: z.array(JawabanSchema),
+});
+
+export const JawabanLikertSchema = z.object({
+  pertanyaanId: z.uuid(),
+  nilai: z.number().int().min(1).max(5),
+  jawabanTeks: z.null().optional(),
+});
+
+export const JawabanEsaiSchema = z.object({
+  pertanyaanId: z.uuid(),
+  nilai: z.null().optional(),
+  jawabanTeks: z.string().trim().min(1),
+});
+
 export type KuesionerInput = z.infer<typeof KuesionerSchema>;
 export type BagianInput = z.infer<typeof BagianSchema>;
 export type PertanyaanInput = z.infer<typeof PertanyaanSchema>;
+export type JawabanInput = z.infer<typeof JawabanSchema>;
+export type BagianJawabanInput = z.infer<typeof BagianJawabanSchema>;
