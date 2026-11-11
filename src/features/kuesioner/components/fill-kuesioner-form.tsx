@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { FieldGroup } from "@/components/ui/field";
@@ -7,8 +8,8 @@ import { Controller } from "react-hook-form";
 import { PertanyaanEsai } from "./pertanyaan-esai-input";
 import { PertanyaanLikert } from "./pertanyaan-likert-input";
 import { useFillKuesionerForm } from "../hooks";
+import { IconArrowLeft, IconArrowRight, IconSend } from "@tabler/icons-react";
 import { BagianKuesionerWizard, JawabanKuesionerWizard } from "../types";
-import { IconArrowLeft, IconArrowRight, IconLogout, IconSend } from "@tabler/icons-react";
 
 interface FillKuesionerFormProps {
   kuesionerId: string;
@@ -39,7 +40,7 @@ export function FillKuesionerForm(props: FillKuesionerFormProps) {
         handleGoToNextBagian();
       }}
     >
-      <FieldGroup className="gap-0 divide-y">
+      <FieldGroup className="gap-0 divide-y max-lg:[&>:nth-child(2)]:rounded-t-xl max-sm:[&>:last-child]:rounded-b-xl">
         <div className="p-6 hidden lg:block">
           <div className="grid gap-4 grid-cols-[30px_4fr_7fr] items-center font-medium">
             <div className="text-center">No.</div>
@@ -80,36 +81,25 @@ export function FillKuesionerForm(props: FillKuesionerFormProps) {
           />
         ))}
       </FieldGroup>
-
-      <div className="p-6 flex items-center justify-between gap-2 border-t">
-        <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={handleLeaveKuesioner} disabled={isPending}>
-            <IconLogout />
-            <span className="hidden sm:inline">Keluar dari Kuesioner</span>
-            <span className="sm:hidden">Keluar</span>
+      <Card className="p-6 flex flex-row gap-3 rounded-none md:justify-end max-md:*:flex-1 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0">
+        {!isFirstBagian && (
+          <Button type="button" variant="outline" onClick={handleBackToPreviousBagian} disabled={isPending}>
+            <IconArrowLeft data-icon="inline-start" />
+            Sebelumnya
           </Button>
-        </div>
-
-        <div className="flex gap-2">
-          {!isFirstBagian && (
-            <Button type="button" variant="outline" onClick={handleBackToPreviousBagian} disabled={isPending}>
-              <IconArrowLeft data-icon="inline-start" />
-              Kembali
-            </Button>
-          )}
-          {isLastBagian ? (
-            <Button type="button" onClick={handleSubmitKuesioner} disabled={isPending}>
-              {isPending ? "Memproses" : "Kirim Jawaban"}
-              {isPending ? <Spinner data-icon="inline-end" /> : <IconSend data-icon="inline-end" />}
-            </Button>
-          ) : (
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Memproses" : "Selanjutnya"}
-              {isPending ? <Spinner data-icon="inline-end" /> : <IconArrowRight data-icon="inline-end" />}
-            </Button>
-          )}
-        </div>
-      </div>
+        )}
+        {isLastBagian ? (
+          <Button type="button" onClick={handleSubmitKuesioner} disabled={isPending}>
+            {isPending ? "Memproses" : "Kirim Jawaban"}
+            {isPending ? <Spinner data-icon="inline-end" /> : <IconSend data-icon="inline-end" />}
+          </Button>
+        ) : (
+          <Button type="submit" disabled={isPending}>
+            {isPending ? "Memproses" : "Selanjutnya"}
+            {isPending ? <Spinner data-icon="inline-end" /> : <IconArrowRight data-icon="inline-end" />}
+          </Button>
+        )}
+      </Card>
     </form>
   );
 }
