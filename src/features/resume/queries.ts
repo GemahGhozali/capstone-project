@@ -278,3 +278,19 @@ export async function getMahasiswaResumeManagementData() {
     throw new Error("Terjadi kesalahan pada server!");
   }
 }
+
+export async function getAuthenticatedMahasiswaResume() {
+  const { userId: mahasiswaId } = await requireRole("Mahasiswa");
+
+  try {
+    const mahasiswa = await prisma.mahasiswa.findUnique({
+      where: { id: mahasiswaId },
+      select: { id: true, resume: { select: { status: true } } },
+    });
+
+    return mahasiswa?.resume;
+  } catch (error) {
+    console.log("❌ Get Eligibilitas Kuesioner Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}

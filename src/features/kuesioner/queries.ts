@@ -86,22 +86,6 @@ export async function getKuesionerById(id: string) {
   }
 }
 
-export async function isMahasiswaEligibleForQuestionnaire() {
-  const { userId: mahasiswaId } = await requireRole("Mahasiswa");
-
-  try {
-    const mahasiswa = await prisma.mahasiswa.findUnique({
-      where: { id: mahasiswaId },
-      select: { id: true, resume: { select: { status: true } } },
-    });
-
-    return mahasiswa?.resume?.status === "Disetujui";
-  } catch (error) {
-    console.log("❌ Get Eligibilitas Kuesioner Error :", error);
-    throw new Error("Terjadi kesalahan pada server!");
-  }
-}
-
 export async function getKuesionerListForMahasiswa() {
   const { userId: mahasiswaId } = await requireRole("Mahasiswa");
 
