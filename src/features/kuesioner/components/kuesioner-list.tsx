@@ -38,7 +38,7 @@ export function KuesionerList({ kuesionerList }: KuesionerListProps) {
                 <CardTitle>{kuesioner.judul}</CardTitle>
                 <CardDescription>{kuesioner.deskripsi ?? "Tidak ada deskripsi tercantum."}</CardDescription>
               </div>
-              <Link href={`/mahasiswa/kuesioner/${kuesioner.id}`} className="max-lg:w-full">
+              <Link href={`/mahasiswa/pengisian-kuesioner/${kuesioner.id}`} className="max-lg:w-full">
                 <Button variant={isKuesionerLocked ? "outline" : "default"} size="sm" className="max-lg:w-full">
                   {isKuesionerLocked && <IconEye data-icon="inline-start" />}
                   {isKuesionerLocked ? "Lihat Tanggapan" : isResponseOnProgress ? "Lanjutkan Pengisian" : "Mulai Pengisian"}
