@@ -116,7 +116,13 @@ export async function getKuesionerListForMahasiswa() {
       const isResponseCompleted = response?.status === "Selesai";
       const isResponseUncompleted = isKuesionerClosed && isResponseDraf;
 
-      const statusPengisian = !response ? StatusPengisian.Belum : isResponseUncompleted ? StatusPengisian.TidakSelesai : isResponseCompleted ? StatusPengisian.Selesai : StatusPengisian.Proses;
+      const statusPengisian = !response
+        ? StatusPengisian.Belum
+        : isResponseUncompleted
+          ? StatusPengisian.TidakSelesai
+          : isResponseCompleted
+            ? StatusPengisian.Selesai
+            : StatusPengisian.Proses;
 
       return {
         id: kuesioner.id,
@@ -194,11 +200,8 @@ export async function getKuesionerWizard(kuesionerId: string) {
       const pertanyaanIds = new Set(bagian.pertanyaan.map((pertanyaan) => pertanyaan.id));
       const jawaban = jawabanResponse.filter(({ pertanyaanId }) => pertanyaanIds.has(pertanyaanId));
 
-      const isBagianEmpty = jawaban.length === 0;
-      const isBagianAlreadyFilled = jawaban.length > 0;
       const isBagianComplete = checkIsBagianComplete(bagian.pertanyaan, jawaban);
-
-      const statusBagian = isBagianComplete ? StatusPengisian.Selesai : isBagianEmpty ? StatusPengisian.TidakSelesai : isBagianAlreadyFilled ? StatusPengisian.Proses : StatusPengisian.Belum;
+      const statusBagian = isBagianComplete ? StatusPengisian.Selesai : StatusPengisian.TidakSelesai;
 
       return { ...bagian, statusBagian };
     });
