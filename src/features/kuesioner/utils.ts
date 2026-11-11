@@ -3,7 +3,12 @@ import { JawabanInput } from "./schemas";
 import { StatusKuesioner } from "@/generated/prisma/enums";
 import { BagianKuesionerWizard, JawabanKuesionerWizard } from "./types";
 
-export const StatusPengisian = { Belum: "Belum Mengisi", Proses: "Sedang Mengisi", Selesai: "Selesai" } as const;
+export const StatusPengisian = {
+  Belum: "Belum Mengisi",
+  Proses: "Sedang Mengisi",
+  Selesai: "Selesai",
+  TidakSelesai: "Tidak Selesai",
+} as const;
 
 export const kuesionerStatusStyles: Record<StatusKuesioner, string> = {
   Draf: "bg-yellow-500/15 text-yellow-600 dark:text-yellow-500",

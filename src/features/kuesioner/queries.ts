@@ -127,7 +127,12 @@ export async function getKuesionerListForMahasiswa() {
     return kuesionerList.map((kuesioner) => {
       const response = kuesioner.respon[0];
 
-      const statusPengisian = !response ? StatusPengisian.Belum : response.status === "Selesai" ? StatusPengisian.Selesai : StatusPengisian.Proses;
+      const isKuesionerClosed = kuesioner.status === "Ditutup";
+      const isResponseDraf = response?.status === "Draf";
+      const isResponseCompleted = response?.status === "Selesai";
+      const isResponseUncompleted = isKuesionerClosed && isResponseDraf;
+
+      const statusPengisian = !response ? StatusPengisian.Belum : isResponseUncompleted ? StatusPengisian.TidakSelesai : isResponseCompleted ? StatusPengisian.Selesai : StatusPengisian.Proses;
 
       return {
         id: kuesioner.id,
@@ -160,6 +165,7 @@ export async function getKuesionerWizard(kuesionerId: string) {
           judul: true,
           deskripsi: true,
           periode: true,
+          status: true,
           bagian: {
             orderBy: { urutan: "asc" },
             select: {
@@ -204,10 +210,11 @@ export async function getKuesionerWizard(kuesionerId: string) {
       const pertanyaanIds = new Set(bagian.pertanyaan.map((pertanyaan) => pertanyaan.id));
       const jawaban = jawabanResponse.filter(({ pertanyaanId }) => pertanyaanIds.has(pertanyaanId));
 
-      const bagianAlreadyFilled = jawaban.length > 0;
+      const isBagianEmpty = jawaban.length === 0;
+      const isBagianAlreadyFilled = jawaban.length > 0;
       const isBagianComplete = checkIsBagianComplete(bagian.pertanyaan, jawaban);
 
-      const statusBagian = isBagianComplete ? StatusPengisian.Selesai : bagianAlreadyFilled ? StatusPengisian.Proses : StatusPengisian.Belum;
+      const statusBagian = isBagianComplete ? StatusPengisian.Selesai : isBagianEmpty ? StatusPengisian.TidakSelesai : isBagianAlreadyFilled ? StatusPengisian.Proses : StatusPengisian.Belum;
 
       return { ...bagian, statusBagian };
     });
@@ -222,6 +229,7 @@ export async function getKuesionerWizard(kuesionerId: string) {
       judul: kuesioner.judul,
       deskripsi: kuesioner.deskripsi,
       periode: kuesioner.periode,
+      status: kuesioner.status,
       jawaban: jawabanResponse,
       isComplete: kuesionerResponse?.status === "Selesai",
       bagian,
