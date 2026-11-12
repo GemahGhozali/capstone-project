@@ -3,6 +3,7 @@
 import { prisma } from "@/libs/prisma";
 import { formatZodError } from "@/utils/format-zod-error";
 import { ActionResponse } from "@/types";
+import { checkIsJadwalBimbinganHasPassed } from "./services";
 import { userIsValidAndHasRole, requireRole } from "@/libs/dal";
 import { parseDateToUTC, parseTimeToUTC, formatTimeToHHmm } from "./utils";
 import { CreateJadwalBimbinganInput, BookingJadwalInput, CancelBookingInput } from "./schemas";
@@ -356,6 +357,56 @@ export async function closeJadwalBimbingan(jadwalId: string, data: CancelBooking
     ]);
 
     return { success: true, message: `Jadwal bimbingan berhasil ditutup! ${totalBooking} booking ikut dibatalkan.` };
+  } catch (error) {
+    console.log("❌ Tutup Jadwal Bimbingan Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function openJadwalBimbingan(jadwalId: string): Promise<ActionResponse> {
+  const session = await requireRole("Dosen Pembimbing");
+
+  try {
+    const jadwal = await prisma.jadwalBimbingan.findUnique({
+      where: { id: jadwalId },
+      select: {
+        id: true,
+        dosenId: true,
+        status: true,
+        jamMulai: true,
+        tanggal: true,
+      },
+    });
+
+    // Validasi 1 : Cek apakah jadwal bimbingan ditemukan
+    if (!jadwal) {
+      return { success: false, message: "Jadwal bimbingan tidak ditemukan!" };
+    }
+
+    // Validasi 2 : Cek apakah jadwal milik dosen sendiri
+    const jadwalNotOwnedByDosen = jadwal.dosenId !== session.userId;
+
+    if (jadwalNotOwnedByDosen) {
+      return { success: false, message: "Anda hanya bisa menutup jadwal bimbingan milik anda!" };
+    }
+
+    // Validasi 3 : Cek apakah jadwal masih aktif
+    const jadwalStillActive = jadwal.status === "Aktif";
+
+    if (jadwalStillActive) {
+      return { success: false, message: "Jadwal bimbingan ini masih aktif!" };
+    }
+
+    // Validasi 4 : Cek apakah jadwal sudah lampau
+    const jadwalHasPassed = checkIsJadwalBimbinganHasPassed({ date: jadwal.tanggal, startTime: jadwal.jamMulai });
+
+    if (jadwalHasPassed) {
+      return { success: false, message: "Waktu jadwal bimbingan sudah lewat dan tidak bisa dibuka kembali!" };
+    }
+
+    await prisma.jadwalBimbingan.update({ where: { id: jadwalId }, data: { status: "Aktif" } });
+
+    return { success: true, message: "Jadwal bimbingan berhasil dibuka kembali!" };
   } catch (error) {
     console.log("❌ Tutup Jadwal Bimbingan Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };

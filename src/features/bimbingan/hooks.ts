@@ -1,5 +1,14 @@
 "use client";
 
+import {
+  openJadwalBimbingan,
+  closeJadwalBimbingan,
+  createJadwalBimbingan,
+  deleteJadwalBimbingan,
+  bookingJadwalBimbingan,
+  cancelBookingBimbingan,
+} from "./actions";
+
 import { toast } from "@/components/ui/toast";
 import { useForm } from "react-hook-form";
 import { runAction } from "@/utils/action-runner";
@@ -9,7 +18,6 @@ import { useMutation } from "@tanstack/react-query";
 import { ActionResponse } from "@/types";
 import { CreateJadwalBimbinganInput, BookingJadwalInput, CancelBookingInput } from "./schemas";
 import { CreateJadwalBimbinganSchema, BookingJadwalSchema, CancelBookingSchema } from "./schemas";
-import { createJadwalBimbingan, deleteJadwalBimbingan, bookingJadwalBimbingan, cancelBookingBimbingan, closeJadwalBimbingan } from "./actions";
 
 export function useCreateJadwalForm() {
   const router = useRouter();
@@ -144,6 +152,23 @@ export function useCloseJadwalBimbinganForm() {
   });
 
   return { form, mutation };
+}
+
+export function useOpenJadwalBimbingan() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (jadwalId: string) => runAction(() => openJadwalBimbingan(jadwalId)),
+
+    onSuccess: (response) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
 }
 
 export function useDeleteJadwalBimbingan() {
