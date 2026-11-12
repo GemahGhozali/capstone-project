@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useMemo } from "react";
 import { JadwalBimbinganItem } from "../types";
+import { useOpenJadwalBimbingan } from "../hooks";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { IconBook, IconCancel, IconEye, IconTrash } from "@tabler/icons-react";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { IconBook, IconCancel, IconEye, IconLockOpen, IconTrash } from "@tabler/icons-react";
 
 interface JadwalBimbinganPanelProps {
   jadwalList: JadwalBimbinganItem[];
@@ -19,6 +20,8 @@ interface JadwalBimbinganPanelProps {
 }
 
 export function ManageJadwalBimbinganList({ jadwalList, selectedDate, onDelete, onClose }: JadwalBimbinganPanelProps) {
+  const { mutate: openJadwalBimbingan } = useOpenJadwalBimbingan();
+
   const selectedJadwal = useMemo(() => {
     return jadwalList.filter((jadwal) => jadwal.tanggal === format(selectedDate, "yyyy-MM-dd"));
   }, [jadwalList, selectedDate]);
@@ -63,6 +66,12 @@ export function ManageJadwalBimbinganList({ jadwalList, selectedDate, onDelete, 
                   Detail
                 </Button>
               </Link>
+              {jadwal.status === "Ditutup" && !jadwal.timeHasPassed && (
+                <Button variant="success" onClick={() => openJadwalBimbingan(jadwal.id)}>
+                  <IconLockOpen data-icon="inline-start" />
+                  Buka Kembali
+                </Button>
+              )}
               {jadwal.status === "Aktif" && jadwal.totalBooking > 0 && (
                 <Button variant="destructive" onClick={() => onClose(jadwal)}>
                   <IconCancel data-icon="inline-start" />
