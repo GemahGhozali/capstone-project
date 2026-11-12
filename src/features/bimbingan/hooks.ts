@@ -16,7 +16,6 @@ export function useCreateJadwalForm() {
 
   const form = useForm<CreateJadwalBimbinganInput>({
     resolver: zodResolver(CreateJadwalBimbinganSchema),
-    mode: "onTouched",
     defaultValues: {
       tanggal: "",
       jamMulai: "",
