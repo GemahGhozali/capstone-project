@@ -1,21 +1,24 @@
 "use client";
 
 import Link from "next/link";
+
+import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useMemo } from "react";
 import { JadwalBimbinganItem } from "../types";
-import { IconBook, IconEye, IconTrash } from "@tabler/icons-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { IconBook, IconCancel, IconEye, IconTrash } from "@tabler/icons-react";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 interface JadwalBimbinganPanelProps {
   jadwalList: JadwalBimbinganItem[];
   selectedDate: Date;
   onDelete: (jadwal: JadwalBimbinganItem) => void;
+  onClose: (jadwal: JadwalBimbinganItem) => void;
 }
 
-export function ManageJadwalBimbinganList({ jadwalList, selectedDate, onDelete }: JadwalBimbinganPanelProps) {
+export function ManageJadwalBimbinganList({ jadwalList, selectedDate, onDelete, onClose }: JadwalBimbinganPanelProps) {
   const selectedJadwal = useMemo(() => {
     return jadwalList.filter((jadwal) => jadwal.tanggal === format(selectedDate, "yyyy-MM-dd"));
   }, [jadwalList, selectedDate]);
@@ -38,7 +41,7 @@ export function ManageJadwalBimbinganList({ jadwalList, selectedDate, onDelete }
     <div className="h-full overflow-y-auto">
       <div className="space-y-6 p-[1px]">
         {selectedJadwal.map((jadwal) => (
-          <Card key={jadwal.id} className="p-4">
+          <Card key={jadwal.id} className="p-4 gap-4">
             <CardContent className="p-0 flex-row justify-between">
               <div className="space-y-0.5">
                 <p className="text-muted-foreground text-xs">Rentang Jam</p>
@@ -48,22 +51,30 @@ export function ManageJadwalBimbinganList({ jadwalList, selectedDate, onDelete }
               </div>
               <div className="space-y-0.5 text-end">
                 <p className="text-muted-foreground text-xs">Kuota</p>
-                <p className="font-medium text-sm">
-                  {jadwal.totalBooking}/{jadwal.kuota}
+                <p className={cn("font-medium text-sm", jadwal.status === "Ditutup" && "text-destructive")}>
+                  {jadwal.status === "Ditutup" ? "Ditutup" : `${jadwal.totalBooking}/${jadwal.kuota}`}
                 </p>
               </div>
             </CardContent>
-            <CardFooter className="p-0 gap-3 *:flex-1">
+            <CardFooter className="p-0 gap-3 *:w-full sm:*:flex-1 max-sm:flex-col">
               <Link href={`/dosen-pembimbing/jadwal-bimbingan/${jadwal.id}/detail`}>
                 <Button variant="outline" className="w-full">
                   <IconEye data-icon="inline-start" />
                   Detail
                 </Button>
               </Link>
-              <Button variant="destructive" onClick={() => onDelete(jadwal)}>
-                <IconTrash data-icon="inline-start" />
-                Hapus
-              </Button>
+              {jadwal.status === "Aktif" && jadwal.totalBooking > 0 && (
+                <Button variant="destructive" onClick={() => onClose(jadwal)}>
+                  <IconCancel data-icon="inline-start" />
+                  Tutup
+                </Button>
+              )}
+              {jadwal.status === "Aktif" && jadwal.totalBooking === 0 && (
+                <Button variant="destructive" onClick={() => onDelete(jadwal)}>
+                  <IconTrash data-icon="inline-start" />
+                  Hapus
+                </Button>
+              )}
             </CardFooter>
           </Card>
         ))}

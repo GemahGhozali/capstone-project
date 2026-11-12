@@ -9,6 +9,7 @@ import { JadwalBimbinganItem } from "../types";
 import { JadwalBimbinganFormDialog } from "./jadwal-bimbingan-form-dialog";
 import { ManageJadwalBimbinganList } from "./manage-jadwal-bimbingan-list";
 import { ManageJadwalBimbinganCalendar } from "./manage-jadwal-bimbingan-calendar";
+import { CloseJadwalBimbinganAlertDialog } from "./close-jadwal-bimbingan-alert-dialog";
 import { DeleteJadwalBimbinganAlertDialog } from "./delete-jadwal-bimbingan-alert-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -16,7 +17,7 @@ interface JadwalBimbinganPanelProps {
   jadwalList: JadwalBimbinganItem[];
 }
 
-type DialogAction = { action: "create" } | { action: "delete"; jadwal: JadwalBimbinganItem };
+type DialogAction = { action: "create" } | { action: "delete"; jadwal: JadwalBimbinganItem } | { action: "close"; jadwal: JadwalBimbinganItem };
 
 export function ManageJadwalBimbinganPanel({ jadwalList }: JadwalBimbinganPanelProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -24,8 +25,10 @@ export function ManageJadwalBimbinganPanel({ jadwalList }: JadwalBimbinganPanelP
   const [dialog, setDialog] = useState<DialogAction | undefined>(undefined);
 
   const handleCloseDialog = () => setDialog(undefined);
+
   const openCreateForm = dialog?.action === "create";
   const jadwalToDelete = dialog?.action === "delete" ? dialog.jadwal : undefined;
+  const jadwalToClose = dialog?.action === "close" ? dialog.jadwal : undefined;
 
   return (
     <>
@@ -56,6 +59,7 @@ export function ManageJadwalBimbinganPanel({ jadwalList }: JadwalBimbinganPanelP
                   jadwalList={jadwalList}
                   selectedDate={selectedDate}
                   onDelete={(jadwal) => setDialog({ action: "delete", jadwal })}
+                  onClose={(jadwal) => setDialog({ action: "close", jadwal })}
                 />
               </CardContent>
             </div>
@@ -64,6 +68,7 @@ export function ManageJadwalBimbinganPanel({ jadwalList }: JadwalBimbinganPanelP
       </Card>
       <JadwalBimbinganFormDialog open={openCreateForm} closeDialog={handleCloseDialog} selectedDate={selectedDate} />
       <DeleteJadwalBimbinganAlertDialog jadwalToDelete={jadwalToDelete} closeDialog={handleCloseDialog} />
+      <CloseJadwalBimbinganAlertDialog jadwalToClose={jadwalToClose} closeDialog={handleCloseDialog} />
     </>
   );
 }
