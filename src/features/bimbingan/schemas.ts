@@ -1,21 +1,16 @@
 import * as z from "zod";
+import { isNotPastDate, isNotPastTime } from "./utils";
 
-const TanggalSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal tidak valid!");
+const TanggalSchema = z.iso.date("Format tanggal tidak valid!");
 
-const JamSchema = z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Format jam tidak valid!");
-
-function isNotPastDate(tanggal: string) {
-  const now = new Date();
-  const endOfTanggal = new Date(`${tanggal}T23:59:59.999`);
-  return endOfTanggal.getTime() >= now.getTime();
-}
+const JamSchema = z.iso.time("Format jam tidak valid!");
 
 export const CreateJadwalBimbinganSchema = z
   .object({
     tanggal: TanggalSchema,
     jamMulai: JamSchema,
     jamTutup: JamSchema,
-    kuota: z.number().int("Kuota harus berupa bilangan bulat!").min(1, "Kuota minimal 1!"),
+    kuota: z.coerce.number<number>("Kuota wajib diisi!").int("Kuota harus berupa bilangan bulat!").min(1, "Kuota minimal 1!"),
   })
   .refine((data) => data.jamMulai < data.jamTutup, {
     error: "Jam tutup harus setelah jam mulai!",
@@ -24,6 +19,10 @@ export const CreateJadwalBimbinganSchema = z
   .refine((data) => isNotPastDate(data.tanggal), {
     error: "Tanggal tidak boleh lampau!",
     path: ["tanggal"],
+  })
+  .refine((data) => isNotPastTime(data.tanggal, data.jamMulai), {
+    error: "Jam mulai tidak boleh di masa lampau!",
+    path: ["jamMulai"],
   });
 
 export const BookingJadwalSchema = z.object({
