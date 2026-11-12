@@ -4,18 +4,9 @@ import { prisma } from "@/libs/prisma";
 import { formatZodError } from "@/utils/format-zod-error";
 import { ActionResponse } from "@/types";
 import { userIsValidAndHasRole, requireRole } from "@/libs/dal";
+import { parseDateToUTC, parseTimeToUTC, formatTimeToHHmm } from "./utils";
 import { CreateJadwalBimbinganInput, BookingJadwalInput, CancelBookingInput } from "./schemas";
 import { CreateJadwalBimbinganSchema, BookingJadwalSchema, CancelBookingSchema } from "./schemas";
-
-const JAM_BASE_DATE = "2000-01-01";
-
-function parseTanggal(tanggal: string): Date {
-  return new Date(`${tanggal}T00:00:00.000Z`);
-}
-
-function parseJam(jam: string): Date {
-  return new Date(`${JAM_BASE_DATE}T${jam}:00.000Z`);
-}
 
 export async function createJadwalBimbingan(data: CreateJadwalBimbinganInput): Promise<ActionResponse> {
   const parsed = CreateJadwalBimbinganSchema.safeParse(data);
@@ -63,13 +54,29 @@ export async function createJadwalBimbingan(data: CreateJadwalBimbinganInput): P
       return { success: false, message: "Status bimbingan anda sedang ditutup! Hubungi Kaprodi untuk membukanya." };
     }
 
+    // Validasi 5 : Cek apakah jadwal baru tidak overlap dengan jadwal lain di tanggal yang sama
+    const existingJadwal = await prisma.jadwalKonsultasi.findMany({
+      where: { dosenId, tanggal: parseDateToUTC(tanggal) },
+      select: { jamMulai: true, jamTutup: true },
+    });
+
+    const jadwalConflicted = existingJadwal.some((jadwal) => {
+      const jadwalStartTime = formatTimeToHHmm(jadwal.jamMulai);
+      const jadwalEndTime = formatTimeToHHmm(jadwal.jamTutup);
+      return jadwalStartTime < jamTutup && jadwalEndTime > jamMulai;
+    });
+
+    if (jadwalConflicted) {
+      return { success: false, message: "Jadwal bentrok dengan jadwal bimbingan lain di tanggal tersebut!" };
+    }
+
     await prisma.jadwalKonsultasi.create({
       data: {
         kuota,
         dosenId,
-        tanggal: parseTanggal(tanggal),
-        jamMulai: parseJam(jamMulai),
-        jamTutup: parseJam(jamTutup),
+        tanggal: parseDateToUTC(tanggal),
+        jamMulai: parseTimeToUTC(jamMulai),
+        jamTutup: parseTimeToUTC(jamTutup),
       },
     });
 
