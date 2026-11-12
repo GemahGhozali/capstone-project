@@ -3,6 +3,7 @@ import "server-only";
 import { prisma } from "@/libs/prisma";
 import { requireRole } from "@/libs/dal";
 import { formatDateToISODateString, formatTimeToHHmm, getStartOfTodayUTC } from "./utils";
+import { checkIsJadwalBimbinganHasPassed } from "./services";
 
 export async function getJadwalBimbinganDosen(dosenId: string) {
   await requireRole("Mahasiswa", "Dosen Pembimbing");
@@ -35,5 +36,6 @@ export async function getJadwalBimbinganDosen(dosenId: string) {
     jamTutup: formatTimeToHHmm(jadwal.jamTutup),
     kuota: jadwal.kuota,
     totalBooking: jadwal._count.bookings,
+    timeHasPassed: checkIsJadwalBimbinganHasPassed({ date: jadwal.tanggal, startTime: jadwal.jamMulai }),
   }));
 }
