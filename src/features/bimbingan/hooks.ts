@@ -7,9 +7,9 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { ActionResponse } from "@/types";
-import { createJadwalBimbingan, bookingJadwalBimbingan, cancelBooking } from "./actions";
 import { CreateJadwalBimbinganInput, BookingJadwalInput, CancelBookingInput } from "./schemas";
 import { CreateJadwalBimbinganSchema, BookingJadwalSchema, CancelBookingSchema } from "./schemas";
+import { createJadwalBimbingan, deleteJadwalBimbingan, bookingJadwalBimbingan, cancelBooking } from "./actions";
 
 export function useCreateJadwalForm() {
   const router = useRouter();
@@ -114,4 +114,21 @@ export function useCancelBookingForm(bookingId: string) {
   });
 
   return { form, mutation };
+}
+
+export function useDeleteJadwalBimbingan() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (jadwalId: string) => runAction(() => deleteJadwalBimbingan(jadwalId)),
+
+    onSuccess: (response) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
 }

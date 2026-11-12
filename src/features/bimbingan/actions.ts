@@ -87,6 +87,47 @@ export async function createJadwalBimbingan(data: CreateJadwalBimbinganInput): P
   }
 }
 
+export async function deleteJadwalBimbingan(id: string): Promise<ActionResponse> {
+  try {
+    const { id: dosenId } = await userIsValidAndHasRole("Dosen Pembimbing");
+
+    const jadwal = await prisma.jadwalKonsultasi.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        dosenId: true,
+        _count: { select: { bookings: { where: { status: "Dipesan" } } } },
+      },
+    });
+
+    // Validasi 1 : Cek apakah jadwal bimbingan ditemukan
+    if (!jadwal) {
+      return { success: false, message: "Jadwal bimbingan tidak ditemukan!" };
+    }
+
+    // Validasi 2 : Cek apakah jadwal milik dosen sendiri
+    const jadwalNotOwnedByDosen = jadwal.dosenId !== dosenId;
+
+    if (jadwalNotOwnedByDosen) {
+      return { success: false, message: "Anda hanya bisa menghapus jadwal milik anda!" };
+    }
+
+    // Validasi 3 : Cek apakah jadwal masih memiliki booking aktif (Dipesan)
+    const jadwalHasActiveBooking = jadwal._count.bookings > 0;
+
+    if (jadwalHasActiveBooking) {
+      return { success: false, message: "Jadwal masih memiliki booking aktif! Batalkan booking tersebut terlebih dahulu." };
+    }
+
+    await prisma.jadwalKonsultasi.delete({ where: { id } });
+
+    return { success: true, message: "Jadwal bimbingan berhasil dihapus!" };
+  } catch (error) {
+    console.log("❌ Delete Jadwal Bimbingan Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
 export async function bookingJadwalBimbingan(data: BookingJadwalInput): Promise<ActionResponse> {
   const parsed = BookingJadwalSchema.safeParse(data);
 
@@ -211,13 +252,18 @@ export async function cancelBooking(id: string, data: CancelBookingInput): Promi
 
     // Validasi 3 : Cek hak akses pembatalan (mahasiswa = booking miliknya, dosen = booking di jadwal miliknya)
     const isMahasiswaCancel = session.currentRole === "Mahasiswa";
+    const isDosenCancel = session.currentRole === "Dosen Pembimbing";
 
-    if (isMahasiswaCancel && booking.mahasiswaId !== session.userId) {
-      return { success: false, message: "Anda tidak berhak membatalkan booking ini!" };
+    const mahasiswaTriesToCancelUnownedJadwal = isDosenCancel && booking.jadwal.dosenId !== session.userId;
+
+    if (mahasiswaTriesToCancelUnownedJadwal) {
+      return { success: false, message: "Anda tidak berhak membatalkan jadwal booking ini!" };
     }
 
-    if (!isMahasiswaCancel && booking.jadwal.dosenId !== session.userId) {
-      return { success: false, message: "Anda tidak berhak membatalkan booking ini!" };
+    const dosenTriesToCancelUnownedJadwal = isDosenCancel && booking.jadwal.dosenId !== session.userId;
+
+    if (dosenTriesToCancelUnownedJadwal) {
+      return { success: false, message: "Anda tidak berhak membatalkan jadwal booking ini!" };
     }
 
     await prisma.bookingKonsultasi.update({
