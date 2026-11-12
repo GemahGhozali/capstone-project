@@ -9,7 +9,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ActionResponse } from "@/types";
 import { CreateJadwalBimbinganInput, BookingJadwalInput, CancelBookingInput } from "./schemas";
 import { CreateJadwalBimbinganSchema, BookingJadwalSchema, CancelBookingSchema } from "./schemas";
-import { createJadwalBimbingan, deleteJadwalBimbingan, bookingJadwalBimbingan, cancelBooking } from "./actions";
+import { createJadwalBimbingan, deleteJadwalBimbingan, bookingJadwalBimbingan, cancelBookingBimbingan, closeJadwalBimbingan } from "./actions";
 
 export function useCreateJadwalForm() {
   const router = useRouter();
@@ -82,23 +82,53 @@ export function useBookingJadwalBimbinganForm(jadwalId?: string) {
   return { form, mutation };
 }
 
-export function useCancelBookingForm(bookingId: string) {
+export function useCancelBookingBimbinganForm() {
   const router = useRouter();
 
   const form = useForm<CancelBookingInput>({
     resolver: zodResolver(CancelBookingSchema),
-    mode: "onTouched",
     defaultValues: {
       alasanPembatalan: "",
     },
   });
 
   const mutation = useMutation({
-    mutationFn: (data: CancelBookingInput) => runAction(() => cancelBooking(bookingId, data)),
+    mutationFn: ({ bookingId, data }: { bookingId: string; data: CancelBookingInput }) => runAction(() => cancelBookingBimbingan(bookingId, data)),
 
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });
-      form.reset();
+      router.refresh();
+    },
+
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+
+      if (response.errors) {
+        Object.entries(response.errors).forEach(([field, message]) => {
+          form.setError(field as keyof CancelBookingInput, { type: "server", message });
+        });
+      }
+    },
+  });
+
+  return { form, mutation };
+}
+
+export function useCloseJadwalBimbinganForm() {
+  const router = useRouter();
+
+  const form = useForm<CancelBookingInput>({
+    resolver: zodResolver(CancelBookingSchema),
+    defaultValues: {
+      alasanPembatalan: "",
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: ({ jadwalId, data }: { jadwalId: string; data: CancelBookingInput }) => runAction(() => closeJadwalBimbingan(jadwalId, data)),
+
+    onSuccess: (response: ActionResponse) => {
+      toast.add({ type: "success", description: response.message });
       router.refresh();
     },
 
