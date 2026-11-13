@@ -1,4 +1,11 @@
 import { format } from "date-fns";
+import { StatusBookingBimbingan } from "@/generated/prisma/enums";
+
+export const bookingStatusStyles: Record<StatusBookingBimbingan, string> = {
+  Dipesan: "bg-blue-500/15 text-blue-500",
+  Selesai: "bg-green-500/15 text-green-500",
+  Dibatalkan: "bg-red-500/15 text-red-500",
+};
 
 export function parseDateToUTC(date: string): Date {
   return new Date(`${date}T00:00:00.000Z`);
