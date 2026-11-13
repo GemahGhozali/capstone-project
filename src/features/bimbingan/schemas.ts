@@ -26,7 +26,6 @@ export const CreateJadwalBimbinganSchema = z
   });
 
 export const BookingJadwalSchema = z.object({
-  jadwalId: z.uuid("Jadwal wajib dipilih!"),
   catatanMahasiswa: z.string().min(1, "Catatan mahasiswa wajib diisi!"),
 });
 
@@ -34,6 +33,11 @@ export const CancelBookingSchema = z.object({
   alasanPembatalan: z.string().min(1, "Alasan pembatalan wajib diisi!"),
 });
 
+export const CompleteBookingSchema = z.object({
+  catatanDosen: z.string().min(1, "Catatan dosen wajib diisi!"),
+});
+
 export type CreateJadwalBimbinganInput = z.infer<typeof CreateJadwalBimbinganSchema>;
 export type BookingJadwalInput = z.infer<typeof BookingJadwalSchema>;
 export type CancelBookingInput = z.infer<typeof CancelBookingSchema>;
+export type CompleteBookingInput = z.infer<typeof CompleteBookingSchema>;

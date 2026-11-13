@@ -6,8 +6,8 @@ import { ActionResponse } from "@/types";
 import { checkIsJadwalBimbinganHasPassed } from "./services";
 import { userIsValidAndHasRole, requireRole } from "@/libs/dal";
 import { parseDateToUTC, parseTimeToUTC, formatTimeToHHmm } from "./utils";
-import { CreateJadwalBimbinganInput, BookingJadwalInput, CancelBookingInput } from "./schemas";
-import { CreateJadwalBimbinganSchema, BookingJadwalSchema, CancelBookingSchema } from "./schemas";
+import { CreateJadwalBimbinganInput, BookingJadwalInput, CancelBookingInput, CompleteBookingInput } from "./schemas";
+import { CreateJadwalBimbinganSchema, BookingJadwalSchema, CancelBookingSchema, CompleteBookingSchema } from "./schemas";
 
 export async function createJadwalBimbingan(data: CreateJadwalBimbinganInput): Promise<ActionResponse> {
   const parsed = CreateJadwalBimbinganSchema.safeParse(data);
@@ -129,14 +129,14 @@ export async function deleteJadwalBimbingan(jadwalId: string): Promise<ActionRes
   }
 }
 
-export async function bookingJadwalBimbingan(data: BookingJadwalInput): Promise<ActionResponse> {
+export async function bookingBimbingan(jadwalId: string, data: BookingJadwalInput): Promise<ActionResponse> {
   const parsed = BookingJadwalSchema.safeParse(data);
 
   if (!parsed.success) {
     return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
   }
 
-  const { jadwalId, catatanMahasiswa } = parsed.data;
+  const { catatanMahasiswa } = parsed.data;
 
   try {
     const { id: mahasiswaId } = await userIsValidAndHasRole("Mahasiswa");
@@ -288,6 +288,57 @@ export async function cancelBookingBimbingan(bookingId: string, data: CancelBook
     return { success: true, message: "Booking berhasil dibatalkan!" };
   } catch (error) {
     console.log("❌ Cancel Booking Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function completeBookingBimbingan(bookingId: string, data: CompleteBookingInput): Promise<ActionResponse> {
+  const session = await requireRole("Dosen Pembimbing");
+
+  const parsed = CompleteBookingSchema.safeParse(data);
+
+  if (!parsed.success) {
+    return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
+  }
+
+  const { catatanDosen } = parsed.data;
+
+  try {
+    const booking = await prisma.bookingBimbingan.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        status: true,
+        jadwal: { select: { dosenId: true } },
+      },
+    });
+
+    // Validasi 1 : Cek apakah data booking ditemukan
+    if (!booking) {
+      return { success: false, message: "Booking tidak ditemukan!" };
+    }
+
+    // Validasi 2 : Cek apakah status booking masih bisa ditandai selesai
+    if (booking.status === "Selesai") {
+      return { success: false, message: "Booking ini sudah ditandai selesai!" };
+    }
+
+    if (booking.status === "Dibatalkan") {
+      return { success: false, message: "Booking ini sudah dibatalkan!" };
+    }
+
+    // Validasi 3 : Cek apakah booking berada di jadwal milik dosen sendiri
+    const bookingNotOwnedByDosen = booking.jadwal.dosenId !== session.userId;
+
+    if (bookingNotOwnedByDosen) {
+      return { success: false, message: "Anda hanya bisa menandai booking di jadwal milik anda!" };
+    }
+
+    await prisma.bookingBimbingan.update({ where: { id: booking.id }, data: { status: "Selesai", catatanDosen } });
+
+    return { success: true, message: "Booking bimbingan berhasil ditandai selesai!" };
+  } catch (error) {
+    console.log("❌ Complete Booking Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }
