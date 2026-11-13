@@ -127,7 +127,6 @@ export function useBookingBimbinganForm() {
 
   const form = useForm<BookingJadwalInput>({
     resolver: zodResolver(BookingJadwalSchema),
-    mode: "onTouched",
     defaultValues: {
       catatanMahasiswa: "",
     },
