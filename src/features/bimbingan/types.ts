@@ -1,3 +1,3 @@
 import { getJadwalBimbinganDosen } from "./queries";
 
-export type JadwalBimbinganItem = Awaited<ReturnType<typeof getJadwalBimbinganDosen>>[number];
+export type JadwalBimbinganDosen = Awaited<ReturnType<typeof getJadwalBimbinganDosen>>[number];

@@ -14,11 +14,11 @@ import {
 
 import { Spinner } from "@/components/ui/spinner";
 import { IconTrash } from "@tabler/icons-react";
-import { JadwalBimbinganItem } from "../types";
+import { JadwalBimbinganDosen } from "../types";
 import { useDeleteJadwalBimbingan } from "../hooks";
 
 interface DeleteJadwalBimbinganAlertDialogProps {
-  jadwalToDelete?: JadwalBimbinganItem;
+  jadwalToDelete?: JadwalBimbinganDosen;
   closeDialog: () => void;
 }
 

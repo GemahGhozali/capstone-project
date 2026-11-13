@@ -5,10 +5,10 @@ import { id } from "date-fns/locale";
 import { useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { startOfMonth } from "date-fns";
-import { JadwalBimbinganItem } from "../types";
+import { JadwalBimbinganDosen } from "../types";
 
 interface JadwalBimbinganPanelProps {
-  jadwalList: JadwalBimbinganItem[];
+  jadwalList: JadwalBimbinganDosen[];
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
 }

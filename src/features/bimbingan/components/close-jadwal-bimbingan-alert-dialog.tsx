@@ -17,11 +17,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Controller } from "react-hook-form";
 import { IconCancel } from "@tabler/icons-react";
 import { Field, FieldError } from "@/components/ui/field";
-import { JadwalBimbinganItem } from "../types";
+import { JadwalBimbinganDosen } from "../types";
 import { useCloseJadwalBimbinganForm } from "../hooks";
 
 interface CloseJadwalBimbinganAlertDialogProps {
-  jadwalToClose?: JadwalBimbinganItem;
+  jadwalToClose?: JadwalBimbinganDosen;
   closeDialog: () => void;
 }
 

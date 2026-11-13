@@ -6,17 +6,17 @@ import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useMemo } from "react";
-import { JadwalBimbinganItem } from "../types";
+import { JadwalBimbinganDosen } from "../types";
 import { useOpenJadwalBimbingan } from "../hooks";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { IconBook, IconCancel, IconEye, IconLockOpen, IconTrash } from "@tabler/icons-react";
 
 interface JadwalBimbinganPanelProps {
-  jadwalList: JadwalBimbinganItem[];
+  jadwalList: JadwalBimbinganDosen[];
   selectedDate: Date;
-  onDelete: (jadwal: JadwalBimbinganItem) => void;
-  onClose: (jadwal: JadwalBimbinganItem) => void;
+  onDelete: (jadwal: JadwalBimbinganDosen) => void;
+  onClose: (jadwal: JadwalBimbinganDosen) => void;
 }
 
 export function ManageJadwalBimbinganList({ jadwalList, selectedDate, onDelete, onClose }: JadwalBimbinganPanelProps) {

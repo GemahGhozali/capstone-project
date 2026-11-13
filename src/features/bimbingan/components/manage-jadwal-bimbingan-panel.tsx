@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useState } from "react";
 import { IconPlus } from "@tabler/icons-react";
-import { JadwalBimbinganItem } from "../types";
+import { JadwalBimbinganDosen } from "../types";
 import { JadwalBimbinganFormDialog } from "./jadwal-bimbingan-form-dialog";
 import { ManageJadwalBimbinganList } from "./manage-jadwal-bimbingan-list";
 import { ManageJadwalBimbinganCalendar } from "./manage-jadwal-bimbingan-calendar";
@@ -14,10 +14,10 @@ import { DeleteJadwalBimbinganAlertDialog } from "./delete-jadwal-bimbingan-aler
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface JadwalBimbinganPanelProps {
-  jadwalList: JadwalBimbinganItem[];
+  jadwalList: JadwalBimbinganDosen[];
 }
 
-type DialogAction = { action: "create" } | { action: "delete"; jadwal: JadwalBimbinganItem } | { action: "close"; jadwal: JadwalBimbinganItem };
+type DialogAction = { action: "create" } | { action: "delete"; jadwal: JadwalBimbinganDosen } | { action: "close"; jadwal: JadwalBimbinganDosen };
 
 export function ManageJadwalBimbinganPanel({ jadwalList }: JadwalBimbinganPanelProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
