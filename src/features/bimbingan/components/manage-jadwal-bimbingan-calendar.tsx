@@ -4,7 +4,7 @@ import { cn } from "cn";
 import { id } from "date-fns/locale";
 import { useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
-import { startOfMonth } from "date-fns";
+import { format, startOfMonth } from "date-fns";
 import { JadwalBimbinganDosen } from "../types";
 
 interface JadwalBimbinganPanelProps {
@@ -16,7 +16,11 @@ interface JadwalBimbinganPanelProps {
 export function ManageJadwalBimbinganCalendar({ jadwalList, selectedDate, setSelectedDate }: JadwalBimbinganPanelProps) {
   const todayDate = new Date();
 
-  const jadwalDates = useMemo(() => jadwalList.map((jadwal) => new Date(`${jadwal.tanggal}T00:00:00`)), [jadwalList]);
+  const jadwalDates = useMemo(() => {
+    const todayISODateString = format(new Date(), "yyyy-MM-dd");
+    const upcomingJadwal = jadwalList.filter((jadwal) => jadwal.tanggal >= todayISODateString);
+    return upcomingJadwal.map((jadwal) => new Date(`${jadwal.tanggal}T00:00:00`));
+  }, [jadwalList]);
 
   return (
     <Calendar
