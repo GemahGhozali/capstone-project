@@ -1,4 +1,12 @@
-import { getJadwalBimbinganDosen, getJadwalBimbinganMahasiswa, getBookingBimbinganDosen, getBookingBimbinganMahasiswa } from "./queries";
+import {
+  getJadwalBimbinganDosen,
+  getJadwalBimbinganById,
+  getJadwalBimbinganMahasiswa,
+  getBookingBimbinganDosen,
+  getBookingBimbinganMahasiswa,
+} from "./queries";
+
+export type JadwalBimbinganDetail = NonNullable<Awaited<ReturnType<typeof getJadwalBimbinganById>>>;
 
 export type JadwalBimbinganDosen = Awaited<ReturnType<typeof getJadwalBimbinganDosen>>[number];
 export type BookingBimbinganDosen = Awaited<ReturnType<typeof getBookingBimbinganDosen>>[number];

@@ -98,12 +98,17 @@ export async function getJadwalBimbinganMahasiswa() {
   }
 }
 
-export async function getBookingBimbinganDosen() {
+export async function getBookingBimbinganDosen(filter?: { jadwalId: string }) {
   const { userId: dosenId } = await requireRole("Dosen Pembimbing");
 
   try {
     const bookingList = await prisma.bookingBimbingan.findMany({
-      where: { jadwal: { dosenId } },
+      where: {
+        jadwal: {
+          dosenId,
+          ...(filter?.jadwalId && { id: filter.jadwalId }),
+        },
+      },
       select: {
         id: true,
         catatanMahasiswa: true,
@@ -202,6 +207,47 @@ export async function getBookingBimbinganMahasiswa() {
     }));
   } catch (error) {
     console.log("❌ Get Booking Bimbingan Mahasiswa Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
+
+export async function getJadwalBimbinganById(jadwalId: string) {
+  const { userId: dosenId } = await requireRole("Dosen Pembimbing");
+
+  try {
+    const jadwal = await prisma.jadwalBimbingan.findUnique({
+      where: { id: jadwalId, dosenId },
+      select: {
+        id: true,
+        tanggal: true,
+        jamMulai: true,
+        jamTutup: true,
+        status: true,
+        kuota: true,
+        _count: {
+          select: {
+            bookings: {
+              where: { status: "Dipesan" },
+            },
+          },
+        },
+      },
+    });
+
+    if (!jadwal) return null;
+
+    return {
+      id: jadwal.id,
+      status: jadwal.status,
+      tanggal: formatDateToISODateString(jadwal.tanggal),
+      jamMulai: formatTimeToHHmm(jadwal.jamMulai),
+      jamTutup: formatTimeToHHmm(jadwal.jamTutup),
+      kuota: jadwal.kuota,
+      totalBooking: jadwal._count.bookings,
+      timeHasPassed: checkIsJadwalBimbinganHasPassed({ date: jadwal.tanggal, startTime: jadwal.jamMulai }),
+    };
+  } catch (error) {
+    console.log("❌ Get Jadwal Bimbingan By Id Error :", error);
     throw new Error("Terjadi kesalahan pada server!");
   }
 }
