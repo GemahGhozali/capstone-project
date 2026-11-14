@@ -10,7 +10,7 @@ export async function getJadwalBimbinganDosen() {
 
   try {
     const jadwalList = await prisma.jadwalBimbingan.findMany({
-      where: { dosenId, tanggal: { gte: getStartOfTodayUTC() } },
+      where: { dosenId },
       select: {
         id: true,
         tanggal: true,
@@ -26,7 +26,7 @@ export async function getJadwalBimbinganDosen() {
           },
         },
       },
-      orderBy: [{ tanggal: "asc" }, { jamMulai: "asc" }],
+      orderBy: [{ tanggal: "desc" }, { jamMulai: "asc" }],
     });
 
     return jadwalList.map((jadwal) => ({
