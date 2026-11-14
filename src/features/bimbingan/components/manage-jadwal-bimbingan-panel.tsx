@@ -33,10 +33,6 @@ export function ManageJadwalBimbinganPanel({ jadwalList }: JadwalBimbinganPanelP
   return (
     <>
       <Card className="p-0 gap-0">
-        <CardHeader className="p-6">
-          <CardTitle>Kelola Jadwal Bimbingan</CardTitle>
-          <CardDescription>Silahkan tentukan tanggal dan waktu bimbingan</CardDescription>
-        </CardHeader>
         <CardContent className="p-0 gap-0 grid lg:grid-cols-2 *:rounded-none">
           <Card className="p-0">
             <CardContent className="p-0">
