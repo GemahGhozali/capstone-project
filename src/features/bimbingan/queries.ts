@@ -21,7 +21,9 @@ export async function getJadwalBimbinganDosen() {
         _count: {
           select: {
             bookings: {
-              where: { status: "Dipesan" },
+              where: {
+                status: { not: "Dibatalkan" },
+              },
             },
           },
         },
@@ -68,12 +70,12 @@ export async function getJadwalBimbinganMahasiswa() {
         _count: {
           select: {
             bookings: {
-              where: { status: "Dipesan" },
+              where: { status: { not: "Dibatalkan" } },
             },
           },
         },
         bookings: {
-          where: { mahasiswaId, status: "Dipesan" },
+          where: { mahasiswaId, status: { in: ["Dipesan", "Selesai"] } },
           select: { id: true },
           take: 1,
         },
@@ -227,7 +229,9 @@ export async function getJadwalBimbinganById(jadwalId: string) {
         _count: {
           select: {
             bookings: {
-              where: { status: "Dipesan" },
+              where: {
+                status: { not: "Dibatalkan" },
+              },
             },
           },
         },
@@ -244,7 +248,6 @@ export async function getJadwalBimbinganById(jadwalId: string) {
       jamTutup: formatTimeToHHmm(jadwal.jamTutup),
       kuota: jadwal.kuota,
       totalBooking: jadwal._count.bookings,
-      timeHasPassed: checkIsJadwalBimbinganHasPassed({ date: jadwal.tanggal, startTime: jadwal.jamMulai }),
     };
   } catch (error) {
     console.log("❌ Get Jadwal Bimbingan By Id Error :", error);

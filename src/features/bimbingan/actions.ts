@@ -97,7 +97,15 @@ export async function deleteJadwalBimbingan(jadwalId: string): Promise<ActionRes
       select: {
         id: true,
         dosenId: true,
-        _count: { select: { bookings: { where: { status: "Dipesan" } } } },
+        _count: {
+          select: {
+            bookings: {
+              where: {
+                status: { not: "Dibatalkan" },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -113,11 +121,11 @@ export async function deleteJadwalBimbingan(jadwalId: string): Promise<ActionRes
       return { success: false, message: "Anda hanya bisa menghapus jadwal milik anda!" };
     }
 
-    // Validasi 3 : Cek apakah jadwal masih memiliki booking aktif (Dipesan)
+    // Validasi 3 : Cek apakah jadwal masih memiliki booking yang aktif (Dipesan/Selesai)
     const jadwalHasActiveBooking = jadwal._count.bookings > 0;
 
     if (jadwalHasActiveBooking) {
-      return { success: false, message: "Jadwal masih memiliki booking aktif! Batalkan booking tersebut terlebih dahulu." };
+      return { success: false, message: "Jadwal masih memiliki booking aktif! Silahkan tutup jadwal terlebih dahulu." };
     }
 
     await prisma.jadwalBimbingan.delete({ where: { id: jadwalId } });
@@ -174,7 +182,17 @@ export async function bookingBimbingan(jadwalId: string, data: BookingJadwalInpu
         dosenId: true,
         kuota: true,
         status: true,
-        _count: { select: { bookings: { where: { status: "Dipesan" } } } },
+        tanggal: true,
+        jamMulai: true,
+        _count: {
+          select: {
+            bookings: {
+              where: {
+                status: { not: "Dibatalkan" },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -183,31 +201,38 @@ export async function bookingBimbingan(jadwalId: string, data: BookingJadwalInpu
       return { success: false, message: "Jadwal bimbingan tidak ditemukan!" };
     }
 
-    // Validasi 5 : Cek apakah jadwal masih aktif (bisa dibooking)
+    // Validasi 5 : Cek apakah waktu jadwal bimbingan sudah lewat
+    const jadwalHasPassed = checkIsJadwalBimbinganHasPassed({ date: jadwal.tanggal, startTime: jadwal.jamMulai });
+
+    if (jadwalHasPassed) {
+      return { success: false, message: "Waktu jadwal bimbingan sudah lewat! Pilih jadwal yang masih tersedia." };
+    }
+
+    // Validasi 6 : Cek apakah jadwal masih aktif (bisa dibooking)
     const jadwalIsClosed = jadwal.status !== "Aktif";
 
     if (jadwalIsClosed) {
       return { success: false, message: "Jadwal bimbingan sudah ditutup! Pilih jadwal yang masih tersedia." };
     }
 
-    // Validasi 6 : Cek apakah jadwal milik dosen pembimbing mahasiswa sendiri
+    // Validasi 7 : Cek apakah jadwal memang milik dosen pembimbing mahasiswa
     const mahasiswaBookingUnassignedDosen = jadwal.dosenId !== mahasiswa.dosenId;
 
     if (mahasiswaBookingUnassignedDosen) {
       return { success: false, message: "Anda hanya bisa booking jadwal milik dosen pembimbing Anda!" };
     }
 
-    // Validasi 7 : Cek apakah mahasiswa belum punya booking aktif (Dipesan) di jadwal yang sama
+    // Validasi 8 : Cek apakah mahasiswa belum punya booking yang belum dibatalkan (Dipesan/Selesai) di jadwal yang sama
     const mahasiswaDidDoubleBooking = await prisma.bookingBimbingan.findFirst({
-      where: { jadwalId, mahasiswaId, status: "Dipesan" },
-      select: { id: true },
+      where: { jadwalId, mahasiswaId, status: { in: ["Dipesan", "Selesai"] } },
+      select: { id: true, status: true },
     });
 
     if (mahasiswaDidDoubleBooking) {
-      return { success: false, message: "Anda sudah memesan jadwal ini! Batalkan booking tersebut dulu sebelum memesan ulang." };
+      return { success: false, message: "Anda sudah membooking jadwal ini!" };
     }
 
-    // Validasi 8 : Cek sisa kuota jadwal (jumlah booking aktif < kuota)
+    // Validasi 9 : Cek sisa kuota jadwal
     const quotaIsFull = jadwal._count.bookings >= jadwal.kuota;
 
     if (quotaIsFull) {
@@ -361,7 +386,6 @@ export async function closeJadwalBimbingan(jadwalId: string, data: CancelBooking
         id: true,
         dosenId: true,
         status: true,
-        _count: { select: { bookings: { where: { status: "Dipesan" } } } },
       },
     });
 
@@ -384,30 +408,31 @@ export async function closeJadwalBimbingan(jadwalId: string, data: CancelBooking
       return { success: false, message: "Jadwal bimbingan ini sudah ditutup!" };
     }
 
-    // Validasi 4 : Cek apakah jadwal memiliki booking aktif (Dipesan)
-    const jadwalHasNoActiveBooking = jadwal._count.bookings === 0;
+    const totalBooking = await prisma.$transaction(async (transaction) => {
+      await transaction.jadwalBimbingan.update({ where: { id: jadwalId }, data: { status: "Ditutup" } });
 
-    if (jadwalHasNoActiveBooking) {
-      return { success: false, message: "Jadwal tidak memiliki booking aktif!" };
-    }
+      const activeBookingCount = await transaction.bookingBimbingan.count({ where: { jadwalId, status: "Dipesan" } });
 
-    const totalBooking = jadwal._count.bookings;
+      if (activeBookingCount > 0) {
+        await transaction.bookingBimbingan.updateMany({
+          where: { jadwalId, status: "Dipesan" },
+          data: {
+            status: "Dibatalkan",
+            alasanPembatalan,
+            dibatalkanOleh: "Dosen",
+            tanggalPembatalan: new Date(),
+          },
+        });
+      }
 
-    await prisma.$transaction([
-      prisma.jadwalBimbingan.update({ where: { id: jadwalId }, data: { status: "Ditutup" } }),
+      return activeBookingCount;
+    });
 
-      prisma.bookingBimbingan.updateMany({
-        where: { jadwalId, status: "Dipesan" },
-        data: {
-          status: "Dibatalkan",
-          alasanPembatalan,
-          dibatalkanOleh: "Dosen",
-          tanggalPembatalan: new Date(),
-        },
-      }),
-    ]);
-
-    return { success: true, message: `Jadwal bimbingan berhasil ditutup! ${totalBooking} booking ikut dibatalkan.` };
+    return {
+      success: true,
+      message:
+        totalBooking > 0 ? `Jadwal bimbingan berhasil ditutup! ${totalBooking} booking ikut dibatalkan.` : "Jadwal bimbingan berhasil ditutup!",
+    };
   } catch (error) {
     console.log("❌ Tutup Jadwal Bimbingan Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
