@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { IconAlarm, IconBook } from "@tabler/icons-react";
 import { JadwalBimbinganMahasiswa } from "../types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 interface BookingBimbinganJadwalListProps {
   jadwalList: JadwalBimbinganMahasiswa[];
@@ -19,6 +20,20 @@ export function BookingBimbinganJadwalList({ jadwalList, selectedDate, selectedJ
   const filteredJadwalList = useMemo(() => {
     return jadwalList.filter((jadwal) => jadwal.tanggal === format(selectedDate, "yyyy-MM-dd"));
   }, [jadwalList, selectedDate]);
+
+  if (filteredJadwalList.length === 0) {
+    return (
+      <Empty className="border-2 border-dashed rounded-lg px-6 h-full">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <IconBook />
+          </EmptyMedia>
+          <EmptyTitle>Tidak Ada Jadwal Bimbingan</EmptyTitle>
+          <EmptyDescription>Belum ada jadwal bimbingan di tanggal ini</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
 
   return (
     <RadioGroup
