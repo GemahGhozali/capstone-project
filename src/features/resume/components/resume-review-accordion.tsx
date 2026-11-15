@@ -34,7 +34,7 @@ export function ResumeReviewAccordion({ review }: ResumeReviewAccordionProps) {
         <Badge className={cn("h-6 ml-auto max-sm:absolute max-sm:top-4 max-sm:right-4", resumeStatusStyles[review.status])}>{review.status}</Badge>
       </AccordionTrigger>
       <AccordionContent className="p-4">
-        <p className="whitespace-pre-line text-white">{review.catatan}</p>
+        <p className="whitespace-pre-line text-foreground">{review.catatan}</p>
       </AccordionContent>
     </AccordionItem>
   );
