@@ -151,9 +151,10 @@ Dokumen ini adalah **single source of truth** untuk aturan bisnis. Baca sebelum 
 - Insert user: identifier (NIM/NIP), nama, email placeholder (`nim@gmail.com` / `nip@gmail.com`), password (opsional, default = identifier), lalu data profil (kelas/angkatan/tanggal_masuk untuk mhs; bidang_keahlian/nip untuk dosen) — email asli & password baru diisi user sendiri saat **reset akun**.
 - `Mahasiswa.id` / `Dosen.id` = **shared PK dengan `User.id`** (baris profil dibuat dengan id yang sama seperti User yang baru dibuat).
 - **Soft delete = set status data**, bukan hard delete:
-  - `Mahasiswa.status`: `Aktif` | `Nonaktif` | `Arsip`
+  - `Mahasiswa.status`: `Aktif` | `Nonaktif` | `Arsip` | `Tuntas` (manual via form Kaprodi; `Tuntas` = mahasiswa telah menyelesaikan Capstone)
   - `Dosen.status`: `Aktif` | `Nonaktif` | `Pindah`
-  - `User.is_active`: `true`/`false`
+  - `User.is_active`: `true` hanya saat `Mahasiswa.status` = `Aktif` atau `Tuntas`, sisanya `false`
+- CRUD Mahasiswa mendukung **select row** (checkbox per baris + select all halaman) untuk **bulk ubah status** dan **bulk hapus** oleh Kaprodi.
 - Kaprodi juga assign **role** user (termasuk merangkap) via `UserRole`.
 - Kaprodi isi/mengubah `DosenPembimbingDetail` (batas bimbingan, Buka/Tutup).
 

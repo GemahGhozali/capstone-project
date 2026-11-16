@@ -66,7 +66,7 @@ erDiagram
         varchar kelas
         varchar angkatan
         date tanggal_masuk
-        enum status "Aktif|Nonaktif|Arsip"
+        enum status "Aktif|Nonaktif|Arsip|Tuntas"
         uuid dosen_id FK "nullable, dospem tetap"
     }
     Dosen {
@@ -265,7 +265,7 @@ erDiagram
 | kelas | VARCHAR | NOT NULL | — |
 | angkatan | VARCHAR | NOT NULL | — |
 | tanggal_masuk | DATE | NOT NULL | — |
-| status | ENUM(Aktif, Nonaktif, Arsip) | NOT NULL | — |
+| status | ENUM(Aktif, Nonaktif, Arsip, Tuntas) | NOT NULL | — |
 | dosen_id | UUID | FK → Dosen.id, NULLABLE (dospem tetap, di-set saat resume Disetujui) | SET NULL |
 | created_at | TIMESTAMPTZ | NOT NULL | — |
 | updated_at | TIMESTAMPTZ | NOT NULL | — |
