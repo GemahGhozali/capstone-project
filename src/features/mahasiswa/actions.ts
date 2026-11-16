@@ -1,12 +1,21 @@
 "use server";
 
+import {
+  CreateMahasiswaInput,
+  CreateMahasiswaSchema,
+  UpdateMahasiswaInput,
+  UpdateMahasiswaSchema,
+  BulkDeleteMahasiswaSchema,
+  BulkUpdateStatusMahasiswaSchema,
+} from "./schemas";
+
 import { prisma } from "@/libs/prisma";
 import { hashPassword } from "@/libs/bcrypt";
 import { formatZodError } from "@/utils/format-zod-error";
 import { ActionResponse } from "@/types";
+import { StatusMahasiswa } from "@/generated/prisma/enums";
 import { userIsValidAndHasRole } from "@/libs/dal";
 import { deleteFile, uploadFileOptional } from "@/utils/file";
-import { CreateMahasiswaInput, CreateMahasiswaSchema, UpdateMahasiswaInput, UpdateMahasiswaSchema } from "./schemas";
 
 export async function createMahasiswa(data: CreateMahasiswaInput): Promise<ActionResponse> {
   const parsed = CreateMahasiswaSchema.safeParse(data);
@@ -73,7 +82,7 @@ export async function createMahasiswa(data: CreateMahasiswaInput): Promise<Actio
             identifier: nim,
             password: hashedPassword,
             fotoProfil: uploadedImage,
-            isActive: status === "Aktif" ? true : false,
+            isActive: status === "Aktif" || status === "Tuntas",
           },
         });
 
@@ -185,7 +194,7 @@ export async function updateMahasiswa(id: string, data: UpdateMahasiswaInput): P
             identifier: nim,
             password: finalPassword,
             fotoProfil: finalProfilePhotoPath,
-            isActive: status === "Aktif" ? true : false,
+            isActive: status === "Aktif" || status === "Tuntas",
           },
         });
 
@@ -237,6 +246,70 @@ export async function deleteMahasiswa(id: string): Promise<ActionResponse> {
     return { success: true, message: "Mahasiswa berhasil dihapus!" };
   } catch (error) {
     console.log("❌ Delete Mahasiswa Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function bulkUpdateStatusMahasiswa(ids: string[], status: StatusMahasiswa): Promise<ActionResponse> {
+  const parsed = BulkUpdateStatusMahasiswaSchema.safeParse({ ids, status });
+
+  if (!parsed.success) {
+    return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
+  }
+
+  const { ids: validIds, status: validStatus } = parsed.data;
+
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    const isActive = validStatus === "Aktif" || validStatus === "Tuntas";
+
+    const [updatedUsers] = await prisma.$transaction([
+      // Update status keaktifan akun
+      prisma.user.updateMany({ where: { id: { in: validIds }, mahasiswa: { isNot: null } }, data: { isActive } }),
+
+      // Update status mahasiswa
+      prisma.mahasiswa.updateMany({ where: { id: { in: validIds } }, data: { status: validStatus } }),
+    ]);
+
+    return { success: true, message: `${updatedUsers.count} mahasiswa berhasil diubah statusnya!` };
+  } catch (error) {
+    console.log("❌ Bulk Update Status Mahasiswa Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function bulkDeleteMahasiswa(ids: string[]): Promise<ActionResponse> {
+  const parsed = BulkDeleteMahasiswaSchema.safeParse({ ids });
+
+  if (!parsed.success) {
+    return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
+  }
+
+  const { ids: validIds } = parsed.data;
+
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    const users = await prisma.user.findMany({
+      where: { id: { in: validIds }, mahasiswa: { isNot: null } },
+      select: { id: true, fotoProfil: true },
+    });
+
+    const userIds = users.map((user) => user.id);
+
+    await prisma.user.deleteMany({ where: { id: { in: userIds } } });
+
+    // Hapus file foto profil mahasiswa saat data berhasil dihapus
+    const photoPaths = users.map((user) => user.fotoProfil).filter((photoPath) => photoPath !== null);
+
+    if (photoPaths.length > 0) {
+      await Promise.all(photoPaths.map((photoPath) => deleteFile(photoPath)));
+    }
+
+    return { success: true, message: `${users.length} mahasiswa berhasil dihapus!` };
+  } catch (error) {
+    console.log("❌ Bulk Delete Mahasiswa Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }
