@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 import { DatePicker } from "@/components/ui/date-picker";
 import { getAllKelas } from "@/features/kelas/queries";
+import { StatusMahasiswa } from "@/generated/prisma/enums";
 import { useMahasiswaForm } from "../hooks";
 import { MahasiswaDetails } from "../types";
 import { Controller, useWatch } from "react-hook-form";
@@ -233,7 +234,7 @@ export function MahasiswaForm({ mahasiswa, kelas }: MahasiswaFormProps) {
                     <SelectContent>
                       <SelectGroup>
                         <SelectLabel>Status Keaktifan</SelectLabel>
-                        {["Aktif", "Nonaktif", "Arsip"].map((category) => (
+                        {Object.keys(StatusMahasiswa).map((category) => (
                           <SelectItem key={category} value={category}>
                             {category}
                           </SelectItem>
