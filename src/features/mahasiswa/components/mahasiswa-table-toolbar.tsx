@@ -5,27 +5,31 @@ import React from "react";
 
 import {
   DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuLabel,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
+import { ReactTable } from "@tanstack/react-table";
 import { StatusMahasiswa } from "@/generated/prisma/enums";
 import { DataTableFeatures } from "@/components/data/features";
-import { ReactTable, RowData } from "@tanstack/react-table";
+import { MahasiswaOverview } from "../types";
+import { MahasiswaTableSelectionBar } from "./mahasiswa-table-selection-bar";
 import { IconNut, IconPlus, IconSearch } from "@tabler/icons-react";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 
-interface MahasiswaTableToolbarProps<TData extends RowData> {
-  table: ReactTable<DataTableFeatures, TData>;
+interface MahasiswaTableToolbarProps {
+  table: ReactTable<DataTableFeatures, MahasiswaOverview>;
 }
 
-export function MahasiswaTableToolbar<TData extends RowData>({ table }: MahasiswaTableToolbarProps<TData>) {
+export function MahasiswaTableToolbar({ table }: MahasiswaTableToolbarProps) {
+  const isSelectionActive = table.getSelectedRowModel().rows.length > 0;
+
   const searchQuery = (table.getColumn("search")?.getFilterValue() as string) ?? "";
   const statusFilter = (table.getColumn("status")?.getFilterValue() as string) ?? "";
 
@@ -43,41 +47,44 @@ export function MahasiswaTableToolbar<TData extends RowData>({ table }: Mahasisw
     "border-sidebar-primary/40! bg-sidebar-primary/10! text-sidebar-primary hover:bg-sidebar-primary/10 hover:text-sidebar-primary aria-expanded:bg-sidebar-primary/10 aria-expanded:text-sidebar-primary";
 
   return (
-    <div className="flex gap-3 max-sm:flex-col">
-      <InputGroup className="sm:max-w-80">
-        <InputGroupAddon align="inline-start">
-          <IconSearch className="text-muted-foreground" />
-        </InputGroupAddon>
-        <InputGroupInput placeholder="Cari NIM atau nama mahasiswa disini..." value={searchQuery} onChange={handleSearch} />
-      </InputGroup>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button variant="outline" className={cn(statusFilterActive && filterActiveClass)}>
-              <IconNut data-icon="inline-start" />
-              Status Mahasiswa
-            </Button>
-          }
-        />
-        <DropdownMenuContent>
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>Status Mahasiswa</DropdownMenuLabel>
-            <DropdownMenuRadioGroup value={statusFilter} onValueChange={handleFilterStatus}>
-              <DropdownMenuRadioItem value="">Semua</DropdownMenuRadioItem>
-              {Object.keys(StatusMahasiswa).map((status) => (
-                <DropdownMenuRadioItem key={status} value={status}>
-                  {status}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <Link href="/kaprodi/daftar-mahasiswa/tambah" className="sm:ml-auto">
-        <Button className="max-sm:w-full">
-          Tambah Mahasiswa <IconPlus data-icon="inline-end" />
-        </Button>
-      </Link>
+    <div className="space-y-6">
+      <div className="flex gap-3 max-sm:flex-col">
+        <InputGroup className="sm:max-w-80">
+          <InputGroupAddon align="inline-start">
+            <IconSearch className="text-muted-foreground" />
+          </InputGroupAddon>
+          <InputGroupInput placeholder="Cari NIM atau nama mahasiswa disini..." value={searchQuery} onChange={handleSearch} />
+        </InputGroup>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="outline" className={cn(statusFilterActive && filterActiveClass)}>
+                <IconNut data-icon="inline-start" />
+                Status Mahasiswa
+              </Button>
+            }
+          />
+          <DropdownMenuContent>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Status Mahasiswa</DropdownMenuLabel>
+              <DropdownMenuRadioGroup value={statusFilter} onValueChange={handleFilterStatus}>
+                <DropdownMenuRadioItem value="">Semua</DropdownMenuRadioItem>
+                {Object.keys(StatusMahasiswa).map((status) => (
+                  <DropdownMenuRadioItem key={status} value={status}>
+                    {status}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Link href="/kaprodi/daftar-mahasiswa/tambah" className="sm:ml-auto">
+          <Button className="max-sm:w-full">
+            Tambah Mahasiswa <IconPlus data-icon="inline-end" />
+          </Button>
+        </Link>
+      </div>
+      {isSelectionActive && <MahasiswaTableSelectionBar table={table} />}
     </div>
   );
 }
