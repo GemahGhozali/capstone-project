@@ -21,6 +21,17 @@ export const UpdateMahasiswaSchema = CreateMahasiswaSchema.extend({
   password: z.string().min(8, "Password minimal 8 karakter!").or(z.literal("")),
 });
 
+export const BulkUpdateStatusMahasiswaSchema = z.object({
+  ids: z.array(z.uuid("ID mahasiswa tidak valid!")).min(1, "Pilih minimal satu mahasiswa!"),
+  status: z.enum(StatusMahasiswa, "Status keaktifan mahasiswa wajib dipilih!"),
+});
+
+export const BulkDeleteMahasiswaSchema = z.object({
+  ids: z.array(z.uuid("ID mahasiswa tidak valid!")).min(1, "Pilih minimal satu mahasiswa!"),
+});
+
 export type CreateMahasiswaInput = z.infer<typeof CreateMahasiswaSchema>;
 export type UpdateMahasiswaInput = z.infer<typeof UpdateMahasiswaSchema>;
 export type MahasiswaInput = CreateMahasiswaInput | UpdateMahasiswaInput;
+export type BulkUpdateStatusMahasiswaInput = z.infer<typeof BulkUpdateStatusMahasiswaSchema>;
+export type BulkDeleteMahasiswaInput = z.infer<typeof BulkDeleteMahasiswaSchema>;
