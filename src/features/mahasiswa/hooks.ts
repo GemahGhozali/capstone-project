@@ -7,12 +7,13 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { ActionResponse } from "@/types";
-import { getMahasiswaById } from "./queries";
-import { createMahasiswa, updateMahasiswa, deleteMahasiswa } from "./actions";
+import { StatusMahasiswa } from "@/generated/prisma/enums";
+import { MahasiswaDetails } from "./types";
 import { MahasiswaInput, UpdateMahasiswaSchema, CreateMahasiswaSchema } from "./schemas";
+import { bulkDeleteMahasiswa, bulkUpdateStatusMahasiswa, createMahasiswa, updateMahasiswa, deleteMahasiswa } from "./actions";
 
 interface UseMahasiswaForm {
-  mahasiswa?: Awaited<ReturnType<typeof getMahasiswaById>>;
+  mahasiswa?: MahasiswaDetails;
 }
 
 export function useMahasiswaForm({ mahasiswa }: UseMahasiswaForm) {
@@ -63,6 +64,42 @@ export function useDeleteMahasiswa() {
 
   return useMutation({
     mutationFn: (id: string) => runAction(() => deleteMahasiswa(id)),
+
+    onSuccess: (response) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
+}
+
+export function useBulkUpdateStatusMahasiswa() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: ({ ids, status }: { ids: string[]; status: StatusMahasiswa }) => {
+      return runAction(() => bulkUpdateStatusMahasiswa(ids, status));
+    },
+
+    onSuccess: (response) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
+}
+
+export function useBulkDeleteMahasiswa() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (ids: string[]) => runAction(() => bulkDeleteMahasiswa(ids)),
 
     onSuccess: (response) => {
       toast.add({ type: "success", description: response.message });
