@@ -5,6 +5,7 @@ import { prisma } from "@/libs/prisma";
 export async function getAllMahasiswa() {
   try {
     const allMahasiswa = await prisma.mahasiswa.findMany({
+      orderBy: { nim: "asc" },
       select: {
         nim: true,
         status: true,
