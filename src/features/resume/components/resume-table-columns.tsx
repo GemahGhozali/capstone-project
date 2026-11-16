@@ -23,7 +23,7 @@ const dosenPembimbingColumn = columnHelper.accessor("dosenPembimbing", {
 
 export function resumeTableColumns({ basePath, viewer }: { basePath: string; viewer: ResumeViewer }) {
   return columnHelper.columns([
-    columnHelper.accessor((row) => `${row.namaMahasiswa} ${row.nim}`, {
+    columnHelper.accessor((row) => `${row.namaMahasiswa} ${row.nim} ${row.subjudul} ${row.mitra}`, {
       id: "search",
       filterFn: "includesString",
     }),
@@ -50,10 +50,22 @@ export function resumeTableColumns({ basePath, viewer }: { basePath: string; vie
       },
     }),
 
+    columnHelper.accessor("mitra", {
+      header: "Mitra",
+      cell: ({ getValue }) => <span className="block min-w-48 whitespace-normal">{getValue()}</span>,
+    }),
+
+    columnHelper.accessor("subjudul", {
+      header: "Subjudul",
+      cell: ({ getValue }) => <span className="block min-w-48 whitespace-normal">{getValue()}</span>,
+    }),
+
     columnHelper.accessor("tanggalPengajuan", {
       header: "Tanggal Pengajuan",
       cell: ({ getValue }) => format(getValue(), "eeee, d MMMM yyyy", { locale: localeId }),
     }),
+
+    ...(viewer === "Kaprodi" ? [dosenPembimbingColumn] : []),
 
     columnHelper.accessor("status", {
       header: "Status",
@@ -64,8 +76,6 @@ export function resumeTableColumns({ basePath, viewer }: { basePath: string; vie
         return <Badge className={cn(resumeStatusStyles[status])}>{status}</Badge>;
       },
     }),
-
-    ...(viewer === "Kaprodi" ? [dosenPembimbingColumn] : []),
 
     columnHelper.display({
       id: "actions",

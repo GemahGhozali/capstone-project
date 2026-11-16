@@ -11,6 +11,8 @@ export async function getAllProposal() {
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
+        judul: true,
+        mitra: true,
         status: true,
         createdAt: true,
         tim: {
@@ -23,6 +25,8 @@ export async function getAllProposal() {
 
     return allProposal.map((proposal) => ({
       id: proposal.id,
+      judul: proposal.judul,
+      mitra: proposal.mitra,
       status: proposal.status,
       namaTim: proposal.tim.nama,
       tanggalPengajuan: proposal.createdAt,

@@ -16,8 +16,28 @@ const columnHelper = createColumnHelper<DataTableFeatures, ProposalListItem>();
 
 export function proposalTableColumns({ basePath }: { basePath: string }) {
   return columnHelper.columns([
+    columnHelper.accessor((row) => `${row.namaTim} ${row.judul} ${row.mitra}`, {
+      id: "search",
+      filterFn: "includesString",
+    }),
+
     columnHelper.accessor("namaTim", {
       header: "Nama Tim",
+    }),
+
+    columnHelper.accessor("mitra", {
+      header: "Mitra",
+      cell: ({ getValue }) => <span className="block min-w-48 whitespace-normal">{getValue()}</span>,
+    }),
+
+    columnHelper.accessor("judul", {
+      header: "Judul",
+      cell: ({ getValue }) => <span className="block min-w-48 whitespace-normal">{getValue()}</span>,
+    }),
+
+    columnHelper.accessor("tanggalPengajuan", {
+      header: "Tanggal Pengajuan",
+      cell: ({ getValue }) => format(getValue(), "eeee, dd MMMM yyyy", { locale: localeId }),
     }),
 
     columnHelper.accessor("status", {
@@ -27,11 +47,6 @@ export function proposalTableColumns({ basePath }: { basePath: string }) {
         const status = getValue();
         return <Badge className={cn(proposalStatusStyles[status])}>{status}</Badge>;
       },
-    }),
-
-    columnHelper.accessor("tanggalPengajuan", {
-      header: "Tanggal Pengajuan",
-      cell: ({ getValue }) => format(getValue(), "eeee, dd MMMM yyyy", { locale: localeId }),
     }),
 
     columnHelper.display({

@@ -15,7 +15,13 @@ export async function getAllResume() {
       select: {
         id: true,
         status: true,
+        subjudul: true,
         createdAt: true,
+        proposal: {
+          select: {
+            mitra: true,
+          },
+        },
         mahasiswa: {
           select: {
             nim: true,
@@ -42,6 +48,8 @@ export async function getAllResume() {
     return allResume.map((resume) => ({
       id: resume.id,
       status: resume.status,
+      subjudul: resume.subjudul,
+      mitra: resume.proposal.mitra,
       namaMahasiswa: resume.mahasiswa.user.namaLengkap,
       nim: resume.mahasiswa.nim,
       fotoProfil: resume.mahasiswa.user.fotoProfil,

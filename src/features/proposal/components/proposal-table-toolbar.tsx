@@ -25,11 +25,11 @@ interface ProposalTableToolbarProps<TData extends RowData> {
 }
 
 export function ProposalTableToolbar<TData extends RowData>({ table }: ProposalTableToolbarProps<TData>) {
-  const searchQuery = (table.getColumn("namaTim")?.getFilterValue() as string) ?? "";
+  const searchQuery = (table.getColumn("search")?.getFilterValue() as string) ?? "";
   const statusFilter = (table.getColumn("status")?.getFilterValue() as string) ?? "";
 
   const handleSearchTeam = (event: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
-    table.getColumn("namaTim")?.setFilterValue(event.target.value);
+    table.getColumn("search")?.setFilterValue(event.target.value);
   };
 
   const handleFilterStatus = (value: string) => {
@@ -47,7 +47,7 @@ export function ProposalTableToolbar<TData extends RowData>({ table }: ProposalT
         <InputGroupAddon align="inline-start">
           <IconSearch className="text-muted-foreground" />
         </InputGroupAddon>
-        <InputGroupInput placeholder="Cari nama tim disini..." value={searchQuery} onChange={handleSearchTeam} />
+        <InputGroupInput placeholder="Cari nama tim, judul, atau mitra disini..." value={searchQuery} onChange={handleSearchTeam} />
       </InputGroup>
       <DropdownMenu>
         <DropdownMenuTrigger

@@ -47,7 +47,7 @@ export function ResumeTableToolbar<TData extends RowData>({ table }: ResumeTable
         <InputGroupAddon align="inline-start">
           <IconSearch className="text-muted-foreground" />
         </InputGroupAddon>
-        <InputGroupInput placeholder="Cari nama atau NIM mahasiswa disini..." value={searchQuery} onChange={handleSearch} />
+        <InputGroupInput placeholder="Cari NIM, nama, judul, atau mitra disini..." value={searchQuery} onChange={handleSearch} />
       </InputGroup>
       <DropdownMenu>
         <DropdownMenuTrigger
