@@ -4,4 +4,5 @@ export const mahasiswaStatusStyles: Record<StatusMahasiswa, string> = {
   Aktif: "bg-green-500/15 text-green-500",
   Nonaktif: "bg-red-500/15 text-red-500",
   Arsip: "bg-neutral-500/15 text-neutral-500",
+  Tuntas: "bg-blue-500/15 text-blue-500",
 };
