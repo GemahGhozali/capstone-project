@@ -24,6 +24,15 @@ export const UpdateDosenSchema = CreateDosenSchema.extend({
   password: z.string().min(8, "Password minimal 8 karakter!").or(z.literal("")),
 });
 
+export const BulkUpdateStatusDosenSchema = z.object({
+  ids: z.array(z.uuid("ID dosen tidak valid!")).min(1, "Pilih minimal satu dosen!"),
+  status: z.enum(StatusDosen, "Status keaktifan Dosen wajib dipilih!"),
+});
+
+export const BulkDeleteDosenSchema = z.object({
+  ids: z.array(z.uuid("ID dosen tidak valid!")).min(1, "Pilih minimal satu dosen!"),
+});
+
 export type CreateDosenInput = z.infer<typeof CreateDosenSchema>;
 export type UpdateDosenInput = z.infer<typeof UpdateDosenSchema>;
 export type DosenInput = CreateDosenInput | UpdateDosenInput;

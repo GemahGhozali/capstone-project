@@ -6,10 +6,11 @@ import { runAction } from "@/utils/action-runner";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { StatusDosen } from "@/generated/prisma/enums";
 import { getDosenById } from "./queries";
 import { ActionResponse } from "@/types";
-import { createDosen, deleteDosen, updateDosen } from "./actions";
 import { CreateDosenSchema, UpdateDosenSchema, DosenInput } from "./schemas";
+import { bulkDeleteDosen, bulkUpdateStatusDosen, createDosen, deleteDosen, updateDosen } from "./actions";
 
 interface UseDosenForm {
   dosen?: Awaited<ReturnType<typeof getDosenById>>;
@@ -71,6 +72,42 @@ export function useDeleteDosen() {
 
   return useMutation({
     mutationFn: (id: string) => runAction(() => deleteDosen(id)),
+
+    onSuccess: (response) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
+}
+
+export function useBulkUpdateStatusDosen() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: ({ ids, status }: { ids: string[]; status: StatusDosen }) => {
+      return runAction(() => bulkUpdateStatusDosen(ids, status));
+    },
+
+    onSuccess: (response) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
+}
+
+export function useBulkDeleteDosen() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (ids: string[]) => runAction(() => bulkDeleteDosen(ids)),
 
     onSuccess: (response) => {
       toast.add({ type: "success", description: response.message });

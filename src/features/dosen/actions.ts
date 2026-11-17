@@ -1,12 +1,14 @@
 "use server";
 
 import { prisma } from "@/libs/prisma";
+import { StatusDosen } from "@/generated/prisma/enums";
 import { hashPassword } from "@/libs/bcrypt";
 import { formatZodError } from "@/utils/format-zod-error";
 import { ActionResponse } from "@/types";
 import { userIsValidAndHasRole } from "@/libs/dal";
 import { deleteFile, uploadFileOptional } from "@/utils/file";
-import { CreateDosenInput, CreateDosenSchema, UpdateDosenInput, UpdateDosenSchema } from "./schemas";
+import { CreateDosenInput, UpdateDosenInput } from "./schemas";
+import { BulkDeleteDosenSchema, BulkUpdateStatusDosenSchema, CreateDosenSchema, UpdateDosenSchema } from "./schemas";
 
 export async function createDosen(data: CreateDosenInput): Promise<ActionResponse> {
   const parsed = CreateDosenSchema.safeParse(data);
@@ -301,6 +303,70 @@ export async function deleteDosen(id: string): Promise<ActionResponse> {
     return { success: true, message: "Dosen berhasil dihapus!" };
   } catch (error) {
     console.log("❌ Delete Dosen Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function bulkUpdateStatusDosen(ids: string[], status: StatusDosen): Promise<ActionResponse> {
+  const parsed = BulkUpdateStatusDosenSchema.safeParse({ ids, status });
+
+  if (!parsed.success) {
+    return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
+  }
+
+  const { ids: validIds, status: validStatus } = parsed.data;
+
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    const isActive = validStatus === "Aktif";
+
+    const [updatedUsers] = await prisma.$transaction([
+      // Update status keaktifan akun
+      prisma.user.updateMany({ where: { id: { in: validIds }, dosen: { isNot: null } }, data: { isActive } }),
+
+      // Update status dosen
+      prisma.dosen.updateMany({ where: { id: { in: validIds } }, data: { status: validStatus } }),
+    ]);
+
+    return { success: true, message: `${updatedUsers.count} dosen berhasil diubah statusnya!` };
+  } catch (error) {
+    console.log("❌ Bulk Update Status Dosen Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function bulkDeleteDosen(ids: string[]): Promise<ActionResponse> {
+  const parsed = BulkDeleteDosenSchema.safeParse({ ids });
+
+  if (!parsed.success) {
+    return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
+  }
+
+  const { ids: validIds } = parsed.data;
+
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    const users = await prisma.user.findMany({
+      where: { id: { in: validIds }, dosen: { isNot: null } },
+      select: { id: true, fotoProfil: true },
+    });
+
+    const userIds = users.map((user) => user.id);
+
+    await prisma.user.deleteMany({ where: { id: { in: userIds } } });
+
+    // Hapus file foto profil dosen saat data berhasil dihapus
+    const photoPaths = users.map((user) => user.fotoProfil).filter((photoPath) => photoPath !== null);
+
+    if (photoPaths.length > 0) {
+      await Promise.all(photoPaths.map((photoPath) => deleteFile(photoPath)));
+    }
+
+    return { success: true, message: `${users.length} dosen berhasil dihapus!` };
+  } catch (error) {
+    console.log("❌ Bulk Delete Dosen Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }
