@@ -15,7 +15,7 @@ interface MahasiswaTableProps {
 export function MahasiswaTable({ data }: MahasiswaTableProps) {
   const [mahasiswaToDelete, setMahasiswaToDelete] = useState<MahasiswaOverview | undefined>(undefined);
 
-  const columns = useMemo(() => mahasiswaTableColumns({ onDelete: setMahasiswaToDelete }), [setMahasiswaToDelete]);
+  const columns = useMemo(() => mahasiswaTableColumns({ onDelete: setMahasiswaToDelete, data }), [setMahasiswaToDelete, data]);
 
   return (
     <>

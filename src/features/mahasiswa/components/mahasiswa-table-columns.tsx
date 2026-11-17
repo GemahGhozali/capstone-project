@@ -5,6 +5,8 @@ import Link from "next/link";
 import { cn } from "cn";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DataColumnSort } from "@/components/data/data-column-sort";
+import { DataColumnFilter } from "@/components/data/data-column-filter";
 import { MahasiswaOverview } from "../types";
 import { DataTableFeatures } from "@/components/data/features";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -16,10 +18,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const columnHelper = createColumnHelper<DataTableFeatures, MahasiswaOverview>();
 
 export interface MahasiswaTableActions {
+  data: MahasiswaOverview[];
   onDelete: (mahasiswa: MahasiswaOverview) => void;
 }
 
-export function mahasiswaTableColumns({ onDelete }: MahasiswaTableActions) {
+export function mahasiswaTableColumns({ data, onDelete }: MahasiswaTableActions) {
+  // Value kelas unique dari semua data
+  const kelasOptions = [...new Set(data.map((row) => row.kelas.nama))].sort();
+
+  // Value angkatan unique dari semua data
+  const angkatanOptions = [...new Set(data.map((row) => String(row.kelas.angkatan)))].sort();
+
   return columnHelper.columns([
     columnHelper.accessor((row) => `${row.namaLengkap} ${row.nim}`, {
       id: "search",
@@ -27,21 +36,21 @@ export function mahasiswaTableColumns({ onDelete }: MahasiswaTableActions) {
       filterFn: "includesString",
     }),
 
-    columnHelper.accessor("namaLengkap", {
-      header: "Nama Lengkap",
+    columnHelper.accessor("nim", {
+      header: ({ column }) => <DataColumnSort column={column} title="Nama Lengkap" />,
       cell: ({ row, getValue }) => {
-        const nama = getValue();
-        const nim = row.original.nim;
+        const nim = getValue();
+        const namaLengkap = row.original.namaLengkap;
         const fotoProfil = row.original.fotoProfil;
 
         return (
           <div className="flex gap-4 items-center">
             <Avatar size="lg">
               <AvatarImage src={fotoProfil || ""} />
-              <AvatarFallback>{generateNameInitials(nama)}</AvatarFallback>
+              <AvatarFallback>{generateNameInitials(namaLengkap)}</AvatarFallback>
             </Avatar>
             <div className="space-y-0.5">
-              <p className="font-medium">{nama}</p>
+              <p className="font-medium">{namaLengkap}</p>
               <p className="text-muted-foreground">{nim}</p>
             </div>
           </div>
@@ -50,11 +59,14 @@ export function mahasiswaTableColumns({ onDelete }: MahasiswaTableActions) {
     }),
 
     columnHelper.accessor("kelas.nama", {
-      header: "Kelas",
+      header: ({ column }) => <DataColumnFilter column={column} title="Kelas" options={kelasOptions} />,
+      filterFn: "arrHas",
     }),
 
-    columnHelper.accessor("kelas.angkatan", {
-      header: "Tahun Angkatan",
+    columnHelper.accessor((row) => String(row.kelas.angkatan), {
+      id: "kelas.angkatan",
+      header: ({ column }) => <DataColumnFilter column={column} title="Tahun Angkatan" options={angkatanOptions} />,
+      filterFn: "arrHas",
     }),
 
     columnHelper.accessor("status", {

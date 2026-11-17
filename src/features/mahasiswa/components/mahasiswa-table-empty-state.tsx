@@ -11,9 +11,10 @@ interface MahasiswaTableEmptyStateProps<TData extends RowData> {
 
 export function MahasiswaTableEmptyState<TData extends RowData>({ table }: MahasiswaTableEmptyStateProps<TData>) {
   const searchQuery = (table.getColumn("search")?.getFilterValue() as string) ?? "";
-  const selectedStatus = (table.getColumn("status")?.getFilterValue() as string) ?? "";
 
-  const hasActiveFilter = searchQuery || selectedStatus;
+  const totalRows = table.getPreFilteredRowModel().rows.length;
+  const filteredRows = table.getFilteredRowModel().rows.length;
+  const isFilterResultEmpty = totalRows > 0 && filteredRows === 0;
 
   return (
     <Empty>
@@ -21,16 +22,14 @@ export function MahasiswaTableEmptyState<TData extends RowData>({ table }: Mahas
         <EmptyMedia variant="icon">
           <IconFolderOpen />
         </EmptyMedia>
-        <EmptyTitle>{hasActiveFilter ? "Mahasiswa Tidak Ditemukan" : "Tidak Ada Data Mahasiswa"}</EmptyTitle>
+        <EmptyTitle>{isFilterResultEmpty ? "Tidak Ada Data Mahasiswa" : "Mahasiswa Tidak Ditemukan"}</EmptyTitle>
         <EmptyDescription>
           {searchQuery ? (
             <>
               Tidak ada mahasiswa dengan nama atau NIM <span className="font-medium">"{searchQuery}"</span>
             </>
-          ) : selectedStatus ? (
-            <>
-              Tidak ada mahasiswa dengan status <span className="font-medium">&ldquo;{selectedStatus}&rdquo;</span>
-            </>
+          ) : isFilterResultEmpty ? (
+            <>Tidak ada mahasiswa yang cocok dengan filter yang dipilih</>
           ) : (
             "Semua data mahasiswa akan ditampilkan disini"
           )}
