@@ -12,7 +12,7 @@ interface CapstoneProjectMonitoringTableProps {
 }
 
 export function CapstoneProjectMonitoringTable({ data }: CapstoneProjectMonitoringTableProps) {
-  const columns = useMemo(() => capstoneProjectMonitoringTableColumns(), []);
+  const columns = useMemo(() => capstoneProjectMonitoringTableColumns(data), [data]);
 
   return (
     <DataTable

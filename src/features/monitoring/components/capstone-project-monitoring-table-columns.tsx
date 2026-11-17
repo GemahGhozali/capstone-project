@@ -14,6 +14,8 @@ import {
 import { cn } from "cn";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DataColumnSort } from "@/components/data/data-column-sort";
+import { DataColumnFilter } from "@/components/data/data-column-filter";
 import { DataTableFeatures } from "@/components/data/features";
 import { createColumnHelper } from "@tanstack/react-table";
 import { resumeStatusStyles } from "@/features/resume/utils";
@@ -26,7 +28,20 @@ const columnHelper = createColumnHelper<DataTableFeatures, CapstoneProjectMonito
 
 const neutralBadge = "bg-neutral-500/15 text-neutral-500";
 
-export function capstoneProjectMonitoringTableColumns() {
+const StatusTimOptions = ["Terdaftar", "Tidak Terdaftar"];
+const StatusProposalOptions = ["Belum Upload", ...Object.keys(StatusProposal)];
+const StatusResumeOptions = ["Belum Upload", ...Object.keys(StatusResume)];
+
+export function capstoneProjectMonitoringTableColumns(data: CapstoneProjectMonitoring[]) {
+  // Value kelas unique dari semua data
+  const kelasOptions = [...new Set(data.map((row) => row.kelas.nama))].sort();
+
+  // Value angkatan unique dari semua data
+  const angkatanOptions = [...new Set(data.map((row) => String(row.kelas.angkatan)))].sort();
+
+  // Value dosenPembimbing unique dari semua data
+  const dosenPembimbingOptions = [...new Set(data.map((row) => row.dosenPembimbing).filter((nama): nama is string => !!nama))].sort();
+
   return columnHelper.columns([
     columnHelper.accessor((row) => `${row.namaLengkap} ${row.nim}`, {
       id: "search",
@@ -34,30 +49,33 @@ export function capstoneProjectMonitoringTableColumns() {
       filterFn: "includesString",
     }),
 
-    columnHelper.accessor("namaLengkap", {
+    columnHelper.accessor("nim", {
       id: "mahasiswa",
-      header: "Mahasiswa",
+      header: ({ column }) => <DataColumnSort column={column} title="Mahasiswa" />,
       enableHiding: false,
-      cell: ({ row, getValue }) => (
+      cell: ({ row }) => (
         <div className="space-y-0.5">
-          <p className="font-medium">{getValue()}</p>
+          <p className="font-medium">{row.original.namaLengkap}</p>
           <p className="text-muted-foreground">{row.original.nim}</p>
         </div>
       ),
     }),
 
     columnHelper.accessor("kelas.nama", {
-      header: "Kelas",
+      header: ({ column }) => <DataColumnFilter column={column} title="Kelas" options={kelasOptions} />,
+      filterFn: "arrHas",
     }),
 
-    columnHelper.accessor("kelas.angkatan", {
-      header: "Angkatan",
+    columnHelper.accessor((row) => String(row.kelas.angkatan), {
+      id: "kelas.angkatan",
+      header: ({ column }) => <DataColumnFilter column={column} title="Angkatan" options={angkatanOptions} />,
+      filterFn: "arrHas",
     }),
 
     columnHelper.accessor((row) => (row.tim ? "Terdaftar" : "Tidak Terdaftar"), {
       id: "statusTim",
-      header: "Status Tim",
-      filterFn: "equalsString",
+      header: ({ column }) => <DataColumnFilter column={column} title="Status Tim" options={StatusTimOptions} />,
+      filterFn: "arrHas",
       cell: ({ getValue }) => {
         const status = getValue();
 
@@ -67,8 +85,8 @@ export function capstoneProjectMonitoringTableColumns() {
 
     columnHelper.accessor((row) => row.proposal?.status ?? "Belum Upload", {
       id: "statusProposal",
-      header: "Status Proposal",
-      filterFn: "equalsString",
+      header: ({ column }) => <DataColumnFilter column={column} title="Status Proposal" options={StatusProposalOptions} />,
+      filterFn: "arrHas",
       cell: ({ getValue }) => {
         const status = getValue();
 
@@ -78,8 +96,8 @@ export function capstoneProjectMonitoringTableColumns() {
 
     columnHelper.accessor((row) => row.resume?.status ?? "Belum Upload", {
       id: "statusResume",
-      header: "Status Resume",
-      filterFn: "equalsString",
+      header: ({ column }) => <DataColumnFilter column={column} title="Status Resume" options={StatusResumeOptions} />,
+      filterFn: "arrHas",
       cell: ({ getValue }) => {
         const status = getValue();
 
@@ -88,7 +106,8 @@ export function capstoneProjectMonitoringTableColumns() {
     }),
 
     columnHelper.accessor("dosenPembimbing", {
-      header: "Dosen Pembimbing",
+      header: ({ column }) => <DataColumnFilter column={column} title="Dosen Pembimbing" options={dosenPembimbingOptions} />,
+      filterFn: "arrHas",
       cell: ({ getValue }) => (getValue() ? <span>{getValue()}</span> : <Badge className={neutralBadge}>Belum Ditentukan</Badge>),
     }),
 
