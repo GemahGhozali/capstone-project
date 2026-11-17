@@ -4,6 +4,7 @@ import {
   createFilteredRowModel,
   createPaginatedRowModel,
   createSortedRowModel,
+  filterFn_arrHas,
   filterFn_includesString,
   filterFn_equalsString,
   rowPaginationFeature,
@@ -24,6 +25,7 @@ export const features = tableFeatures({
   paginatedRowModel: createPaginatedRowModel(),
   sortedRowModel: createSortedRowModel(),
   filterFns: {
+    arrHas: filterFn_arrHas,
     includesString: filterFn_includesString,
     equalsString: filterFn_equalsString,
   },
