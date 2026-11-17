@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 import { getAllProdi } from "@/features/prodi/queries";
+import { StatusDosen } from "@/generated/prisma/enums";
 import { useDosenForm } from "../hooks";
 import { DosenDetails } from "../types";
 import { getAllDosenRoles } from "../queries";
@@ -241,7 +242,7 @@ export function DosenForm({ dosen, prodi, role }: DosenFormProps) {
                     <SelectContent>
                       <SelectGroup>
                         <SelectLabel>Status Keaktifan</SelectLabel>
-                        {["Aktif", "Nonaktif", "Pindah"].map((category) => (
+                        {Object.keys(StatusDosen).map((category) => (
                           <SelectItem key={category} value={category}>
                             {category}
                           </SelectItem>
