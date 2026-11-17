@@ -62,8 +62,9 @@ export function kuesionerTableColumns({ onEdit, onDelete, onDuplicate, onChangeS
     }),
 
     columnHelper.accessor("status", {
+      id: "status",
       header: "Status",
-      filterFn: "equalsString",
+      filterFn: "arrHas",
       cell: ({ getValue }) => {
         const status = getValue();
 

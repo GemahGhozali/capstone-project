@@ -11,9 +11,10 @@ interface KuesionerTableEmptyStateProps<TData extends RowData> {
 
 export function KuesionerTableEmptyState<TData extends RowData>({ table }: KuesionerTableEmptyStateProps<TData>) {
   const searchQuery = (table.getColumn("search")?.getFilterValue() as string) ?? "";
-  const statusFilter = (table.getColumn("status")?.getFilterValue() as string) ?? "";
 
-  const hasFilter = searchQuery || statusFilter;
+  const totalRows = table.getPreFilteredRowModel().rows.length;
+  const filteredRows = table.getFilteredRowModel().rows.length;
+  const isFilterResultEmpty = totalRows > 0 && filteredRows === 0;
 
   return (
     <Empty>
@@ -21,16 +22,14 @@ export function KuesionerTableEmptyState<TData extends RowData>({ table }: Kuesi
         <EmptyMedia variant="icon">
           <IconFolderOpen />
         </EmptyMedia>
-        <EmptyTitle>{hasFilter ? "Kuesioner Tidak Ditemukan" : "Belum Ada Data Kuesioner"}</EmptyTitle>
+        <EmptyTitle>{isFilterResultEmpty ? "Kuesioner Tidak Ditemukan" : "Belum Ada Data Kuesioner"}</EmptyTitle>
         <EmptyDescription>
           {searchQuery ? (
             <>
               Tidak ada kuesioner dengan kata kunci <span className="font-medium">"{searchQuery}"</span>
             </>
-          ) : statusFilter ? (
-            <>
-              Tidak ada kuesioner berstatus <span className="font-medium">"{statusFilter}"</span>
-            </>
+          ) : isFilterResultEmpty ? (
+            <>Tidak ada kuesioner yang cocok dengan filter yang dipilih</>
           ) : (
             "Semua data kuesioner akan ditampilkan disini"
           )}
