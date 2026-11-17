@@ -19,6 +19,7 @@ export function kelasTableColumns({ onEdit }: KelasTableActions) {
     }),
 
     columnHelper.accessor("nama", {
+      id: "nama",
       header: "Nama Kelas",
     }),
 

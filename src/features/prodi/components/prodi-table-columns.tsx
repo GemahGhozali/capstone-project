@@ -15,6 +15,7 @@ export interface ProdiTableActions {
 export function prodiTableColumns({ onEdit }: ProdiTableActions) {
   return columnHelper.columns([
     columnHelper.accessor("nama", {
+      id: "nama",
       header: "Nama Prodi",
     }),
 
