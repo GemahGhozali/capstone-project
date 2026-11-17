@@ -6,6 +6,8 @@ import { cn } from "cn";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DosenOverview } from "../types";
+import { DataColumnSort } from "@/components/data/data-column-sort";
+import { DataColumnFilter } from "@/components/data/data-column-filter";
 import { dosenStatusStyles } from "../utils";
 import { DataTableFeatures } from "@/components/data/features";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -16,10 +18,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const columnHelper = createColumnHelper<DataTableFeatures, DosenOverview>();
 
 export interface DosenTableActions {
+  data: DosenOverview[];
   onDelete: (dosen: DosenOverview) => void;
 }
 
-export function dosenTableColumns({ onDelete }: DosenTableActions) {
+export function dosenTableColumns({ data, onDelete }: DosenTableActions) {
+  // Value prodi unique dari semua data
+  const prodiOptions = [...new Set(data.map((row) => row.prodi))].sort();
+
   return columnHelper.columns([
     columnHelper.accessor((row) => `${row.namaLengkap} ${row.nip}`, {
       id: "search",
@@ -27,11 +33,11 @@ export function dosenTableColumns({ onDelete }: DosenTableActions) {
       filterFn: "includesString",
     }),
 
-    columnHelper.accessor("namaLengkap", {
-      header: "Nama Lengkap",
+    columnHelper.accessor("nip", {
+      header: ({ column }) => <DataColumnSort column={column} title="Nama Lengkap" />,
       cell: ({ row, getValue }) => {
-        const nama = getValue();
-        const nip = row.original.nip;
+        const nip = getValue();
+        const nama = row.original.namaLengkap;
         const fotoProfil = row.original.fotoProfil;
 
         return (
@@ -50,12 +56,14 @@ export function dosenTableColumns({ onDelete }: DosenTableActions) {
     }),
 
     columnHelper.accessor("prodi", {
-      header: "Program Studi",
+      header: ({ column }) => <DataColumnFilter column={column} title="Program Studi" options={prodiOptions} />,
+      filterFn: "arrHas",
     }),
 
     columnHelper.accessor("status", {
+      id: "status",
       header: "Status",
-      filterFn: "equalsString",
+      filterFn: "arrHas",
       cell: ({ getValue }) => {
         const status = getValue();
 
@@ -91,7 +99,7 @@ export function dosenTableColumns({ onDelete }: DosenTableActions) {
 
     columnHelper.accessor((row) => row.roles, {
       id: "role",
-      filterFn: (row, columnId, filterValue) => (row.getValue(columnId) as string[]).includes(filterValue as string),
+      filterFn: "arrIncludesSome",
     }),
   ]);
 }

@@ -15,13 +15,15 @@ interface DosenTableProps {
 export function DosenTable({ data }: DosenTableProps) {
   const [dosenToDelete, setDosenToDelete] = useState<DosenOverview | undefined>(undefined);
 
-  const columns = useMemo(() => dosenTableColumns({ onDelete: setDosenToDelete }), [setDosenToDelete]);
+  const columns = useMemo(() => dosenTableColumns({ onDelete: setDosenToDelete, data }), [setDosenToDelete, data]);
 
   return (
     <>
       <DataTable
         data={data}
         columns={columns}
+        enableRowSelection
+        getRowId={(mahasiswa) => mahasiswa.id}
         initialState={{ columnVisibility: { role: false, search: false } }}
         renderToolbar={(table) => <DosenTableToolbar table={table} />}
         renderEmptyState={(table) => <DosenTableEmptyState table={table} />}

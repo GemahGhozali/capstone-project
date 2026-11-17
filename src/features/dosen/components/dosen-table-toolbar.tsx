@@ -1,114 +1,50 @@
 "use client";
 
 import Link from "next/link";
-import React from "react";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import { cn } from "cn";
 import { Button } from "@/components/ui/button";
+import { ReactTable } from "@tanstack/react-table";
 import { StatusDosen } from "@/generated/prisma/enums";
+import { DosenOverview } from "../types";
+import { DataSearchBar } from "@/components/data/data-search-bar";
 import { DataTableFeatures } from "@/components/data/features";
-import { ReactTable, RowData } from "@tanstack/react-table";
-import { IconBadge, IconNut, IconPlus, IconSearch } from "@tabler/icons-react";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { DataFilterDropdown } from "@/components/data/data-filter-dropdown";
+import { DosenTableSelectionBar } from "./dosen-table-selection-bar";
+import { IconBadge, IconNut, IconPlus } from "@tabler/icons-react";
 
-interface DosenTableToolbarProps<TData extends RowData> {
-  table: ReactTable<DataTableFeatures, TData>;
+interface DosenTableToolbarProps {
+  table: ReactTable<DataTableFeatures, DosenOverview>;
 }
 
-export function DosenTableToolbar<TData extends RowData>({ table }: DosenTableToolbarProps<TData>) {
-  const searchQuery = (table.getColumn("search")?.getFilterValue() as string) ?? "";
-  const statusFilter = (table.getColumn("status")?.getFilterValue() as string) ?? "";
-  const roleFilter = (table.getColumn("role")?.getFilterValue() as string) ?? "";
-
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
-    table.getColumn("search")?.setFilterValue(event.target.value);
-  };
-
-  const handleFilterStatus = (value: any) => {
-    table.getColumn("status")?.setFilterValue(value);
-  };
-
-  const handleFilterRole = (value: any) => {
-    table.getColumn("role")?.setFilterValue(value);
-  };
-
-  const statusFilterActive = statusFilter !== "";
-  const roleFilterActive = roleFilter !== "";
-
-  const filterActiveClass =
-    "border-sidebar-primary/40! bg-sidebar-primary/10! text-sidebar-primary hover:bg-sidebar-primary/10 hover:text-sidebar-primary aria-expanded:bg-sidebar-primary/10 aria-expanded:text-sidebar-primary";
+export function DosenTableToolbar({ table }: DosenTableToolbarProps) {
+  const isSelectionActive = table.getSelectedRowModel().rows.length > 0;
 
   return (
-    <div className="flex gap-3 max-sm:flex-col">
-      <InputGroup className="sm:max-w-80">
-        <InputGroupAddon align="inline-start">
-          <IconSearch className="text-muted-foreground" />
-        </InputGroupAddon>
-        <InputGroupInput placeholder="Cari NIP atau nama dosen disini..." value={searchQuery} onChange={handleSearch} />
-      </InputGroup>
-      <div className="flex gap-3 max-sm:*:grow">
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button variant="outline" className={cn(statusFilterActive && filterActiveClass)}>
-                <IconNut data-icon="inline-start" />
-                Status Dosen
-              </Button>
-            }
+    <div className="space-y-6">
+      <div className="flex gap-3 max-sm:flex-col">
+        <DataSearchBar table={table} placeholder="Cari NIP atau nama dosen disini..." className="xl:max-w-80 xl:shrink-0" />
+        <div className="flex gap-3 max-sm:*:grow">
+          <DataFilterDropdown
+            table={table}
+            columnId="status"
+            label="Status Dosen"
+            icon={<IconNut data-icon="inline-start" />}
+            options={Object.keys(StatusDosen)}
           />
-          <DropdownMenuContent>
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>Status Dosen</DropdownMenuLabel>
-              <DropdownMenuRadioGroup value={statusFilter} onValueChange={handleFilterStatus}>
-                <DropdownMenuRadioItem value="">Semua</DropdownMenuRadioItem>
-                {Object.keys(StatusDosen).map((status) => (
-                  <DropdownMenuRadioItem key={status} value={status}>
-                    {status}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button variant="outline" className={cn(roleFilterActive && filterActiveClass)}>
-                <IconBadge data-icon="inline-start" />
-                Role Dosen
-              </Button>
-            }
+          <DataFilterDropdown
+            table={table}
+            columnId="role"
+            label="Role Dosen"
+            icon={<IconBadge data-icon="inline-start" />}
+            options={["Dosen Capstone Project", "Dosen Pembimbing", "Kaprodi"]}
           />
-          <DropdownMenuContent className="w-fit">
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>Role Dosen</DropdownMenuLabel>
-              <DropdownMenuRadioGroup value={roleFilter} onValueChange={handleFilterRole}>
-                <DropdownMenuRadioItem value="">Semua</DropdownMenuRadioItem>
-                {["Dosen Capstone Project", "Dosen Pembimbing", "Kaprodi"].map((role) => (
-                  <DropdownMenuRadioItem key={role} value={role}>
-                    {role}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        </div>
+        <Link href="/kaprodi/daftar-dosen/tambah" className="sm:ml-auto">
+          <Button className="max-sm:w-full">
+            Tambah Dosen <IconPlus data-icon="inline-end" />
+          </Button>
+        </Link>
       </div>
-      <Link href="/kaprodi/daftar-dosen/tambah" className="sm:ml-auto">
-        <Button className="max-sm:w-full">
-          Tambah Dosen <IconPlus data-icon="inline-end" />
-        </Button>
-      </Link>
+      {isSelectionActive && <DosenTableSelectionBar table={table} />}
     </div>
   );
 }

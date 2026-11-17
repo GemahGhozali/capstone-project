@@ -11,10 +11,10 @@ interface DosenTableEmptyStateProps<TData extends RowData> {
 
 export function DosenTableEmptyState<TData extends RowData>({ table }: DosenTableEmptyStateProps<TData>) {
   const searchQuery = (table.getColumn("search")?.getFilterValue() as string) ?? "";
-  const selectedStatus = (table.getColumn("status")?.getFilterValue() as string) ?? "";
-  const selectedRole = (table.getColumn("role")?.getFilterValue() as string) ?? "";
 
-  const hasActiveFilter = searchQuery || selectedStatus || selectedRole;
+  const totalRows = table.getPreFilteredRowModel().rows.length;
+  const filteredRows = table.getFilteredRowModel().rows.length;
+  const isFilterResultEmpty = totalRows > 0 && filteredRows === 0;
 
   return (
     <Empty>
@@ -22,20 +22,14 @@ export function DosenTableEmptyState<TData extends RowData>({ table }: DosenTabl
         <EmptyMedia variant="icon">
           <IconFolderOpen />
         </EmptyMedia>
-        <EmptyTitle>{hasActiveFilter ? "Dosen Tidak Ditemukan" : "Tidak Ada Data Dosen"}</EmptyTitle>
+        <EmptyTitle>{isFilterResultEmpty ? "Tidak Ada Data Dosen" : "Dosen Tidak Ditemukan"}</EmptyTitle>
         <EmptyDescription>
           {searchQuery ? (
             <>
               Tidak ada dosen dengan nama atau NIP <span className="font-medium">"{searchQuery}"</span>
             </>
-          ) : selectedStatus ? (
-            <>
-              Tidak ada dosen dengan status <span className="font-medium">&ldquo;{selectedStatus}&rdquo;</span>
-            </>
-          ) : selectedRole ? (
-            <>
-              Tidak ada dosen dengan role <span className="font-medium">&ldquo;{selectedRole}&rdquo;</span>
-            </>
+          ) : isFilterResultEmpty ? (
+            <>Tidak ada dosen yang cocok dengan filter yang dipilih</>
           ) : (
             "Semua data dosen akan ditampilkan disini"
           )}
