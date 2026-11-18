@@ -18,8 +18,8 @@ export default async function ProposalDetailPage({ params }: ProposalDetailPageP
 
   return (
     <div className="space-y-6">
-      <ProposalStatusCallout currentProposalStatus={proposal.status} viewer="Dosen" />
-      <ProposalReviews reviews={proposal.reviews} viewer="Dosen" currentProposalStatus={proposal.status} />
+      <ProposalStatusCallout currentProposalStatus={proposal.status} viewer="Kaprodi" />
+      <ProposalReviews reviews={proposal.reviews} viewer="Kaprodi" currentProposalStatus={proposal.status} />
       <ProposalOverview proposal={proposal} />
       <ProposalTeamMembers team={proposal.tim} />
     </div>

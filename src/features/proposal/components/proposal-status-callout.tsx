@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { StatusProposal } from "@/generated/prisma/enums";
+import { ProposalViewer } from "../types";
 import { proposalStatusStyles } from "../utils";
 import { IconCircleCheck, IconCircleX, IconEdit, IconHourglass, IconArchive } from "@tabler/icons-react";
 import { Callout, CalloutIcon, CalloutContent, CalloutTitle, CalloutDescription, CalloutAction } from "@/components/ui/callout";
-
-type ProposalViewer = "Mahasiswa" | "Dosen";
 
 interface ProposalStatusCalloutProps {
   currentProposalStatus: StatusProposal;
@@ -55,7 +54,7 @@ const calloutMessages: Record<ProposalViewer, Record<StatusProposal, { title: st
     },
     Arsip: {
       title: "Proposal Tim Telah Diarsipkan!",
-      description: "Proposal ini telah diarsipkan oleh Kaprodi dan tidak dapat diubah maupun direview kembali.",
+      description: "Proposal ini telah diarsipkan oleh Kaprodi dan tidak dapat diubah.",
     },
   },
   Dosen: {
@@ -78,6 +77,28 @@ const calloutMessages: Record<ProposalViewer, Record<StatusProposal, { title: st
     Arsip: {
       title: "Status Proposal : Arsip",
       description: "Proposal ini telah diarsipkan oleh Kaprodi dan tidak dapat direview kembali.",
+    },
+  },
+  Kaprodi: {
+    Menunggu: {
+      title: "Proposal Tim Belum Direview!",
+      description: "Dosen Capstone Project belum menentukan status proposal dan memberi review kepada tim.",
+    },
+    Ditolak: {
+      title: "Status Proposal : Ditolak",
+      description: "Status proposal telah ditentukan. Anda hanya bisa memberikan review.",
+    },
+    Revisi: {
+      title: "Status Proposal : Perlu Revisi",
+      description: "Status proposal telah ditentukan. Anda hanya bisa memberikan review.",
+    },
+    Disetujui: {
+      title: "Status Proposal : Disetujui",
+      description: "Status proposal telah ditentukan. Anda hanya bisa memberikan review.",
+    },
+    Arsip: {
+      title: "Status Proposal : Arsip",
+      description: "Proposal telah diarsipkan dan tidak dapat direview kembali.",
     },
   },
 };
