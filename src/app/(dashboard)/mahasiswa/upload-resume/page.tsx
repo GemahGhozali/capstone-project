@@ -61,7 +61,7 @@ export default async function UploadResumePage() {
     <div className="space-y-6">
       <ResumeStatusCallout viewer="Mahasiswa" resumeStatus={resume.status} dosenPembimbing={resume.dosen.namaLengkap} />
       <ResumeReviews viewer="Mahasiswa" currentResumeStatus={resume.status} reviews={resume.reviews} />
-      {showOverview ? <ResumeOverview resume={resume} /> : <ResumeForm resume={resume} dosenPembimbingList={dosenPembimbingList} />}
+      {showOverview ? <ResumeOverview viewer="Mahasiswa" resume={resume} /> : <ResumeForm resume={resume} dosenPembimbingList={dosenPembimbingList} />}
     </div>
   );
 }
