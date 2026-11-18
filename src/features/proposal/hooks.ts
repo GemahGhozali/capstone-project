@@ -4,10 +4,10 @@ import {
   submitProposal,
   updateProposal,
   reviewProposal,
-  archieveProposal,
-  unarchieveProposal,
-  bulkArchieveProposal,
-  bulkUnarchieveProposal,
+  archiveProposal,
+  unarchiveProposal,
+  bulkArchiveProposal,
+  bulkUnarchiveProposal,
 } from "./actions";
 
 import { toast } from "@/components/ui/toast";
@@ -101,12 +101,12 @@ export function useReviewProposalForm(currentProposalStatus: StatusProposal) {
   return { form, mutation };
 }
 
-export function useToggleArchieveProposal() {
+export function useToggleArchiveProposal() {
   const router = useRouter();
 
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: StatusProposal }) => {
-      const actionFn = status === "Arsip" ? unarchieveProposal(id) : archieveProposal(id);
+      const actionFn = status === "Arsip" ? unarchiveProposal(id) : archiveProposal(id);
       return runAction(() => actionFn);
     },
 
@@ -121,11 +121,11 @@ export function useToggleArchieveProposal() {
   });
 }
 
-export function useBulkArchieveProposal() {
+export function useBulkArchiveProposal() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: (ids: string[]) => runAction(() => bulkArchieveProposal(ids)),
+    mutationFn: (ids: string[]) => runAction(() => bulkArchiveProposal(ids)),
 
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });
@@ -138,11 +138,11 @@ export function useBulkArchieveProposal() {
   });
 }
 
-export function useBulkUnarchieveProposal() {
+export function useBulkUnarchiveProposal() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: (ids: string[]) => runAction(() => bulkUnarchieveProposal(ids)),
+    mutationFn: (ids: string[]) => runAction(() => bulkUnarchiveProposal(ids)),
 
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });

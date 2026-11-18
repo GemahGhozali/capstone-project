@@ -6,8 +6,8 @@ import {
   ReviewProposalSchema,
   SubmitProposalSchema,
   UpdateProposalSchema,
-  BulkArchieveProposalSchema,
-  BulkUnarchieveProposalSchema,
+  BulkArchiveProposalSchema,
+  BulkUnarchiveProposalSchema,
 } from "./schemas";
 
 import { prisma } from "@/libs/prisma";
@@ -316,7 +316,7 @@ export async function reviewProposal(id: string, data: ReviewProposalInput): Pro
   }
 }
 
-export async function archieveProposal(id: string): Promise<ActionResponse> {
+export async function archiveProposal(id: string): Promise<ActionResponse> {
   try {
     await userIsValidAndHasRole("Kaprodi");
 
@@ -338,12 +338,12 @@ export async function archieveProposal(id: string): Promise<ActionResponse> {
 
     return { success: true, message: "Proposal berhasil diarsipkan!" };
   } catch (error) {
-    console.log("❌ Archieve Proposal Error :", error);
+    console.log("❌ Archive Proposal Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }
 
-export async function unarchieveProposal(id: string): Promise<ActionResponse> {
+export async function unarchiveProposal(id: string): Promise<ActionResponse> {
   try {
     await userIsValidAndHasRole("Kaprodi");
 
@@ -372,13 +372,13 @@ export async function unarchieveProposal(id: string): Promise<ActionResponse> {
 
     return { success: true, message: "Proposal berhasil dikembalikan dari arsip!" };
   } catch (error) {
-    console.log("❌ Unarchieve Proposal Error :", error);
+    console.log("❌ Unarchive Proposal Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }
 
-export async function bulkArchieveProposal(ids: string[]): Promise<ActionResponse> {
-  const parsed = BulkArchieveProposalSchema.safeParse({ ids });
+export async function bulkArchiveProposal(ids: string[]): Promise<ActionResponse> {
+  const parsed = BulkArchiveProposalSchema.safeParse({ ids });
 
   if (!parsed.success) {
     return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
@@ -396,13 +396,13 @@ export async function bulkArchieveProposal(ids: string[]): Promise<ActionRespons
 
     return { success: true, message: `${updatedProposals.count} proposal berhasil diarsipkan!` };
   } catch (error) {
-    console.log("❌ Bulk Archieve Proposal Error :", error);
+    console.log("❌ Bulk Archive Proposal Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }
 
-export async function bulkUnarchieveProposal(ids: string[]): Promise<ActionResponse> {
-  const parsed = BulkUnarchieveProposalSchema.safeParse({ ids });
+export async function bulkUnarchiveProposal(ids: string[]): Promise<ActionResponse> {
+  const parsed = BulkUnarchiveProposalSchema.safeParse({ ids });
 
   if (!parsed.success) {
     return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
@@ -445,7 +445,7 @@ export async function bulkUnarchieveProposal(ids: string[]): Promise<ActionRespo
 
     return { success: true, message: `${proposals.length} proposal berhasil dikembalikan dari arsip!` };
   } catch (error) {
-    console.log("❌ Bulk Unarchieve Proposal Error :", error);
+    console.log("❌ Bulk Unarchive Proposal Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }

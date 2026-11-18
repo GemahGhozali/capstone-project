@@ -3,17 +3,17 @@
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { StatusProposal } from "@/generated/prisma/enums";
-import { useToggleArchieveProposal } from "../hooks";
+import { useToggleArchiveProposal } from "../hooks";
 import { IconArchive, IconRefresh } from "@tabler/icons-react";
 
-interface ArchieveProposalButtonProps {
+interface ArchiveProposalButtonProps {
   id: string;
   status: StatusProposal;
 }
 
-export function ArchieveProposalButton({ id, status }: ArchieveProposalButtonProps) {
+export function ArchiveProposalButton({ id, status }: ArchiveProposalButtonProps) {
   const proposalIsArchived = status === "Arsip";
-  const { mutate: toggleArhiceveProposal, isPending } = useToggleArchieveProposal();
+  const { mutate: toggleArhiceveProposal, isPending } = useToggleArchiveProposal();
 
   return (
     <Button variant="outline" size="icon-sm" disabled={isPending} onClick={() => toggleArhiceveProposal({ id, status })}>

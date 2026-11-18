@@ -10,7 +10,7 @@ import { id as localeId } from "date-fns/locale";
 import { DataTableFeatures } from "@/components/data/features";
 import { createColumnHelper } from "@tanstack/react-table";
 import { proposalStatusStyles } from "../utils";
-import { ArchieveProposalButton } from "./archive-proposal-button";
+import { ArchiveProposalButton } from "./archive-proposal-button";
 import { ProposalListItem, ProposalViewer } from "../types";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ProposalListItem>();
@@ -60,7 +60,7 @@ export function proposalTableColumns({ basePath, viewer }: { basePath: string; v
               <IconEye />
             </Button>
           </Link>
-          {viewer === "Kaprodi" && <ArchieveProposalButton id={row.original.id} status={row.original.status} />}
+          {viewer === "Kaprodi" && <ArchiveProposalButton id={row.original.id} status={row.original.status} />}
         </div>
       ),
     }),

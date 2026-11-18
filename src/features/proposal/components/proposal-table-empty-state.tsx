@@ -22,7 +22,7 @@ export function ProposalTableEmptyState<TData extends RowData>({ table }: Propos
         <EmptyMedia variant="icon">
           <IconFolderOpen />
         </EmptyMedia>
-        <EmptyTitle>{isFilterResultEmpty ? "Tidak Ada Data Proposal" : "Proposal Tidak Ditemukan"}</EmptyTitle>
+        <EmptyTitle>{isFilterResultEmpty ? "Proposal Tidak Ditemukan" : "Tidak Ada Data Proposal"}</EmptyTitle>
         <EmptyDescription>
           {searchQuery ? (
             <>

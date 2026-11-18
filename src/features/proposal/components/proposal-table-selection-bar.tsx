@@ -8,7 +8,7 @@ import { ProposalListItem } from "../types";
 import { DataTableFeatures } from "@/components/data/features";
 import { Card, CardContent } from "@/components/ui/card";
 import { IconArchive, IconRefresh, IconX } from "@tabler/icons-react";
-import { useBulkArchieveProposal, useBulkUnarchieveProposal } from "../hooks";
+import { useBulkArchiveProposal, useBulkUnarchiveProposal } from "../hooks";
 
 interface ProposalTableSelectionBarProps {
   table: ReactTable<DataTableFeatures, ProposalListItem>;
@@ -18,20 +18,20 @@ export function ProposalTableSelectionBar({ table }: ProposalTableSelectionBarPr
   const selectedRows = table.getSelectedRowModel().rows;
   const selectedProposalIds = selectedRows.map((row) => row.original.id);
 
-  const { mutateAsync: archieveProposal, isPending: isArchievePending } = useBulkArchieveProposal();
-  const { mutateAsync: unarchieveProposal, isPending: isUnarchievePending } = useBulkUnarchieveProposal();
+  const { mutateAsync: archiveProposal, isPending: isArchivePending } = useBulkArchiveProposal();
+  const { mutateAsync: unarchiveProposal, isPending: isUnarchivePending } = useBulkUnarchiveProposal();
 
-  const isPending = isArchievePending || isUnarchievePending;
+  const isPending = isArchivePending || isUnarchivePending;
 
-  const handleArchieve = async () => {
-    await archieveProposal(selectedProposalIds, {
+  const handleArchive = async () => {
+    await archiveProposal(selectedProposalIds, {
       onSuccess: () => table.resetRowSelection(),
       onError: () => table.resetRowSelection(),
     });
   };
 
-  const handleUnarchieve = async () => {
-    await unarchieveProposal(selectedProposalIds, {
+  const handleUnarchive = async () => {
+    await unarchiveProposal(selectedProposalIds, {
       onSuccess: () => table.resetRowSelection(),
       onError: () => table.resetRowSelection(),
     });
@@ -49,13 +49,13 @@ export function ProposalTableSelectionBar({ table }: ProposalTableSelectionBarPr
             <IconX />
           </Button>
         </div>
-        <Button variant="outline" disabled={isPending} onClick={handleArchieve}>
-          {isArchievePending ? "Memproses" : "Arsipkan"}
-          {isArchievePending ? <Spinner data-icon="inline-end" /> : <IconArchive data-icon="inline-end" />}
+        <Button variant="outline" disabled={isPending} onClick={handleArchive}>
+          {isArchivePending ? "Memproses" : "Arsipkan"}
+          {isArchivePending ? <Spinner data-icon="inline-end" /> : <IconArchive data-icon="inline-end" />}
         </Button>
-        <Button variant="default" disabled={isPending} onClick={handleUnarchieve}>
-          {isUnarchievePending ? "Memproses" : "Kembalikan"}
-          {isUnarchievePending ? <Spinner data-icon="inline-end" /> : <IconRefresh data-icon="inline-end" />}
+        <Button variant="default" disabled={isPending} onClick={handleUnarchive}>
+          {isUnarchivePending ? "Memproses" : "Kembalikan"}
+          {isUnarchivePending ? <Spinner data-icon="inline-end" /> : <IconRefresh data-icon="inline-end" />}
         </Button>
       </CardContent>
     </Card>

@@ -20,11 +20,11 @@ export const ReviewProposalSchema = z.object({
   catatan: z.string().min(1, "Catatan review wajib diisi!"),
 });
 
-export const BulkArchieveProposalSchema = z.object({
+export const BulkArchiveProposalSchema = z.object({
   ids: z.array(z.uuid("ID proposal tidak valid!")).min(1, "Pilih minimal satu proposal!"),
 });
 
-export const BulkUnarchieveProposalSchema = z.object({
+export const BulkUnarchiveProposalSchema = z.object({
   ids: z.array(z.uuid("ID proposal tidak valid!")).min(1, "Pilih minimal satu proposal!"),
 });
 
@@ -32,5 +32,5 @@ export type ReviewProposalInput = z.infer<typeof ReviewProposalSchema>;
 export type SubmitProposalInput = z.infer<typeof SubmitProposalSchema>;
 export type UpdateProposalInput = z.infer<typeof UpdateProposalSchema>;
 export type ProposalInput = SubmitProposalInput | UpdateProposalInput;
-export type BulkArchieveProposalInput = z.infer<typeof BulkArchieveProposalSchema>;
-export type BulkUnarchieveProposalInput = z.infer<typeof BulkUnarchieveProposalSchema>;
+export type BulkArchieveProposalInput = z.infer<typeof BulkArchiveProposalSchema>;
+export type BulkUnarchieveProposalInput = z.infer<typeof BulkUnarchiveProposalSchema>;
