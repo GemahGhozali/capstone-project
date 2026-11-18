@@ -32,5 +32,5 @@ export type ReviewProposalInput = z.infer<typeof ReviewProposalSchema>;
 export type SubmitProposalInput = z.infer<typeof SubmitProposalSchema>;
 export type UpdateProposalInput = z.infer<typeof UpdateProposalSchema>;
 export type ProposalInput = SubmitProposalInput | UpdateProposalInput;
-export type BulkArchieveProposalInput = z.infer<typeof BulkArchiveProposalSchema>;
-export type BulkUnarchieveProposalInput = z.infer<typeof BulkUnarchiveProposalSchema>;
+export type BulkArchiveProposalInput = z.infer<typeof BulkArchiveProposalSchema>;
+export type BulkUnarchiveProposalInput = z.infer<typeof BulkUnarchiveProposalSchema>;

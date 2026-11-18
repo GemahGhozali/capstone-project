@@ -32,5 +32,5 @@ export type SubmitResumeInput = z.infer<typeof SubmitResumeSchema>;
 export type UpdateResumeInput = z.infer<typeof UpdateResumeSchema>;
 export type ReviewResumeInput = z.infer<typeof ReviewResumeSchema>;
 export type ResumeInput = SubmitResumeInput | UpdateResumeInput;
-export type BulkArchieveResumeInput = z.infer<typeof BulkArchiveResumeSchema>;
-export type BulkUnarchieveResumeInput = z.infer<typeof BulkUnarchiveResumeSchema>;
+export type BulkArchiveResumeInput = z.infer<typeof BulkArchiveResumeSchema>;
+export type BulkUnarchiveResumeInput = z.infer<typeof BulkUnarchiveResumeSchema>;
