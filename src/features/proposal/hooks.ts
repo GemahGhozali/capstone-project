@@ -9,7 +9,7 @@ import { ActionResponse } from "@/types";
 import { StatusProposal } from "@/generated/prisma/enums";
 import { useParams, useRouter } from "next/navigation";
 import { ProposalManagementData } from "./types";
-import { submitProposal, updateProposal, reviewProposal } from "./actions";
+import { archieveProposal, submitProposal, unarchieveProposal, updateProposal, reviewProposal } from "./actions";
 import { SubmitProposalSchema, UpdateProposalSchema, ProposalInput, ReviewProposalSchema, ReviewProposalInput } from "./schemas";
 
 interface UseProposalForm {
@@ -59,7 +59,7 @@ export function useReviewProposalForm(currentProposalStatus: StatusProposal) {
 
   const { id } = useParams<{ id: string }>();
 
-  const proposalStatusDefaultValue = currentProposalStatus === "Menunggu" ? undefined : currentProposalStatus;
+  const proposalStatusDefaultValue = currentProposalStatus === "Menunggu" || currentProposalStatus === "Arsip" ? undefined : currentProposalStatus;
 
   const form = useForm<ReviewProposalInput>({
     resolver: zodResolver(ReviewProposalSchema),
@@ -90,4 +90,22 @@ export function useReviewProposalForm(currentProposalStatus: StatusProposal) {
   });
 
   return { form, mutation };
+}
+
+export function useArchieveProposal() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: ({ id, action }: { id: string; action: "archieve" | "unarchieve" }) => {
+      const actionFn = action === "archieve" ? archieveProposal(id) : unarchieveProposal(id);
+      return runAction(() => actionFn);
+    },
+    onSuccess: (response: ActionResponse) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
 }

@@ -40,8 +40,10 @@ const statusOptions = [
 export function ReviewProposalForm({ currentProposalStatus }: ReviewProposalFormProps) {
   const [open, setOpen] = useState(false);
 
+  const proposalIsActive = currentProposalStatus !== "Arsip";
+
   const proposalStatusLocked = currentProposalStatus !== "Menunggu";
-  const proposalStatusDefaultValue = currentProposalStatus === "Menunggu" ? undefined : currentProposalStatus;
+  const proposalStatusDefaultValue = currentProposalStatus === "Menunggu" || currentProposalStatus === "Arsip" ? undefined : currentProposalStatus;
 
   const {
     mutation: { mutate, isPending },
@@ -62,13 +64,15 @@ export function ReviewProposalForm({ currentProposalStatus }: ReviewProposalForm
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={
-          <Button className="max-sm:w-full">
-            Beri Review <IconPlus data-icon="inline-end" />
-          </Button>
-        }
-      />
+      {proposalIsActive && (
+        <DialogTrigger
+          render={
+            <Button className="max-sm:w-full">
+              Beri Review <IconPlus data-icon="inline-end" />
+            </Button>
+          }
+        />
+      )}
       <DialogContent className="sm:max-w-xl" showCloseButton={false}>
         <form onSubmit={onSubmit} className="space-y-6">
           <Callout className="gap-4 p-4 lg:items-start">

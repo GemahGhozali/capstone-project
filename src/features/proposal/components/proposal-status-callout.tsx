@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { StatusProposal } from "@/generated/prisma/enums";
 import { proposalStatusStyles } from "../utils";
-import { IconCircleCheck, IconCircleX, IconEdit, IconHourglass } from "@tabler/icons-react";
+import { IconCircleCheck, IconCircleX, IconEdit, IconHourglass, IconArchive } from "@tabler/icons-react";
 import { Callout, CalloutIcon, CalloutContent, CalloutTitle, CalloutDescription, CalloutAction } from "@/components/ui/callout";
 
 type ProposalViewer = "Mahasiswa" | "Dosen";
@@ -29,6 +29,10 @@ const statusStyles = {
     icon: <IconCircleCheck />,
     iconColor: proposalStatusStyles["Disetujui"],
   },
+  Arsip: {
+    icon: <IconArchive />,
+    iconColor: proposalStatusStyles["Arsip"],
+  },
 } as const;
 
 const calloutMessages: Record<ProposalViewer, Record<StatusProposal, { title: string; description: string }>> = {
@@ -49,6 +53,10 @@ const calloutMessages: Record<ProposalViewer, Record<StatusProposal, { title: st
       title: "Proposal Tim Telah Disetujui!",
       description: "Silahkan lanjut ke tahap pengajuan Resume dan Dosen Pembimbing",
     },
+    Arsip: {
+      title: "Proposal Tim Telah Diarsipkan!",
+      description: "Proposal ini telah diarsipkan oleh Kaprodi dan tidak dapat diubah maupun direview kembali.",
+    },
   },
   Dosen: {
     Menunggu: {
@@ -66,6 +74,10 @@ const calloutMessages: Record<ProposalViewer, Record<StatusProposal, { title: st
     Disetujui: {
       title: "Status Proposal : Disetujui",
       description: "Status proposal telah ditentukan. Anda hanya bisa memberikan review.",
+    },
+    Arsip: {
+      title: "Status Proposal : Arsip",
+      description: "Proposal ini telah diarsipkan oleh Kaprodi dan tidak dapat direview kembali.",
     },
   },
 };

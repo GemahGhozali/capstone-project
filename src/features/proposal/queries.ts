@@ -4,10 +4,13 @@ import { prisma } from "@/libs/prisma";
 import { requireRole } from "@/libs/dal";
 
 export async function getAllProposal() {
-  await requireRole("Dosen Capstone Project", "Kaprodi");
+  const session = await requireRole("Dosen Capstone Project", "Kaprodi");
 
   try {
+    const isDosenCapstone = session.currentRole === "Dosen Capstone Project";
+
     const allProposal = await prisma.proposal.findMany({
+      where: { ...(isDosenCapstone && { status: { not: "Arsip" } }) },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -38,11 +41,17 @@ export async function getAllProposal() {
 }
 
 export async function getProposalById(id: string) {
-  await requireRole("Dosen Capstone Project", "Kaprodi");
+  const session = await requireRole("Dosen Capstone Project", "Kaprodi");
 
   try {
+    // Dosen Capstone hanya melihat proposal yang belum diarsipkan
+    const isDosenCapstone = session.currentRole === "Dosen Capstone Project";
+
     const proposal = await prisma.proposal.findUnique({
-      where: { id },
+      where: {
+        id,
+        ...(isDosenCapstone && { status: { not: "Arsip" } }),
+      },
       select: {
         id: true,
         filePath: true,

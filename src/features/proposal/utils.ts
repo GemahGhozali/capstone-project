@@ -5,6 +5,7 @@ export const proposalStatusColors: Record<StatusProposal, WarnaLog> = {
   Ditolak: "Danger",
   Revisi: "Warning",
   Disetujui: "Success",
+  Arsip: "Neutral",
 };
 
 export function getProposalStatusLogMessage(status: StatusProposal): string {
@@ -28,4 +29,5 @@ export const proposalStatusStyles: Record<StatusProposal, string> = {
   Revisi: "bg-yellow-500/15 text-yellow-500",
   Disetujui: "bg-green-500/15 text-green-500",
   Ditolak: "bg-red-500/15 text-red-500",
+  Arsip: "bg-neutral-500/15 text-neutral-500",
 };

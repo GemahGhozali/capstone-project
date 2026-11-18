@@ -177,7 +177,14 @@ export async function updateProposal(id: string, data: ProposalInput): Promise<A
       return { success: false, message: "Proposal tidak bisa diubah karena telah disetujui!" };
     }
 
-    // Validasi 4 : Cek apakah proposal harus direplace dengan yang baru
+    // Validasi 4 : Cek apakah proposal telah diarsipkan (arsip tidak bisa diedit)
+    const proposalIsArchived = proposalStatus === "Arsip";
+
+    if (proposalIsArchived) {
+      return { success: false, message: "Proposal tidak bisa diubah karena telah diarsipkan!" };
+    }
+
+    // Validasi 5 : Cek apakah proposal harus direplace dengan yang baru
     let newUploadedProposalPath = null;
     let finalProposalPath = proposal.filePath;
 
@@ -228,7 +235,7 @@ export async function updateProposal(id: string, data: ProposalInput): Promise<A
         throw error;
       });
 
-    // Validasi 5 : Cek apakah file proposal lama perlu dihapus
+    // Validasi 6 : Cek apakah file proposal lama perlu dihapus
     const oldProposalFile = proposal.filePath;
 
     if (isNewProposalUploaded) {
@@ -261,7 +268,12 @@ export async function reviewProposal(id: string, data: ReviewProposalInput): Pro
       return { success: false, message: "Proposal tidak ditemukan!" };
     }
 
-    // Validasi 2 : Cek apakah proposal boleh di ubah status nya atau tidak
+    // Validasi 2 : Cek apakah proposal telah diarsipkan
+    if (proposal.status === "Arsip") {
+      return { success: false, message: "Proposal sudah diarsipkan dan tidak bisa direview!" };
+    }
+
+    // Validasi 3 : Cek apakah proposal boleh di ubah status nya atau tidak
     const currentProposalStatus = proposal.status;
     const proposalAvailableToSetStatus = proposal.status === "Menunggu";
     const finalProposalStatus = proposalAvailableToSetStatus ? newStatus : currentProposalStatus;
@@ -290,6 +302,67 @@ export async function reviewProposal(id: string, data: ReviewProposalInput): Pro
     return { success: true, message: "Proposal berhasil direview!" };
   } catch (error) {
     console.log("❌ Review Proposal Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function archieveProposal(id: string): Promise<ActionResponse> {
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    // Validasi 1 : Cek apakah data proposal ditemukan
+    const proposal = await prisma.proposal.findUnique({ where: { id }, select: { id: true, status: true } });
+
+    if (!proposal) {
+      return { success: false, message: "Proposal tidak ditemukan!" };
+    }
+
+    // Validasi 2 : Cek apakah proposal sudah diarsipkan
+    const proposalIsAlreadyArchived = proposal.status === "Arsip";
+
+    if (proposalIsAlreadyArchived) {
+      return { success: false, message: "Proposal sudah diarsipkan!" };
+    }
+
+    await prisma.proposal.update({ where: { id: proposal.id }, data: { status: "Arsip" } });
+
+    return { success: true, message: "Proposal berhasil diarsipkan!" };
+  } catch (error) {
+    console.log("❌ Archieve Proposal Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function unarchieveProposal(id: string): Promise<ActionResponse> {
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    // Validasi 1 : Cek apakah data proposal ditemukan
+    const proposal = await prisma.proposal.findUnique({ where: { id }, select: { id: true, status: true } });
+
+    if (!proposal) {
+      return { success: false, message: "Proposal tidak ditemukan!" };
+    }
+
+    // Validasi 2 : Cek apakah proposal memang berstatus arsip
+    const proposalIsNotArchived = proposal.status !== "Arsip";
+
+    if (proposalIsNotArchived) {
+      return { success: false, message: "Proposal belum diarsipkan!" };
+    }
+
+    // Status dikembalikan mengikuti review terakhir (tanpa review = Menunggu)
+    const lastReview = await prisma.proposalReview.findFirst({
+      where: { proposalId: proposal.id },
+      orderBy: { createdAt: "desc" },
+      select: { status: true },
+    });
+
+    await prisma.proposal.update({ where: { id: proposal.id }, data: { status: lastReview?.status ?? "Menunggu" } });
+
+    return { success: true, message: "Proposal berhasil dikembalikan dari arsip!" };
+  } catch (error) {
+    console.log("❌ Unarchieve Proposal Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }
