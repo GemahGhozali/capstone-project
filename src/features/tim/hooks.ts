@@ -1,5 +1,16 @@
 "use client";
 
+import {
+  updateTeam,
+  archiveTim,
+  createTeam,
+  unarchiveTim,
+  bulkArchiveTim,
+  bulkUnarchiveTim,
+  rejectTeamInvitation,
+  acceptTeamInvitation,
+} from "./actions";
+
 import { toast } from "@/components/ui/toast";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -8,12 +19,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useMutation } from "@tanstack/react-query";
 import { ActionResponse } from "@/types";
-import { KategoriCapstone } from "@/generated/prisma/enums";
 import { SearchMahasiswaResult } from "./types";
 import { useFieldArray, useForm } from "react-hook-form";
+import { KategoriCapstone, StatusTim } from "@/generated/prisma/enums";
 import { useEffect, useMemo, useState } from "react";
 import { TeamInput, TeamMemberInput, TeamSchema } from "./schemas";
-import { acceptTeamInvitation, createTeam, rejectTeamInvitation, updateTeam } from "./actions";
 
 export function useSearchMahasiswa() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -120,7 +130,6 @@ export function useTeamForm({ teamData }: UseTeamFormProps) {
       kategoriCapstone: KategoriCapstone.EPD,
       peran: "Anggota",
       statusPersetujuan: "Menunggu",
-      isCurrentLoginUser: false,
     });
   };
 
@@ -185,6 +194,60 @@ export function useRejectTeamInvitation() {
       toast.add({ type: "success", description: response.message });
       router.refresh();
     },
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
+}
+
+export function useToggleArchiveTim() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: StatusTim }) => {
+      const actionFn = status === "Arsip" ? unarchiveTim(id) : archiveTim(id);
+      return runAction(() => actionFn);
+    },
+
+    onSuccess: (response: ActionResponse) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
+}
+
+export function useBulkArchiveTim() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (ids: string[]) => runAction(() => bulkArchiveTim(ids)),
+
+    onSuccess: (response: ActionResponse) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
+}
+
+export function useBulkUnarchiveTim() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (ids: string[]) => runAction(() => bulkUnarchiveTim(ids)),
+
+    onSuccess: (response: ActionResponse) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+
     onError: (response: ActionResponse) => {
       toast.add({ type: "error", description: response.message });
     },

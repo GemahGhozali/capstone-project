@@ -19,5 +19,15 @@ export const TeamSchema = z.object({
     .max(5, "Tim maksimal memiliki 5 anggota (Ketua + maksimal 4 anggota)."),
 });
 
+export const BulkArchiveTimSchema = z.object({
+  ids: z.array(z.uuid("ID tim tidak valid!")).min(1, "Pilih minimal satu tim!"),
+});
+
+export const BulkUnarchiveTimSchema = z.object({
+  ids: z.array(z.uuid("ID tim tidak valid!")).min(1, "Pilih minimal satu tim!"),
+});
+
 export type TeamInput = z.infer<typeof TeamSchema>;
 export type TeamMemberInput = z.infer<typeof TeamMemberSchema>;
+export type BulkArchiveTimInput = z.infer<typeof BulkArchiveTimSchema>;
+export type BulkUnarchiveTimInput = z.infer<typeof BulkUnarchiveTimSchema>;

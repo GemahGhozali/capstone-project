@@ -4,8 +4,8 @@ import { prisma } from "@/libs/prisma";
 import { ActionResponse } from "@/types";
 import { formatZodError } from "@/utils/format-zod-error";
 import { userIsValidAndHasRole } from "@/libs/dal";
-import { TeamInput, TeamSchema } from "./schemas";
 import { PeranAnggotaTim, StatusPersetujuan } from "@/generated/prisma/enums";
+import { BulkArchiveTimSchema, BulkUnarchiveTimSchema, TeamInput, TeamSchema } from "./schemas";
 import { ensureAllTeamMembersIsValid, validateTeamLeaderDuplication, validateTeamMembersDuplication } from "./services";
 
 export async function createTeam(data: TeamInput): Promise<ActionResponse> {
@@ -281,6 +281,110 @@ export async function rejectTeamInvitation(): Promise<ActionResponse> {
     return { success: true, message: "Undangan tim berhasil ditolak!" };
   } catch (error) {
     console.log("❌ Reject Team Invitation Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function archiveTim(id: string): Promise<ActionResponse> {
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    // Validasi 1 : Cek apakah data tim ditemukan
+    const team = await prisma.tim.findUnique({ where: { id }, select: { id: true, status: true } });
+
+    if (!team) {
+      return { success: false, message: "Tim tidak ditemukan!" };
+    }
+
+    // Validasi 2 : Cek apakah tim sudah diarsipkan
+    const timIsAlreadyArchived = team.status === "Arsip";
+
+    if (timIsAlreadyArchived) {
+      return { success: false, message: "Tim sudah diarsipkan!" };
+    }
+
+    await prisma.tim.update({ where: { id: team.id }, data: { status: "Arsip" } });
+
+    return { success: true, message: "Tim berhasil diarsipkan!" };
+  } catch (error) {
+    console.log("❌ Archive Team Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function unarchiveTim(id: string): Promise<ActionResponse> {
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    // Validasi 1 : Cek apakah data tim ditemukan
+    const team = await prisma.tim.findUnique({ where: { id }, select: { id: true, status: true } });
+
+    if (!team) {
+      return { success: false, message: "Tim tidak ditemukan!" };
+    }
+
+    // Validasi 2 : Cek apakah tim memang berstatus arsip
+    const timIsNotArchived = team.status !== "Arsip";
+
+    if (timIsNotArchived) {
+      return { success: false, message: "Tim belum diarsipkan!" };
+    }
+
+    await prisma.tim.update({ where: { id: team.id }, data: { status: "Aktif" } });
+
+    return { success: true, message: "Tim berhasil dikembalikan ke Aktif!" };
+  } catch (error) {
+    console.log("❌ Unarchive Team Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function bulkArchiveTim(ids: string[]): Promise<ActionResponse> {
+  const parsed = BulkArchiveTimSchema.safeParse({ ids });
+
+  if (!parsed.success) {
+    return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
+  }
+
+  const { ids: validIds } = parsed.data;
+
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    // Tim yang sudah berstatus arsip otomatis dilewati
+    const updatedTim = await prisma.tim.updateMany({
+      where: { id: { in: validIds }, status: { not: "Arsip" } },
+      data: { status: "Arsip" },
+    });
+
+    return { success: true, message: `${updatedTim.count} tim berhasil diarsipkan!` };
+  } catch (error) {
+    console.log("❌ Bulk Archive Team Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function bulkUnarchiveTim(ids: string[]): Promise<ActionResponse> {
+  const parsed = BulkUnarchiveTimSchema.safeParse({ ids });
+
+  if (!parsed.success) {
+    return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
+  }
+
+  const { ids: validIds } = parsed.data;
+
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    // Tim yang belum berstatus arsip otomatis dilewati
+    const updatedTim = await prisma.tim.updateMany({
+      where: { id: { in: validIds }, status: "Arsip" },
+      data: { status: "Aktif" },
+    });
+
+    return { success: true, message: `${updatedTim.count} tim berhasil dikembalikan dari arsip!` };
+  } catch (error) {
+    console.log("❌ Bulk Unarchive Team Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }
