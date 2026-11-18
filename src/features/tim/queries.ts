@@ -2,7 +2,7 @@ import "server-only";
 
 import { prisma } from "@/libs/prisma";
 import { requireRole } from "@/libs/dal";
-import { getTeamStatus } from "./services";
+import { checkTeamCompleteness } from "./services";
 import { getAuthenticatedUserData } from "../auth/queries";
 import { KategoriCapstone, PeranAnggotaTim, StatusMahasiswa, StatusPersetujuan } from "@/generated/prisma/enums";
 
@@ -185,6 +185,7 @@ export async function getAllTeam() {
       select: {
         id: true,
         nama: true,
+        status: true,
         createdAt: true,
         anggotaTim: {
           select: { statusPersetujuan: true },
@@ -195,9 +196,9 @@ export async function getAllTeam() {
     return allTeam.map((tim) => ({
       id: tim.id,
       nama: tim.nama,
-      status: getTeamStatus(tim.anggotaTim.map((anggota) => anggota.statusPersetujuan)),
+      status: tim.status,
+      statusKelengkapan: checkTeamCompleteness(tim.anggotaTim.map((anggota) => anggota.statusPersetujuan)),
       jumlahAnggota: tim.anggotaTim.length,
-      tanggalPembuatan: tim.createdAt,
     }));
   } catch (error) {
     console.error("❌ Get All Team Error :", error);
@@ -214,6 +215,7 @@ export async function getTeamById(id: string) {
       select: {
         id: true,
         nama: true,
+        status: true,
         createdAt: true,
         anggotaTim: {
           orderBy: [{ peran: "asc" }, { mahasiswa: { nim: "asc" } }],
@@ -243,8 +245,8 @@ export async function getTeamById(id: string) {
     return {
       id: team.id,
       nama: team.nama,
-      status: getTeamStatus(team.anggotaTim.map((anggota) => anggota.statusPersetujuan)),
-      tanggalPembuatan: team.createdAt,
+      status: team.status,
+      statusKelengkapan: checkTeamCompleteness(team.anggotaTim.map((anggota) => anggota.statusPersetujuan)),
       anggota: team.anggotaTim.map((anggota) => ({
         id: anggota.mahasiswa.id,
         namaLengkap: anggota.mahasiswa.user.namaLengkap,
