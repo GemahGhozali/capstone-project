@@ -7,5 +7,5 @@ export const teamStatusStyles: Record<StatusTim, string> = {
 
 export const teamCompletenessStatusStyles: Record<string, string> = {
   Lengkap: "bg-green-500/15 text-green-500",
-  "Belum Lengkap": "bg-blue-500/15 text-blue-500",
+  "Belum Lengkap": "bg-neutral-500/15 text-neutral-500",
 };
