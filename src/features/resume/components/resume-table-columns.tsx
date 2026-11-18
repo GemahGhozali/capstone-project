@@ -10,6 +10,7 @@ import { id as localeId } from "date-fns/locale";
 import { DataTableFeatures } from "@/components/data/features";
 import { resumeStatusStyles } from "../utils";
 import { createColumnHelper } from "@tanstack/react-table";
+import { ArchiveResumeButton } from "./archive-resume-button";
 import { generateNameInitials } from "@/utils/generate-name-initials";
 import { ResumeListItem, ResumeViewer } from "../types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -68,6 +69,7 @@ export function resumeTableColumns({ basePath, viewer }: { basePath: string; vie
     ...(viewer === "Kaprodi" ? [dosenPembimbingColumn] : []),
 
     columnHelper.accessor("status", {
+      id: "status",
       header: "Status",
       filterFn: "equalsString",
       cell: ({ getValue }) => {
@@ -81,12 +83,14 @@ export function resumeTableColumns({ basePath, viewer }: { basePath: string; vie
       id: "actions",
       header: "Actions",
       cell: ({ row }) => (
-        <Link href={`${basePath}/${row.original.id}/detail`}>
-          <Button variant="outline" size="sm" aria-label="Lihat detail resume">
-            <IconEye stroke={1.75} data-icon="inline-start" />
-            Lihat Detail
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href={`${basePath}/${row.original.id}/detail`}>
+            <Button variant="outline" size="icon-sm">
+              <IconEye />
+            </Button>
+          </Link>
+          {viewer === "Kaprodi" && <ArchiveResumeButton id={row.original.id} status={row.original.status} />}
+        </div>
       ),
     }),
   ]);

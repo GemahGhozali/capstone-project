@@ -11,24 +11,25 @@ interface ResumeTableEmptyStateProps<TData extends RowData> {
 
 export function ResumeTableEmptyState<TData extends RowData>({ table }: ResumeTableEmptyStateProps<TData>) {
   const searchQuery = (table.getColumn("search")?.getFilterValue() as string) ?? "";
-  const selectedStatus = (table.getColumn("status")?.getFilterValue() as string) ?? "";
+
+  const totalRows = table.getPreFilteredRowModel().rows.length;
+  const filteredRows = table.getFilteredRowModel().rows.length;
+  const isFilterResultEmpty = totalRows > 0 && filteredRows === 0;
 
   return (
     <Empty>
-      <EmptyHeader>
+      <EmptyHeader className="max-w-none!">
         <EmptyMedia variant="icon">
           <IconFolderOpen />
         </EmptyMedia>
-        <EmptyTitle>{searchQuery || selectedStatus ? "Resume Tidak Ditemukan" : "Tidak Ada Resume"}</EmptyTitle>
+        <EmptyTitle>{isFilterResultEmpty ? "Resume Tidak Ditemukan" : "Tidak Ada Data Resume"}</EmptyTitle>
         <EmptyDescription>
           {searchQuery ? (
             <>
-              Tidak ada mahasiswa dengan nama atau NIM <span className="font-medium">&ldquo;{searchQuery}&rdquo;</span>
+              Tidak ada resume dengan kata kunci <span className="font-medium">&ldquo;{searchQuery}&rdquo;</span>
             </>
-          ) : selectedStatus ? (
-            <>
-              Tidak ada resume dengan status <span className="font-medium">&ldquo;{selectedStatus}&rdquo;</span>
-            </>
+          ) : isFilterResultEmpty ? (
+            <>Tidak ada resume yang cocok dengan filter yang dipilih</>
           ) : (
             "Semua resume yang masuk akan ditampilkan disini"
           )}

@@ -21,6 +21,8 @@ export function ResumeTable({ data, viewer }: ResumeTableProps) {
     <DataTable
       data={data}
       columns={columns}
+      getRowId={(resume) => resume.id}
+      enableRowSelection={viewer === "Kaprodi"}
       initialState={{ columnVisibility: { search: false } }}
       renderToolbar={(table) => <ResumeTableToolbar table={table} />}
       renderEmptyState={(table) => <ResumeTableEmptyState table={table} />}

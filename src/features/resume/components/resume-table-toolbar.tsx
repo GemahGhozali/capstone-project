@@ -1,77 +1,45 @@
 "use client";
 
-import React from "react";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import { cn } from "cn";
-import { Button } from "@/components/ui/button";
+import { IconNut } from "@tabler/icons-react";
+import { ReactTable } from "@tanstack/react-table";
 import { StatusResume } from "@/generated/prisma/enums";
+import { DataSearchBar } from "@/components/data/data-search-bar";
+import { ResumeListItem } from "../types";
 import { DataTableFeatures } from "@/components/data/features";
-import { ReactTable, RowData } from "@tanstack/react-table";
-import { IconNut, IconSearch } from "@tabler/icons-react";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { DataFilterDropdown } from "@/components/data/data-filter-dropdown";
+import { DataColumnVisibility } from "@/components/data/data-column-visibility";
+import { ResumeTableSelectionBar } from "./resume-table-selection-bar";
 
-interface ResumeTableToolbarProps<TData extends RowData> {
-  table: ReactTable<DataTableFeatures, TData>;
+interface ResumeTableToolbarProps {
+  table: ReactTable<DataTableFeatures, ResumeListItem>;
 }
 
-export function ResumeTableToolbar<TData extends RowData>({ table }: ResumeTableToolbarProps<TData>) {
-  const searchQuery = (table.getColumn("search")?.getFilterValue() as string) ?? "";
-  const statusFilter = (table.getColumn("status")?.getFilterValue() as string) ?? "";
+const ColumnLabels: Record<string, string> = {
+  namaMahasiswa: "Mahasiswa",
+  mitra: "Mitra",
+  subjudul: "Subjudul",
+  tanggalPengajuan: "Tanggal Pengajuan",
+  dosenPembimbing: "Dosen Pembimbing",
+  status: "Status",
+};
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
-    table.getColumn("search")?.setFilterValue(event.target.value);
-  };
-
-  const handleFilterStatus = (value: string) => {
-    table.getColumn("status")?.setFilterValue(value);
-  };
-
-  const statusFilterActive = statusFilter !== "";
-
-  const filterActiveClass =
-    "border-sidebar-primary/40! bg-sidebar-primary/10! text-sidebar-primary hover:bg-sidebar-primary/10 hover:text-sidebar-primary aria-expanded:bg-sidebar-primary/10 aria-expanded:text-sidebar-primary";
+export function ResumeTableToolbar({ table }: ResumeTableToolbarProps) {
+  const isSelectionActive = table.getSelectedRowModel().rows.length > 0;
 
   return (
-    <div className="flex gap-3 max-sm:flex-col">
-      <InputGroup className="sm:max-w-96">
-        <InputGroupAddon align="inline-start">
-          <IconSearch className="text-muted-foreground" />
-        </InputGroupAddon>
-        <InputGroupInput placeholder="Cari NIM, nama, judul, atau mitra disini..." value={searchQuery} onChange={handleSearch} />
-      </InputGroup>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button variant="outline" className={cn(statusFilterActive && filterActiveClass)}>
-              <IconNut data-icon="inline-start" />
-              Status Resume
-            </Button>
-          }
+    <div className="space-y-6">
+      <div className="flex gap-3 max-sm:flex-col">
+        <DataSearchBar table={table} placeholder="Cari NIM, nama, subjudul, atau mitra disini..." className="sm:max-w-96" />
+        <DataColumnVisibility table={table} labels={ColumnLabels} />
+        <DataFilterDropdown
+          table={table}
+          columnId="status"
+          label="Status Resume"
+          icon={<IconNut data-icon="inline-start" />}
+          options={Object.keys(StatusResume)}
         />
-        <DropdownMenuContent>
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>Status Resume</DropdownMenuLabel>
-            <DropdownMenuRadioGroup value={statusFilter} onValueChange={handleFilterStatus}>
-              <DropdownMenuRadioItem value="">Semua</DropdownMenuRadioItem>
-              {Object.keys(StatusResume).map((status) => (
-                <DropdownMenuRadioItem key={status} value={status}>
-                  {status}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      </div>
+      {isSelectionActive && <ResumeTableSelectionBar table={table} />}
     </div>
   );
 }
