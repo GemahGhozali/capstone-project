@@ -47,7 +47,9 @@ export async function ensureMahasiswaCanFillKuesioner(mahasiswaId: string) {
     return { isValid: false, message: "Anda bukan mahasiswa berstatus aktif!" };
   }
 
-  const mahasiswaResumeIsNotApproved = mahasiswa.resume?.status !== "Disetujui";
+  // Resume arsip dianggap lolos, asal sebelumnya telah disetujui
+  const resumeStatus = mahasiswa.resume?.status;
+  const mahasiswaResumeIsNotApproved = resumeStatus !== "Disetujui" && resumeStatus !== "Arsip";
 
   if (mahasiswaResumeIsNotApproved) {
     return { isValid: false, message: "Resume anda belum disetujui! Anda belum bisa mengisi kuesioner." };

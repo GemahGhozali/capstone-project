@@ -164,7 +164,8 @@ export async function bookingBimbingan(jadwalId: string, data: BookingJadwalInpu
     }
 
     // Validasi 2 : Cek apakah resume mahasiswa sudah disetujui
-    const mahasiswaResumeIsNotApproved = mahasiswa.resume?.status !== "Disetujui";
+    const resumeStatus = mahasiswa.resume?.status;
+    const mahasiswaResumeIsNotApproved = resumeStatus !== "Disetujui" && resumeStatus !== "Arsip";
 
     if (mahasiswaResumeIsNotApproved) {
       return { success: false, message: "Resume anda belum disetujui! Anda belum bisa booking bimbingan." };
