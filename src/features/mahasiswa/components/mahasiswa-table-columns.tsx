@@ -70,6 +70,7 @@ export function mahasiswaTableColumns({ data, onDelete }: MahasiswaTableActions)
     }),
 
     columnHelper.accessor("status", {
+      id: "status",
       header: "Status",
       filterFn: "equalsString",
       cell: ({ getValue }) => {

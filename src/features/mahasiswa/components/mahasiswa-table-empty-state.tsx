@@ -18,7 +18,7 @@ export function MahasiswaTableEmptyState<TData extends RowData>({ table }: Mahas
 
   return (
     <Empty>
-      <EmptyHeader>
+      <EmptyHeader className="max-w-none!">
         <EmptyMedia variant="icon">
           <IconFolderOpen />
         </EmptyMedia>
