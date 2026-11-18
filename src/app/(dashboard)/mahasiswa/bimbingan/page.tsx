@@ -1,17 +1,11 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { IconInfoCircle } from "@tabler/icons-react";
-import { BookingBimbinganMahasiswaTable } from "@/features/bimbingan/components/booking-bimbingan-mahasiswa-table";
 import { getAuthenticatedMahasiswaResume } from "@/features/resume/queries";
-import { getBookingBimbinganMahasiswa, getJadwalBimbinganMahasiswa } from "@/features/bimbingan/queries";
 import { Callout, CalloutIcon, CalloutContent, CalloutTitle, CalloutDescription, CalloutAction } from "@/components/ui/callout";
 
-export default async function JadwalBimbinganPage() {
-  const [mahasiswaResume, bookingBimbinganMahasiswa, jadwalBimbinganMahasiswa] = await Promise.all([
-    getAuthenticatedMahasiswaResume(),
-    getBookingBimbinganMahasiswa(),
-    getJadwalBimbinganMahasiswa(),
-  ]);
+export default async function BimbinganPage() {
+  const [mahasiswaResume] = await Promise.all([getAuthenticatedMahasiswaResume()]);
 
   if (!mahasiswaResume) {
     return (
@@ -48,13 +42,5 @@ export default async function JadwalBimbinganPage() {
     );
   }
 
-  return (
-    <div className="space-y-4">
-      <div className="space-y-0.5">
-        <h1 className="font-semibold text-lg">Jadwal Bimbingan</h1>
-        <p className="text-muted-foreground text-sm">Daftar jadwal bimbingan yang telah anda booking.</p>
-      </div>
-      <BookingBimbinganMahasiswaTable bookingBimbinganMahasiswa={bookingBimbinganMahasiswa} jadwalBimbinganMahasiswa={jadwalBimbinganMahasiswa} />
-    </div>
-  );
+  return <div>Bimbingan</div>;
 }
