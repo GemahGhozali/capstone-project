@@ -151,6 +151,7 @@ model DosenPembimbingDetail {
 model Tim {
   id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nama       String       @db.VarChar
+  status     StatusTim    @default(Aktif)
   createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz
   updatedAt  DateTime     @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -196,16 +197,16 @@ model Proposal {
 }
 
 model ProposalReview {
-  id         String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  proposalId String         @map("proposal_id") @db.Uuid
-  dosenId    String?        @map("dosen_id") @db.Uuid
+  id         String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  proposalId String               @map("proposal_id") @db.Uuid
+  dosenId    String?              @map("dosen_id") @db.Uuid
   catatan    String
-  status     StatusProposal
-  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt  DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+  status     StatusReviewProposal
+  createdAt  DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime             @updatedAt @map("updated_at") @db.Timestamptz
 
-  proposal   Proposal       @relation(fields: [proposalId], references: [id], onDelete: Cascade)
-  dosen      Dosen?         @relation(fields: [dosenId], references: [id], onDelete: SetNull)
+  proposal   Proposal             @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  dosen      Dosen?               @relation(fields: [dosenId], references: [id], onDelete: SetNull)
 
   @@map("proposal_review")
 }
@@ -232,16 +233,16 @@ model Resume {
 }
 
 model ResumeReview {
-  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  dosenId   String?      @map("dosen_id") @db.Uuid
-  resumeId  String       @map("resume_id") @db.Uuid
+  id        String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dosenId   String?             @map("dosen_id") @db.Uuid
+  resumeId  String              @map("resume_id") @db.Uuid
   catatan   String
-  status    StatusResume
-  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  status    StatusReviewResume
+  createdAt DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime            @updatedAt @map("updated_at") @db.Timestamptz
 
-  dosen     Dosen?       @relation(fields: [dosenId], references: [id], onDelete: SetNull)
-  resume    Resume       @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  dosen     Dosen?              @relation(fields: [dosenId], references: [id], onDelete: SetNull)
+  resume    Resume              @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@map("resume_review")
 }
@@ -415,12 +416,32 @@ enum StatusProposal {
   Disetujui
   Ditolak
   Revisi
+  Arsip
 }
 
 enum StatusResume {
   Menunggu
   Disetujui
   Ditolak
+  Arsip
+}
+
+enum StatusReviewProposal {
+  Menunggu
+  Disetujui
+  Ditolak
+  Revisi
+}
+
+enum StatusReviewResume {
+  Menunggu
+  Disetujui
+  Ditolak
+}
+
+enum StatusTim {
+  Aktif
+  Arsip
 }
 
 enum StatusJadwalBimbingan {
