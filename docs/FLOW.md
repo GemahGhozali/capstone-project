@@ -75,6 +75,8 @@ State token: `aktif (used_at NULL, belum expired) → terpakai (used_at terisi) 
 
 **Lock tim**: saat proposal `Menunggu`/`Disetujui` → invite/keluarkan/disable edit tim ditolak.
 
+**Arsip tim (Kaprodi)**: `Aktif ↔ Arsip` (toggle dua arah, tanpa log) — penanda saja, tidak mengubah alur bisnis.
+
 ---
 
 ## 2. Proposal
@@ -104,6 +106,13 @@ Tim terbentuk + belum punya proposal (atau status Ditolak/Revisi)
 ```
 
 **Status proposal**: `Menunggu → Disetujui | Ditolak | Revisi`.
+
+**Arsip proposal (Kaprodi)**:
+```
+Status manapun → Arsip (Kaprodi; tanpa log)
+Arsip → (un-arsip) status review terakhir (ProposalReview terbaru); tanpa review → Menunggu
+```
+Proposal terarsip tidak bisa direview & tidak bisa diedit; Dosen Capstone tidak melihatnya (list/detail), Kaprodi & mahasiswa tetap melihat.
 
 ---
 
@@ -135,6 +144,13 @@ Prasyarat: Proposal tim = Disetujui
 ```
 
 **Status resume**: `Menunggu → Disetujui | Ditolak` (tanpa `Revisi`).
+
+**Arsip resume (Kaprodi)**:
+```
+Status manapun → Arsip (Kaprodi; tanpa log)
+Arsip → (un-arsip) status review terakhir (ResumeReview terbaru); tanpa review → Menunggu
+```
+Resume terarsip tidak bisa direview & tidak bisa diedit; Dosen Pembimbing tidak melihatnya (list/detail), Kaprodi & mahasiswa tetap melihat. Cek syarat `Resume = Disetujui` (booking bimbingan, kuesioner) & prasyarat upload resume (`Proposal = Disetujui`) menganggap `Arsip` lolos.
 
 ---
 
@@ -278,12 +294,14 @@ TANPA jawaban individual mahasiswa
 (tidak ada) → Menunggu → Disetujui (final, lock)
                     └→ Ditolak  → (upload baru → Menunggu)
                     └→ Revisi   → (upload baru → Menunggu)
+Status manapun → Arsip (Kaprodi) → (un-arsip) status review terakhir ?? Menunggu
 ```
 
 ### Resume
 ```
 (tidak ada) → Menunggu → Disetujui (set Mahasiswa.dosen_id)
                     └→ Ditolak → (upload baru → Menunggu)
+Status manapun → Arsip (Kaprodi) → (un-arsip) status review terakhir ?? Menunggu
 ```
 
 ### Booking

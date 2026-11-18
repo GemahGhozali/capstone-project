@@ -62,6 +62,10 @@ Dokumen ini adalah **single source of truth** untuk aturan bisnis. Baca sebelum 
 - Sebelum tim terkunci (belum ada proposal / proposal masih bisa diedit), Ketua boleh keluarkan anggota dan anggota boleh keluar (keduanya = hapus baris).
 - **Tidak ada mekanisme bubar tim** untuk saat ini.
 - **Kategori capstone** (`kategori_capstone`: `EPD` / `SM`) **ditentukan Ketua saat invite** anggota (per anggota) — 1 tim boleh berisi kategori berbeda-beda.
+- **Arsip tim** (`Tim.status`: `Aktif` | `Arsip`, default `Aktif`):
+  - Hanya **Kaprodi** yang bisa mengarsipkan / mengembalikan ke `Aktif` (toggle dua arah, via action `updateTimStatus`).
+  - Arsip tim = **penanda saja** — tidak mengubah alur bisnis manapun (anggota tetap terikat tim, tim terkunci tetap terkunci).
+  - Aksi arsip/un-arsip **tidak** dicatat ke `ActivityLog`.
 
 ---
 
@@ -82,6 +86,12 @@ Dokumen ini adalah **single source of truth** untuk aturan bisnis. Baca sebelum 
   - **1 dosen capstone boleh memberikan feedback berkali-kali** pada proposal yang sama.
 - **Status proposal**: `Menunggu` → `Disetujui` | `Ditolak` | `Revisi`.
 - **Status proposal hanya boleh diset setelah semua anggota tim `Disetujui`** (tim terbentuk).
+- **Arsip proposal** (`Arsip` adalah bagian enum `StatusProposal`):
+  - Hanya **Kaprodi** yang bisa mengarsipkan / mengembalikan (via `arsipProposal` / `unarsipProposal`).
+  - Proposal terarsip **tidak bisa direview** (dosen capstone ditolak di server action) dan **tidak bisa diedit** mahasiswa.
+  - Proposal terarsip **tidak tampil** untuk Dosen Capstone (list & detail difilter `status != Arsip`); **Kaprodi melihat semua**; mahasiswa tetap melihat proposal timnya sendiri.
+  - **Un-arsip**: status dikembalikan **mengikuti review terakhir** (`ProposalReview` terbaru); jika belum pernah direview → kembali `Menunggu`.
+  - Aksi arsip/un-arsip **tidak** dicatat ke `ActivityLog`.
 - Log timeline aktifitas proposal dicatat ke `ActivityLog` (entity `Proposal`).
 
 ---
@@ -106,6 +116,13 @@ Dokumen ini adalah **single source of truth** untuk aturan bisnis. Baca sebelum 
   - `Mahasiswa.dosen_id` (dosen pembimbing tetap mahasiswa) **di-set** = `Resume.dosen_id`.
   - Mahasiswa tersebut **eligible booking bimbingan**.
 - **Status resume**: `Menunggu` → `Disetujui` | `Ditolak` (tanpa tahap `Revisi` — kalau perlu perbaikan, dosen pilih `Ditolak`).
+- **Arsip resume** (`Arsip` adalah bagian enum `StatusResume`):
+  - Hanya **Kaprodi** yang bisa mengarsipkan / mengembalikan (via `arsipResume` / `unarsipResume`).
+  - Resume terarsip **tidak bisa direview** (dosen pembimbing ditolak di server action) dan **tidak bisa diedit** mahasiswa.
+  - Resume terarsip **tidak tampil** untuk Dosen Pembimbing (list & detail difilter `status != Arsip`); **Kaprodi melihat semua**; mahasiswa tetap melihat resume-nya sendiri.
+  - **Un-arsip**: status dikembalikan **mengikuti review terakhir** (`ResumeReview` terbaru); jika belum pernah direview → kembali `Menunggu`.
+  - Cek syarat yang bergantung `Resume.status = Disetujui` (**booking bimbingan** & **kuesioner**) menganggap `Arsip` **lolos** seperti `Disetujui` — arsip diasumsikan berasal dari data yang sudah disetujui; prasyarat upload resume (`proposal.status = Disetujui`) juga menganggap `Arsip` lolos.
+  - Aksi arsip/un-arsip **tidak** dicatat ke `ActivityLog`.
 - Log timeline aktifitas resume dicatat ke `ActivityLog` (entity `Resume`).
 
 ---
@@ -169,6 +186,8 @@ Tidak ada fitur tulis — hanya baca. Tampilan:
 3. **List pengajuan resume** + detail (mahasiswa + data resume).
 4. **List riwayat bimbingan** + detail (mahasiswa + dosen + jadwal bimbingan).
 5. **Monitoring progress per mahasiswa**: status tim (belum punya tim / menunggu / terbentuk), status proposal, status resume.
+
+> **Catatan arsip**: Kaprodi (pemilik fitur monitoring) tetap melihat **semua** data termasuk yang diarsip (status `Arsip` tampil sebagai penanda). Data diarsip **tidak tampil** untuk Dosen Capstone (proposal) & Dosen Pembimbing (resume).
 
 ---
 

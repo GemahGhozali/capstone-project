@@ -85,6 +85,7 @@ erDiagram
     Tim {
         uuid id PK
         varchar nama "UNIQUE"
+        enum status "Aktif|Arsip, default Aktif"
     }
     AnggotaTim {
         uuid id PK
@@ -100,14 +101,14 @@ erDiagram
         varchar judul
         varchar mitra
         text file "path di public/"
-        enum status "Menunggu|Disetujui|Ditolak|Revisi"
+        enum status "Menunggu|Disetujui|Ditolak|Revisi|Arsip"
     }
     ProposalReview {
         uuid id PK
         uuid proposal_id FK
         uuid dosen_id FK "nullable"
         text catatan
-        enum status "sama dgn status terkunci di Proposal"
+        enum status "Menunggu|Disetujui|Ditolak|Revisi — enum terpisah (StatusReviewProposal), TANPA Arsip"
     }
     Resume {
         uuid id PK
@@ -116,14 +117,14 @@ erDiagram
         uuid dosen_id FK "nullable, dipilih saat upload"
         varchar subjudul
         text file "path di public/"
-        enum status "Menunggu|Disetujui|Ditolak"
+        enum status "Menunggu|Disetujui|Ditolak|Arsip"
     }
     ResumeReview {
         uuid id PK
         uuid resume_id FK
         uuid dosen_id FK "nullable"
         text catatan
-        enum status "sama dgn status terkunci di Resume"
+        enum status "Menunggu|Disetujui|Ditolak — enum terpisah (StatusReviewResume), TANPA Arsip"
     }
     JadwalKonsultasi {
         uuid id PK
@@ -298,11 +299,13 @@ erDiagram
 |---|---|---|---|
 | id | UUID | PK | — |
 | nama | VARCHAR | UNIQUE, NOT NULL | — |
+| status | ENUM(Aktif, Arsip) | NOT NULL, DEFAULT `Aktif` — soft delete tim oleh Kaprodi (arsip = penanda, tidak mengubah alur bisnis) | — |
 | created_at | TIMESTAMPTZ | NOT NULL | — |
 | updated_at | TIMESTAMPTZ | NOT NULL | — |
 
-> Tidak ada kolom status. "Tim terbentuk" = semua `AnggotaTim.status_persetujuan = Disetujui`.
+> "Tim terbentuk" = semua `AnggotaTim.status_persetujuan = Disetujui`.
 > "Tim terkunci" = derived dari `Proposal.status ∈ {Menunggu, Disetujui}`.
+> Arsip/un-arsip hanya oleh Kaprodi; aksinya **tidak** di-log ke `ActivityLog`.
 
 **AnggotaTim** (junction Tim ↔ Mahasiswa)
 | Field | Tipe | Constraint | On Delete |
@@ -326,7 +329,7 @@ erDiagram
 | judul | VARCHAR | NOT NULL | — |
 | mitra | VARCHAR | NOT NULL | — |
 | file | TEXT | NOT NULL (path di `public/`) | — |
-| status | ENUM(Menunggu, Disetujui, Ditolak, Revisi) | NOT NULL | — |
+| status | ENUM(Menunggu, Disetujui, Ditolak, Revisi, Arsip) | NOT NULL | — |
 | created_at | TIMESTAMPTZ | NOT NULL | — |
 | updated_at | TIMESTAMPTZ | NOT NULL | — |
 
@@ -337,7 +340,7 @@ erDiagram
 | proposal_id | UUID | FK → Proposal.id, NOT NULL | CASCADE |
 | dosen_id | UUID | FK → Dosen.id, NULLABLE (dosen capstone; boleh review berkali-kali) | SET NULL |
 | catatan | TEXT | NOT NULL | — |
-| status | ENUM(Menunggu, Disetujui, Ditolak, Revisi) | NOT NULL (feedback lanjutan = **mirror** `Proposal.status` yang terkunci) | — |
+| status | ENUM(Menunggu, Disetujui, Ditolak, Revisi) | NOT NULL (feedback lanjutan = **mirror** `Proposal.status` yang terkunci) — enum **terpisah** `StatusReviewProposal`, **tanpa** `Arsip` | — |
 | created_at | TIMESTAMPTZ | NOT NULL | — |
 | updated_at | TIMESTAMPTZ | NOT NULL | — |
 
@@ -352,7 +355,7 @@ erDiagram
 | dosen_id | UUID | FK → Dosen.id, NULLABLE (dospem dipilih saat upload; di-set awal saat upload) | SET NULL |
 | subjudul | VARCHAR | NOT NULL | — |
 | file | TEXT | NOT NULL (path di `public/`) | — |
-| status | ENUM(Menunggu, Disetujui, Ditolak) | NOT NULL (tanpa `Revisi`) | — |
+| status | ENUM(Menunggu, Disetujui, Ditolak, Arsip) | NOT NULL (tanpa `Revisi`) — `Arsip` = soft delete oleh Kaprodi | — |
 | created_at | TIMESTAMPTZ | NOT NULL | — |
 | updated_at | TIMESTAMPTZ | NOT NULL | — |
 
@@ -365,7 +368,7 @@ erDiagram
 | dosen_id | UUID | FK → Dosen.id, NULLABLE (**hanya** `Resume.dosen_id` yang boleh review) | SET NULL |
 | resume_id | UUID | FK → Resume.id, NOT NULL | CASCADE |
 | catatan | TEXT | NOT NULL | — |
-| status | ENUM(Menunggu, Disetujui, Ditolak) | NOT NULL (mirror `Resume.status` yang terkunci) | — |
+| status | ENUM(Menunggu, Disetujui, Ditolak) | NOT NULL (mirror `Resume.status` yang terkunci) — enum **terpisah** `StatusReviewResume`, **tanpa** `Arsip` | — |
 | created_at | TIMESTAMPTZ | NOT NULL | — |
 | updated_at | TIMESTAMPTZ | NOT NULL | — |
 
