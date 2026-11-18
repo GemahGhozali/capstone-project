@@ -86,10 +86,12 @@ export async function getResumeById(id: string) {
         // Informasi Dosen Pembimbing
         dosen: {
           select: {
+            nip: true,
             user: {
               select: {
                 id: true,
                 namaLengkap: true,
+                fotoProfil: true,
               },
             },
           },
@@ -183,6 +185,8 @@ export async function getResumeById(id: string) {
       dosen: {
         id: resume.dosen?.user?.id,
         namaLengkap: resume.dosen?.user.namaLengkap ?? "Dosen Pembimbing",
+        fotoProfil: resume.dosen?.user.fotoProfil,
+        nip: resume.dosen?.nip ?? "NIP tidak teridentifikasi",
       },
     };
   } catch (error) {
@@ -221,12 +225,20 @@ export async function getMahasiswaResumeManagementData() {
             status: true,
             dosen: {
               select: {
+                nip: true,
                 user: {
                   select: {
                     id: true,
                     namaLengkap: true,
+                    fotoProfil: true,
                   },
                 },
+              },
+            },
+            proposal: {
+              select: {
+                judul: true,
+                mitra: true,
               },
             },
             reviews: {
@@ -276,9 +288,15 @@ export async function getMahasiswaResumeManagementData() {
                 fotoProfil: review.dosen?.user.fotoProfil,
               },
             })),
+            proposal: {
+              judul: resume.proposal.judul,
+              mitra: resume.proposal.mitra,
+            },
             dosen: {
               id: resume.dosen?.user?.id,
               namaLengkap: resume.dosen?.user?.namaLengkap ?? "Dosen Pembimbing",
+              fotoProfil: resume.dosen?.user.fotoProfil,
+              nip: resume.dosen?.nip ?? "NIP tidak teridentifikasi",
             },
           }
         : undefined,
