@@ -20,7 +20,17 @@ export const ReviewResumeSchema = z.object({
   catatan: z.string().min(1, "Catatan review wajib diisi!"),
 });
 
+export const BulkArchiveResumeSchema = z.object({
+  ids: z.array(z.uuid("ID resume tidak valid!")).min(1, "Pilih minimal satu resume!"),
+});
+
+export const BulkUnarchiveResumeSchema = z.object({
+  ids: z.array(z.uuid("ID resume tidak valid!")).min(1, "Pilih minimal satu resume!"),
+});
+
 export type SubmitResumeInput = z.infer<typeof SubmitResumeSchema>;
 export type UpdateResumeInput = z.infer<typeof UpdateResumeSchema>;
 export type ReviewResumeInput = z.infer<typeof ReviewResumeSchema>;
 export type ResumeInput = SubmitResumeInput | UpdateResumeInput;
+export type BulkArchieveResumeInput = z.infer<typeof BulkArchiveResumeSchema>;
+export type BulkUnarchieveResumeInput = z.infer<typeof BulkUnarchiveResumeSchema>;

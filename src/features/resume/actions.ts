@@ -1,13 +1,23 @@
 "use server";
 
+import {
+  ResumeInput,
+  ReviewResumeInput,
+  SubmitResumeSchema,
+  UpdateResumeSchema,
+  ReviewResumeSchema,
+  BulkArchiveResumeSchema,
+  BulkUnarchiveResumeSchema,
+} from "./schemas";
+
 import { prisma } from "@/libs/prisma";
+import { StatusResume } from "@/generated/prisma/enums";
 import { formatZodError } from "@/utils/format-zod-error";
 import { ActionResponse } from "@/types";
 import { userIsValidAndHasRole } from "@/libs/dal";
 import { deleteFile, uploadFile } from "@/utils/file";
 import { validateDosenPembimbing } from "@/features/dosen/services";
 import { getResumeStatusLogMessage, resumeStatusColors } from "./utils";
-import { SubmitResumeSchema, UpdateResumeSchema, ResumeInput, ReviewResumeSchema, ReviewResumeInput } from "./schemas";
 
 export async function submitResume(data: ResumeInput): Promise<ActionResponse> {
   const parsed = SubmitResumeSchema.safeParse(data);
@@ -296,7 +306,7 @@ export async function reviewResume(id: string, data: ReviewResumeInput): Promise
   }
 }
 
-export async function archieveResume(id: string): Promise<ActionResponse> {
+export async function archiveResume(id: string): Promise<ActionResponse> {
   try {
     await userIsValidAndHasRole("Kaprodi");
 
@@ -323,7 +333,7 @@ export async function archieveResume(id: string): Promise<ActionResponse> {
   }
 }
 
-export async function unarchieveResume(id: string): Promise<ActionResponse> {
+export async function unarchiveResume(id: string): Promise<ActionResponse> {
   try {
     await userIsValidAndHasRole("Kaprodi");
 
@@ -353,6 +363,81 @@ export async function unarchieveResume(id: string): Promise<ActionResponse> {
     return { success: true, message: "Resume berhasil dikembalikan ke Aktif!" };
   } catch (error) {
     console.log("❌ Unarsip Resume Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function bulkArchiveResume(ids: string[]): Promise<ActionResponse> {
+  const parsed = BulkArchiveResumeSchema.safeParse({ ids });
+
+  if (!parsed.success) {
+    return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
+  }
+
+  const { ids: validIds } = parsed.data;
+
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    // Resume yang sudah berstatus arsip otomatis dilewati
+    const updatedResumes = await prisma.resume.updateMany({
+      where: { id: { in: validIds }, status: { not: "Arsip" } },
+      data: { status: "Arsip" },
+    });
+
+    return { success: true, message: `${updatedResumes.count} resume berhasil diarsipkan!` };
+  } catch (error) {
+    console.log("❌ Bulk Archive Resume Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function bulkUnarchiveResume(ids: string[]): Promise<ActionResponse> {
+  const parsed = BulkUnarchiveResumeSchema.safeParse({ ids });
+
+  if (!parsed.success) {
+    return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
+  }
+
+  const { ids: validIds } = parsed.data;
+
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    // Resume yang belum berstatus arsip otomatis dilewati
+    const resumes = await prisma.resume.findMany({
+      where: { id: { in: validIds }, status: "Arsip" },
+      select: {
+        id: true,
+        reviews: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { status: true },
+        },
+      },
+    });
+
+    // Status dikembalikan mengikuti review terakhir (tanpa review = Menunggu)
+    const resumeIdsByStatus = new Map<StatusResume, string[]>();
+
+    for (const resume of resumes) {
+      const targetStatus = resume.reviews[0]?.status ?? "Menunggu";
+      const resumeIds = resumeIdsByStatus.get(targetStatus) ?? [];
+
+      resumeIdsByStatus.set(targetStatus, [...resumeIds, resume.id]);
+    }
+
+    const updateQueries = Array.from(resumeIdsByStatus, ([status, resumeIds]) =>
+      prisma.resume.updateMany({ where: { id: { in: resumeIds } }, data: { status } }),
+    );
+
+    if (updateQueries.length > 0) {
+      await prisma.$transaction(updateQueries);
+    }
+
+    return { success: true, message: `${resumes.length} resume berhasil dikembalikan dari arsip!` };
+  } catch (error) {
+    console.log("❌ Bulk Unarchive Resume Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }

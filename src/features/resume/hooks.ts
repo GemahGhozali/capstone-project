@@ -9,8 +9,8 @@ import { StatusResume } from "@/generated/prisma/enums";
 import { ActionResponse } from "@/types";
 import { useParams, useRouter } from "next/navigation";
 import { ResumeManagementData } from "./types";
-import { archieveResume, submitResume, unarchieveResume, updateResume, reviewResume } from "./actions";
 import { UpdateResumeSchema, ResumeInput, ReviewResumeSchema, ReviewResumeInput, SubmitResumeSchema } from "./schemas";
+import { archiveResume, submitResume, unarchiveResume, updateResume, reviewResume, bulkArchiveResume, bulkUnarchiveResume } from "./actions";
 
 interface UseResumeForm {
   resume: ResumeManagementData;
@@ -92,18 +92,54 @@ export function useReviewResumeForm(currentResumeStatus: StatusResume) {
   return { form, mutation };
 }
 
-export function useArchieveResume() {
+export function useToggleArchiveResume() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: ({ id, action }: { id: string; action: "archieve" | "unarchieve" }) => {
-      const actionFn = action === "archieve" ? archieveResume(id) : unarchieveResume(id);
+    mutationFn: ({ id, status }: { id: string; status: StatusResume }) => {
+      const actionFn = status === "Arsip" ? unarchiveResume(id) : archiveResume(id);
       return runAction(() => actionFn);
     },
+
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });
       router.refresh();
     },
+
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
+}
+
+export function useBulkArchiveResume() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (ids: string[]) => runAction(() => bulkArchiveResume(ids)),
+
+    onSuccess: (response: ActionResponse) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
+}
+
+export function useBulkUnarchiveResume() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (ids: string[]) => runAction(() => bulkUnarchiveResume(ids)),
+
+    onSuccess: (response: ActionResponse) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+
     onError: (response: ActionResponse) => {
       toast.add({ type: "error", description: response.message });
     },
