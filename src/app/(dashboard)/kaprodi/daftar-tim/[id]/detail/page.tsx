@@ -1,9 +1,8 @@
 import { cn } from "cn";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
 import { notFound } from "next/navigation";
 import { getTeamById } from "@/features/tim/queries";
-import { id as localeId } from "date-fns/locale";
+import { teamStatusStyles } from "@/features/tim/utils";
 import { TeamMemberOverviewCard } from "@/features/tim/components/team-member-overview-card";
 
 type TeamDetailPageProps = {
@@ -20,12 +19,12 @@ export default async function TeamDetailPage({ params }: TeamDetailPageProps) {
   return (
     <div className="space-y-6">
       <div className="space-y-0.5">
-        <Badge className={cn("mb-2.5", team.status === "Lengkap" ? "bg-green-500/15 text-green-500" : "bg-blue-500/15 text-blue-500")}>
-          Status Tim - {team.status}
-        </Badge>
+        <Badge className={cn("mb-2.5", teamStatusStyles[team.status])}>Status Tim - {team.status}</Badge>
         <h1 className="font-semibold text-lg">{team.nama}</h1>
         <p className="text-muted-foreground text-sm">
-          Dibentuk pada hari {format(team.tanggalPembuatan, "eeee, dd MMMM yyyy, hh:mm", { locale: localeId })}
+          {team.statusKelengkapan === "Lengkap"
+            ? "Semua anggota telah mengonfirmasi keikutsertaannya."
+            : "Beberapa anggota belum mengonfirmasi keikutsertaannya."}
         </p>
       </div>
       {team.anggota.map((member) => (

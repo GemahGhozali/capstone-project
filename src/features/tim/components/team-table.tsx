@@ -18,6 +18,9 @@ export function TeamTable({ data }: TeamTableProps) {
     <DataTable
       data={data}
       columns={columns}
+      getRowId={(tim) => tim.id}
+      enableRowSelection
+      initialState={{ columnVisibility: { search: false } }}
       renderToolbar={(table) => <TeamTableToolbar table={table} />}
       renderEmptyState={(table) => <TeamTableEmptyState table={table} />}
     />

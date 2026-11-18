@@ -1,20 +1,26 @@
 "use client";
 
 import Link from "next/link";
+
 import { cn } from "cn";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { IconEye } from "@tabler/icons-react";
 import { TeamListItem } from "../types";
-import { id as localeId } from "date-fns/locale";
 import { DataTableFeatures } from "@/components/data/features";
 import { createColumnHelper } from "@tanstack/react-table";
+import { ArchiveTeamButton } from "./archive-team-button";
+import { teamCompletenessStatusStyles, teamStatusStyles } from "../utils";
 
 const columnHelper = createColumnHelper<DataTableFeatures, TeamListItem>();
 
 export function teamTableColumns() {
   return columnHelper.columns([
+    columnHelper.accessor((row) => row.nama, {
+      id: "search",
+      filterFn: "includesString",
+    }),
+
     columnHelper.accessor("nama", {
       header: "Nama Tim",
     }),
@@ -23,24 +29,23 @@ export function teamTableColumns() {
       header: "Jumlah Anggota",
     }),
 
-    columnHelper.accessor("tanggalPembuatan", {
-      header: "Tanggal Pembuatan",
-      cell: ({ getValue }) => format(getValue(), "eeee, dd MMMM yyyy", { locale: localeId }),
+    columnHelper.accessor("statusKelengkapan", {
+      id: "statusKelengkapan",
+      header: "Status Kelengkapan",
+      filterFn: "arrHas",
+      cell: ({ getValue }) => {
+        const status = getValue();
+        return <Badge className={cn(teamCompletenessStatusStyles[status])}>{status}</Badge>;
+      },
     }),
 
     columnHelper.accessor("status", {
+      id: "status",
       header: "Status",
-      filterFn: "equalsString",
+      filterFn: "arrHas",
       cell: ({ getValue }) => {
         const status = getValue();
-
-        return (
-          <Badge
-            className={cn(status === "Lengkap" && "bg-green-500/15 text-green-500", status === "Belum Lengkap" && "bg-blue-500/15 text-blue-500")}
-          >
-            {status}
-          </Badge>
-        );
+        return <Badge className={cn(teamStatusStyles[status])}>{status}</Badge>;
       },
     }),
 
@@ -48,12 +53,14 @@ export function teamTableColumns() {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => (
-        <Link href={`/kaprodi/daftar-tim/${row.original.id}/detail`}>
-          <Button variant="outline" size="sm" aria-label="Lihat detail tim">
-            <IconEye stroke={1.75} data-icon="inline-start" />
-            Lihat Detail
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href={`/kaprodi/daftar-tim/${row.original.id}/detail`}>
+            <Button variant="outline" size="icon-sm" aria-label="Lihat detail tim">
+              <IconEye stroke={1.75} />
+            </Button>
+          </Link>
+          <ArchiveTeamButton id={row.original.id} status={row.original.status} />
+        </div>
       ),
     }),
   ]);
