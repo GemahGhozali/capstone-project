@@ -1,12 +1,22 @@
 "use server";
 
+import {
+  ProposalInput,
+  ReviewProposalInput,
+  ReviewProposalSchema,
+  SubmitProposalSchema,
+  UpdateProposalSchema,
+  BulkArchieveProposalSchema,
+  BulkUnarchieveProposalSchema,
+} from "./schemas";
+
 import { prisma } from "@/libs/prisma";
 import { formatZodError } from "@/utils/format-zod-error";
 import { ActionResponse } from "@/types";
+import { StatusProposal } from "@/generated/prisma/enums";
 import { userIsValidAndHasRole } from "@/libs/dal";
 import { deleteFile, uploadFile } from "@/utils/file";
 import { getProposalStatusLogMessage, proposalStatusColors } from "./utils";
-import { ProposalInput, ReviewProposalInput, ReviewProposalSchema, SubmitProposalSchema, UpdateProposalSchema } from "./schemas";
 
 export async function submitProposal(data: ProposalInput): Promise<ActionResponse> {
   const parsed = SubmitProposalSchema.safeParse(data);
@@ -363,6 +373,79 @@ export async function unarchieveProposal(id: string): Promise<ActionResponse> {
     return { success: true, message: "Proposal berhasil dikembalikan dari arsip!" };
   } catch (error) {
     console.log("❌ Unarchieve Proposal Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function bulkArchieveProposal(ids: string[]): Promise<ActionResponse> {
+  const parsed = BulkArchieveProposalSchema.safeParse({ ids });
+
+  if (!parsed.success) {
+    return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
+  }
+
+  const { ids: validIds } = parsed.data;
+
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    const updatedProposals = await prisma.proposal.updateMany({
+      where: { id: { in: validIds }, status: { not: "Arsip" } },
+      data: { status: "Arsip" },
+    });
+
+    return { success: true, message: `${updatedProposals.count} proposal berhasil diarsipkan!` };
+  } catch (error) {
+    console.log("❌ Bulk Archieve Proposal Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function bulkUnarchieveProposal(ids: string[]): Promise<ActionResponse> {
+  const parsed = BulkUnarchieveProposalSchema.safeParse({ ids });
+
+  if (!parsed.success) {
+    return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
+  }
+
+  const { ids: validIds } = parsed.data;
+
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    const proposals = await prisma.proposal.findMany({
+      where: { id: { in: validIds }, status: "Arsip" },
+      select: {
+        id: true,
+        reviews: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { status: true },
+        },
+      },
+    });
+
+    // Status dikembalikan mengikuti review terakhir (tanpa review = Menunggu)
+    const proposalIdsByStatus = new Map<StatusProposal, string[]>();
+
+    for (const proposal of proposals) {
+      const targetStatus = proposal.reviews[0]?.status ?? "Menunggu";
+      const proposalIds = proposalIdsByStatus.get(targetStatus) ?? [];
+
+      proposalIdsByStatus.set(targetStatus, [...proposalIds, proposal.id]);
+    }
+
+    const updateQueries = Array.from(proposalIdsByStatus, ([status, proposalIds]) =>
+      prisma.proposal.updateMany({ where: { id: { in: proposalIds } }, data: { status } }),
+    );
+
+    if (updateQueries.length > 0) {
+      await prisma.$transaction(updateQueries);
+    }
+
+    return { success: true, message: `${proposals.length} proposal berhasil dikembalikan dari arsip!` };
+  } catch (error) {
+    console.log("❌ Bulk Unarchieve Proposal Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }
