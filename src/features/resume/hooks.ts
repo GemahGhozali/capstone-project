@@ -9,7 +9,7 @@ import { StatusResume } from "@/generated/prisma/enums";
 import { ActionResponse } from "@/types";
 import { useParams, useRouter } from "next/navigation";
 import { ResumeManagementData } from "./types";
-import { submitResume, updateResume, reviewResume } from "./actions";
+import { archieveResume, submitResume, unarchieveResume, updateResume, reviewResume } from "./actions";
 import { UpdateResumeSchema, ResumeInput, ReviewResumeSchema, ReviewResumeInput, SubmitResumeSchema } from "./schemas";
 
 interface UseResumeForm {
@@ -59,7 +59,7 @@ export function useReviewResumeForm(currentResumeStatus: StatusResume) {
 
   const { id } = useParams<{ id: string }>();
 
-  const resumeStatusDefaultValue = currentResumeStatus === "Menunggu" ? undefined : currentResumeStatus;
+  const resumeStatusDefaultValue = currentResumeStatus === "Menunggu" || currentResumeStatus === "Arsip" ? undefined : currentResumeStatus;
 
   const form = useForm<ReviewResumeInput>({
     resolver: zodResolver(ReviewResumeSchema),
@@ -90,4 +90,22 @@ export function useReviewResumeForm(currentResumeStatus: StatusResume) {
   });
 
   return { form, mutation };
+}
+
+export function useArchieveResume() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: ({ id, action }: { id: string; action: "archieve" | "unarchieve" }) => {
+      const actionFn = action === "archieve" ? archieveResume(id) : unarchieveResume(id);
+      return runAction(() => actionFn);
+    },
+    onSuccess: (response: ActionResponse) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
 }

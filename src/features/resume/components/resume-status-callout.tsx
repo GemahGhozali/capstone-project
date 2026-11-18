@@ -1,7 +1,7 @@
 import { ResumeViewer } from "../types";
 import { StatusResume } from "@/generated/prisma/enums";
 import { resumeStatusStyles } from "../utils";
-import { IconCircleCheck, IconCircleX, IconHourglass } from "@tabler/icons-react";
+import { IconCircleCheck, IconCircleX, IconHourglass, IconArchive } from "@tabler/icons-react";
 import { Callout, CalloutIcon, CalloutContent, CalloutTitle, CalloutDescription } from "@/components/ui/callout";
 
 interface ResumeStatusCalloutProps {
@@ -23,6 +23,10 @@ const statusStyles = {
     icon: <IconCircleCheck />,
     iconColor: resumeStatusStyles["Disetujui"],
   },
+  Arsip: {
+    icon: <IconArchive />,
+    iconColor: resumeStatusStyles["Arsip"],
+  },
 } as const;
 
 const calloutMessages: Record<ResumeViewer, Record<StatusResume, { title: string; description: string }>> = {
@@ -39,6 +43,10 @@ const calloutMessages: Record<ResumeViewer, Record<StatusResume, { title: string
       title: "Resume Anda Telah Disetujui!",
       description: "",
     },
+    Arsip: {
+      title: "Resume Anda Telah Diarsipkan!",
+      description: "Resume ini telah diarsipkan oleh Kaprodi dan tidak dapat diubah maupun direview kembali.",
+    },
   },
   Dosen: {
     Menunggu: {
@@ -53,6 +61,10 @@ const calloutMessages: Record<ResumeViewer, Record<StatusResume, { title: string
       title: "Status Resume : Disetujui",
       description: "Mahasiswa telah resmi diterima masuk ke dalam bimbingan Anda.",
     },
+    Arsip: {
+      title: "Status Resume : Arsip",
+      description: "Resume ini telah diarsipkan oleh Kaprodi dan tidak dapat direview kembali.",
+    },
   },
   Kaprodi: {
     Menunggu: {
@@ -66,6 +78,10 @@ const calloutMessages: Record<ResumeViewer, Record<StatusResume, { title: string
     Disetujui: {
       title: "Status Resume : Disetujui",
       description: "Dosen pembimbing telah resmi menerima mahasiswa dalam daftar bimbingannya.",
+    },
+    Arsip: {
+      title: "Status Resume : Arsip",
+      description: "Resume ini telah diarsipkan dan tidak dapat direview kembali.",
     },
   },
 };

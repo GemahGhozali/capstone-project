@@ -61,9 +61,9 @@ export async function submitResume(data: ResumeInput): Promise<ActionResponse> {
     }
 
     // Validasi 3 : Cek apakah proposal tim sudah disetujui
-    const proposalAlreadyApproved = proposal.status === "Disetujui";
+    const proposalNotApproved = proposal.status !== "Disetujui" && proposal.status !== "Arsip";
 
-    if (!proposalAlreadyApproved) {
+    if (proposalNotApproved) {
       return { success: false, message: "Proposal tim Anda belum disetujui!" };
     }
 
@@ -158,14 +158,21 @@ export async function updateResume(id: string, data: ResumeInput): Promise<Actio
       return { success: false, message: "Resume anda tidak bisa diubah karena telah disetujui!" };
     }
 
-    // Validasi 4 : Cek apakah dosen pembimbing yang dipilih memenuhi syarat
+    // Validasi 4 : Cek apakah resume telah diarsipkan (arsip tidak bisa diedit)
+    const resumeIsArchived = resume.status === "Arsip";
+
+    if (resumeIsArchived) {
+      return { success: false, message: "Resume tidak bisa diubah karena telah diarsipkan!" };
+    }
+
+    // Validasi 5 : Cek apakah dosen pembimbing yang dipilih memenuhi syarat
     const dosenPembimbingValidation = await validateDosenPembimbing(dosenId, { excludeResumeId: resume.id });
 
     if (!dosenPembimbingValidation.isValid) {
       return { success: false, message: dosenPembimbingValidation.message };
     }
 
-    // Validasi 5 : Cek apakah file resume harus direplace dengan yang baru
+    // Validasi 6 : Cek apakah file resume harus direplace dengan yang baru
     let newUploadedResumePath = null;
     let finalResumePath = resume.filePath;
 
@@ -205,7 +212,7 @@ export async function updateResume(id: string, data: ResumeInput): Promise<Actio
         throw error;
       });
 
-    // Validasi 6 : Cek apakah file resume lama perlu dihapus
+    // Validasi 7 : Cek apakah file resume lama perlu dihapus
     const oldResumeFile = resume.filePath;
 
     if (isNewResumeUploaded) {
@@ -235,6 +242,7 @@ export async function reviewResume(id: string, data: ReviewResumeInput): Promise
       where: { id },
       select: {
         id: true,
+        status: true,
         dosenId: true,
         mahasiswaId: true,
       },
@@ -245,14 +253,21 @@ export async function reviewResume(id: string, data: ReviewResumeInput): Promise
       return { success: false, message: "Resume tidak ditemukan!" };
     }
 
-    // Validasi 2 : Cek apakah reviewer adalah dosen pembimbing yang dipilih
+    // Validasi 2 : Cek apakah resume telah diarsipkan (arsip tidak bisa direview)
+    const resumeIsArchived = resume.status === "Arsip";
+
+    if (resumeIsArchived) {
+      return { success: false, message: "Resume sudah diarsipkan dan tidak bisa direview!" };
+    }
+
+    // Validasi 3 : Cek apakah reviewer adalah dosen pembimbing yang dipilih
     const reviewerIsNotSelectedSupervisor = resume.dosenId !== dosenId;
 
     if (reviewerIsNotSelectedSupervisor) {
       return { success: false, message: "Hanya dosen pembimbing terpilih yang berhak me-review resume ini!" };
     }
 
-    // Validasi 3 : Sinkronkan status resume, dosen pembimbing mahasiswa, log, dan review
+    // Validasi 4 : Sinkronkan status resume, dosen pembimbing mahasiswa, log, dan review
     await prisma.$transaction(async (transaction) => {
       await transaction.resume.update({ where: { id: resume.id }, data: { status: newStatus } });
 
@@ -277,6 +292,67 @@ export async function reviewResume(id: string, data: ReviewResumeInput): Promise
     return { success: true, message: "Resume berhasil direview!" };
   } catch (error) {
     console.log("❌ Review Resume Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function archieveResume(id: string): Promise<ActionResponse> {
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    // Validasi 1 : Cek apakah data resume ditemukan
+    const resume = await prisma.resume.findUnique({ where: { id }, select: { id: true, status: true } });
+
+    if (!resume) {
+      return { success: false, message: "Resume tidak ditemukan!" };
+    }
+
+    // Validasi 2 : Cek apakah resume sudah diarsipkan
+    const resumeIsAlreadyArchived = resume.status === "Arsip";
+
+    if (resumeIsAlreadyArchived) {
+      return { success: false, message: "Resume sudah diarsipkan!" };
+    }
+
+    await prisma.resume.update({ where: { id: resume.id }, data: { status: "Arsip" } });
+
+    return { success: true, message: "Resume berhasil diarsipkan!" };
+  } catch (error) {
+    console.log("❌ Arsip Resume Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+export async function unarchieveResume(id: string): Promise<ActionResponse> {
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    // Validasi 1 : Cek apakah data resume ditemukan
+    const resume = await prisma.resume.findUnique({ where: { id }, select: { id: true, status: true } });
+
+    if (!resume) {
+      return { success: false, message: "Resume tidak ditemukan!" };
+    }
+
+    // Validasi 2 : Cek apakah resume memang berstatus arsip
+    const resumeIsNotArchived = resume.status !== "Arsip";
+
+    if (resumeIsNotArchived) {
+      return { success: false, message: "Resume belum diarsipkan!" };
+    }
+
+    // Status dikembalikan mengikuti review terakhir (tanpa review = Menunggu)
+    const lastReview = await prisma.resumeReview.findFirst({
+      where: { resumeId: resume.id },
+      orderBy: { createdAt: "desc" },
+      select: { status: true },
+    });
+
+    await prisma.resume.update({ where: { id: resume.id }, data: { status: lastReview?.status ?? "Menunggu" } });
+
+    return { success: true, message: "Resume berhasil dikembalikan ke Aktif!" };
+  } catch (error) {
+    console.log("❌ Unarsip Resume Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }

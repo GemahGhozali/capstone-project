@@ -4,6 +4,7 @@ export const resumeStatusColors: Record<StatusResume, WarnaLog> = {
   Menunggu: "Info",
   Disetujui: "Success",
   Ditolak: "Danger",
+  Arsip: "Neutral",
 };
 
 export function getResumeStatusLogMessage(status: StatusResume): string {
@@ -22,4 +23,5 @@ export const resumeStatusStyles: Record<StatusResume, string> = {
   Menunggu: "bg-blue-500/15 text-blue-500",
   Disetujui: "bg-green-500/15 text-green-500",
   Ditolak: "bg-red-500/15 text-red-500",
+  Arsip: "bg-neutral-500/15 text-neutral-500",
 };

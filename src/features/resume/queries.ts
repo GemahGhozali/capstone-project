@@ -10,7 +10,9 @@ export async function getAllResume() {
     const isDosenPembimbing = session.currentRole === "Dosen Pembimbing";
 
     const allResume = await prisma.resume.findMany({
-      where: { ...(isDosenPembimbing && { dosenId: session.userId }) },
+      where: {
+        ...(isDosenPembimbing && { dosenId: session.userId, status: { not: "Arsip" } }),
+      },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -71,7 +73,7 @@ export async function getResumeById(id: string) {
     const resume = await prisma.resume.findUnique({
       where: {
         id,
-        ...(isDosenPembimbing && { dosenId: session.userId }),
+        ...(isDosenPembimbing && { dosenId: session.userId, status: { not: "Arsip" } }),
       },
       select: {
         id: true,

@@ -34,7 +34,8 @@ const statusOptions = [
 export function ReviewResumeForm({ currentResumeStatus }: ReviewResumeFormProps) {
   const [open, setOpen] = useState(false);
 
-  const resumeStatusDefaultValue = currentResumeStatus === "Menunggu" ? undefined : currentResumeStatus;
+  const resumeIsActive = currentResumeStatus !== "Arsip";
+  const resumeStatusDefaultValue = currentResumeStatus === "Menunggu" || currentResumeStatus === "Arsip" ? undefined : currentResumeStatus;
 
   const {
     mutation: { mutate, isPending },
@@ -55,13 +56,15 @@ export function ReviewResumeForm({ currentResumeStatus }: ReviewResumeFormProps)
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={
-          <Button className="max-sm:w-full">
-            Beri Review <IconPlus data-icon="inline-end" />
-          </Button>
-        }
-      />
+      {resumeIsActive && (
+        <DialogTrigger
+          render={
+            <Button className="max-sm:w-full">
+              Beri Review <IconPlus data-icon="inline-end" />
+            </Button>
+          }
+        />
+      )}
       <DialogContent className="sm:max-w-lg" showCloseButton={false}>
         <form onSubmit={onSubmit} className="space-y-6">
           <DialogHeader>
