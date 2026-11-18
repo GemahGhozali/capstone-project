@@ -10,10 +10,25 @@ export async function getProposalMonitoringOverview() {
 
   try {
     const [proposalGroups, totalProposal, totalTim, proposalTerbaru] = await prisma.$transaction([
-      prisma.proposal.groupBy({ by: ["status"], _count: { _all: true } }),
-      prisma.proposal.count(),
-      prisma.tim.count(),
+      prisma.proposal.groupBy({
+        by: ["status"],
+        orderBy: { status: "asc" },
+        where: { status: { not: "Arsip" } },
+        _count: { _all: true },
+      }),
+
+      prisma.proposal.count({
+        where: { status: { not: "Arsip" } },
+      }),
+
+      prisma.tim.count({
+        where: {
+          OR: [{ proposal: { is: null } }, { proposal: { status: { not: "Arsip" } } }],
+        },
+      }),
+
       prisma.proposal.findMany({
+        where: { status: { not: "Arsip" } },
         orderBy: { createdAt: "desc" },
         take: 5,
         select: {
@@ -30,6 +45,7 @@ export async function getProposalMonitoringOverview() {
       Revisi: 0,
       Ditolak: 0,
       Disetujui: 0,
+      Arsip: 0,
     };
 
     for (const proposal of proposalGroups) {
@@ -44,6 +60,7 @@ export async function getProposalMonitoringOverview() {
         revisi: proposalTotalByStatus.Revisi,
         ditolak: proposalTotalByStatus.Ditolak,
         disetujui: proposalTotalByStatus.Disetujui,
+        arsip: proposalTotalByStatus.Arsip,
       },
       proposalTerbaru: proposalTerbaru.map(({ tim, ...proposal }) => ({
         id: proposal.id,
