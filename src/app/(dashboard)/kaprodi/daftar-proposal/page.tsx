@@ -10,7 +10,7 @@ export default async function DaftarProposalPage() {
         <h1 className="font-semibold text-lg">Daftar Proposal</h1>
         <p className="text-muted-foreground text-sm">Semua data proposal dari tim capstone project.</p>
       </div>
-      <ProposalTable data={proposal} />
+      <ProposalTable data={proposal} viewer="Kaprodi" />
     </div>
   );
 }

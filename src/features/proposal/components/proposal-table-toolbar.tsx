@@ -1,77 +1,44 @@
 "use client";
 
-import React from "react";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import { cn } from "cn";
-import { Button } from "@/components/ui/button";
+import { IconNut } from "@tabler/icons-react";
+import { ReactTable } from "@tanstack/react-table";
 import { StatusProposal } from "@/generated/prisma/enums";
+import { DataSearchBar } from "@/components/data/data-search-bar";
+import { ProposalListItem } from "../types";
 import { DataTableFeatures } from "@/components/data/features";
-import { ReactTable, RowData } from "@tanstack/react-table";
-import { IconNut, IconSearch } from "@tabler/icons-react";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { DataFilterDropdown } from "@/components/data/data-filter-dropdown";
+import { DataColumnVisibility } from "@/components/data/data-column-visibility";
+import { ProposalTableSelectionBar } from "./proposal-table-selection-bar";
 
-interface ProposalTableToolbarProps<TData extends RowData> {
-  table: ReactTable<DataTableFeatures, TData>;
+interface ProposalTableToolbarProps {
+  table: ReactTable<DataTableFeatures, ProposalListItem>;
 }
 
-export function ProposalTableToolbar<TData extends RowData>({ table }: ProposalTableToolbarProps<TData>) {
-  const searchQuery = (table.getColumn("search")?.getFilterValue() as string) ?? "";
-  const statusFilter = (table.getColumn("status")?.getFilterValue() as string) ?? "";
+const ColumnLabels: Record<string, string> = {
+  namaTim: "Nama Tim",
+  mitra: "Mitra",
+  judul: "Judul",
+  tanggalPengajuan: "Tanggal Pengajuan",
+  status: "Status",
+};
 
-  const handleSearchTeam = (event: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
-    table.getColumn("search")?.setFilterValue(event.target.value);
-  };
-
-  const handleFilterStatus = (value: string) => {
-    table.getColumn("status")?.setFilterValue(value);
-  };
-
-  const statusFilterActive = statusFilter !== "";
-
-  const filterActiveClass =
-    "border-sidebar-primary/40! bg-sidebar-primary/10! text-sidebar-primary hover:bg-sidebar-primary/10 hover:text-sidebar-primary aria-expanded:bg-sidebar-primary/10 aria-expanded:text-sidebar-primary";
+export function ProposalTableToolbar({ table }: ProposalTableToolbarProps) {
+  const isSelectionActive = table.getSelectedRowModel().rows.length > 0;
 
   return (
-    <div className="flex gap-3 max-sm:flex-col">
-      <InputGroup className="sm:max-w-96">
-        <InputGroupAddon align="inline-start">
-          <IconSearch className="text-muted-foreground" />
-        </InputGroupAddon>
-        <InputGroupInput placeholder="Cari nama tim, judul, atau mitra disini..." value={searchQuery} onChange={handleSearchTeam} />
-      </InputGroup>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button variant="outline" className={cn(statusFilterActive && filterActiveClass)}>
-              <IconNut data-icon="inline-start" />
-              Status Proposal
-            </Button>
-          }
+    <div className="space-y-6">
+      <div className="flex gap-3 max-sm:flex-col">
+        <DataSearchBar table={table} placeholder="Cari nama tim, judul, atau mitra disini..." className="sm:max-w-96" />
+        <DataColumnVisibility table={table} labels={ColumnLabels} />
+        <DataFilterDropdown
+          table={table}
+          columnId="status"
+          label="Status Proposal"
+          icon={<IconNut data-icon="inline-start" />}
+          options={Object.keys(StatusProposal)}
         />
-        <DropdownMenuContent>
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>Status Proposal</DropdownMenuLabel>
-            <DropdownMenuRadioGroup value={statusFilter} onValueChange={handleFilterStatus}>
-              <DropdownMenuRadioItem value="">Semua</DropdownMenuRadioItem>
-              {Object.keys(StatusProposal).map((status) => (
-                <DropdownMenuRadioItem key={status} value={status}>
-                  {status}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      </div>
+      {isSelectionActive && <ProposalTableSelectionBar table={table} />}
     </div>
   );
 }

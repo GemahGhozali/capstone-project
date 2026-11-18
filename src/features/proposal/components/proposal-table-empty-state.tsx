@@ -10,25 +10,26 @@ interface ProposalTableEmptyStateProps<TData extends RowData> {
 }
 
 export function ProposalTableEmptyState<TData extends RowData>({ table }: ProposalTableEmptyStateProps<TData>) {
-  const searchQuery = (table.getColumn("namaTim")?.getFilterValue() as string) ?? "";
-  const selectedStatus = (table.getColumn("status")?.getFilterValue() as string) ?? "";
+  const searchQuery = (table.getColumn("search")?.getFilterValue() as string) ?? "";
+
+  const totalRows = table.getPreFilteredRowModel().rows.length;
+  const filteredRows = table.getFilteredRowModel().rows.length;
+  const isFilterResultEmpty = totalRows > 0 && filteredRows === 0;
 
   return (
     <Empty>
-      <EmptyHeader>
+      <EmptyHeader className="max-w-none!">
         <EmptyMedia variant="icon">
           <IconFolderOpen />
         </EmptyMedia>
-        <EmptyTitle>{searchQuery || selectedStatus ? "Proposal Tidak Ditemukan" : "Tidak Ada Proposal"}</EmptyTitle>
+        <EmptyTitle>{isFilterResultEmpty ? "Tidak Ada Data Proposal" : "Proposal Tidak Ditemukan"}</EmptyTitle>
         <EmptyDescription>
           {searchQuery ? (
             <>
-              Tidak ada proposal dengan nama tim <span className="font-medium">&ldquo;{searchQuery}&rdquo;</span>
+              Tidak ada proposal dengan kata kunci <span className="font-medium">&ldquo;{searchQuery}&rdquo;</span>
             </>
-          ) : selectedStatus ? (
-            <>
-              Tidak ada proposal dengan status <span className="font-medium">&ldquo;{selectedStatus}&rdquo;</span>
-            </>
+          ) : isFilterResultEmpty ? (
+            <>Tidak ada proposal yang cocok dengan filter yang dipilih</>
           ) : (
             "Semua proposal yang masuk akan ditampilkan disini"
           )}

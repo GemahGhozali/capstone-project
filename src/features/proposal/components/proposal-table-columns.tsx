@@ -7,14 +7,15 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { IconEye } from "@tabler/icons-react";
 import { id as localeId } from "date-fns/locale";
-import { ProposalListItem } from "../types";
 import { DataTableFeatures } from "@/components/data/features";
 import { createColumnHelper } from "@tanstack/react-table";
 import { proposalStatusStyles } from "../utils";
+import { ArchieveProposalButton } from "./archive-proposal-button";
+import { ProposalListItem, ProposalViewer } from "../types";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ProposalListItem>();
 
-export function proposalTableColumns({ basePath }: { basePath: string }) {
+export function proposalTableColumns({ basePath, viewer }: { basePath: string; viewer: ProposalViewer }) {
   return columnHelper.columns([
     columnHelper.accessor((row) => `${row.namaTim} ${row.judul} ${row.mitra}`, {
       id: "search",
@@ -42,7 +43,7 @@ export function proposalTableColumns({ basePath }: { basePath: string }) {
 
     columnHelper.accessor("status", {
       header: "Status",
-      filterFn: "equalsString",
+      filterFn: "arrHas",
       cell: ({ getValue }) => {
         const status = getValue();
         return <Badge className={cn(proposalStatusStyles[status])}>{status}</Badge>;
@@ -53,12 +54,14 @@ export function proposalTableColumns({ basePath }: { basePath: string }) {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => (
-        <Link href={`${basePath}/${row.original.id}/detail`}>
-          <Button variant="outline" size="sm" aria-label="Lihat detail proposal">
-            <IconEye stroke={1.75} data-icon="inline-start" />
-            Lihat Detail
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href={`${basePath}/${row.original.id}/detail`}>
+            <Button variant="outline" size="icon-sm">
+              <IconEye />
+            </Button>
+          </Link>
+          {viewer === "Kaprodi" && <ArchieveProposalButton id={row.original.id} status={row.original.status} />}
+        </div>
       ),
     }),
   ]);
