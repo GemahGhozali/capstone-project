@@ -13,7 +13,7 @@ export async function getAllResume() {
       where: {
         ...(isDosenPembimbing && { dosenId: session.userId, status: { not: "Arsip" } }),
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { mahasiswa: { nim: "asc" } },
       select: {
         id: true,
         status: true,
