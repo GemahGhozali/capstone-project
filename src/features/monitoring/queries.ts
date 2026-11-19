@@ -203,3 +203,59 @@ export async function getAllMahasiswaCapstoneProjectProgress() {
     throw new Error("Terjadi kesalahan pada server!");
   }
 }
+
+export async function getAllBimbinganMahasiswaMonitoring() {
+  await requireRole("Kaprodi");
+
+  try {
+    const mahasiswaList = await prisma.mahasiswa.findMany({
+      orderBy: { nim: "asc" },
+      where: {
+        status: "Aktif",
+        user: { isActive: true },
+      },
+      select: {
+        id: true,
+        nim: true,
+        user: {
+          select: {
+            namaLengkap: true,
+          },
+        },
+        resume: {
+          select: {
+            subjudul: true,
+          },
+        },
+        dosen: {
+          select: {
+            user: {
+              select: {
+                namaLengkap: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            bimbingan: {
+              where: { status: "Disetujui" },
+            },
+          },
+        },
+      },
+    });
+
+    return mahasiswaList.map((mahasiswa) => ({
+      id: mahasiswa.id,
+      namaLengkap: mahasiswa.user.namaLengkap,
+      nim: mahasiswa.nim,
+      subjudul: mahasiswa.resume?.subjudul,
+      dosenPembimbing: mahasiswa.dosen?.user.namaLengkap,
+      totalBimbinganTerverifikasi: mahasiswa._count.bimbingan,
+    }));
+  } catch (error) {
+    console.error("❌ Get All Bimbingan Mahasiswa Monitoring Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
