@@ -108,7 +108,7 @@ model Mahasiswa {
   kelas           Kelas               @relation(fields: [kelasId], references: [id], onDelete: Restrict)
   anggotaTim      AnggotaTim?
   resume          Resume?
-  bookings        BookingBimbingan[]
+  bimbingan       Bimbingan[]
   responKuesioner ResponKuesioner[]
 
   @@map("mahasiswa")
@@ -129,7 +129,7 @@ model Dosen {
   proposalReviews       ProposalReview[]
   resumes               Resume[]
   resumeReviews         ResumeReview[]
-  jadwalBimbingan       JadwalBimbingan[]
+  bimbingan             Bimbingan[]
   mahasiswaBimbingan    Mahasiswa[]
 
   @@map("dosen")
@@ -247,40 +247,26 @@ model ResumeReview {
   @@map("resume_review")
 }
 
-model JadwalBimbingan {
-  id        String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  dosenId   String                @map("dosen_id") @db.Uuid
-  tanggal   DateTime              @db.Date
-  jamMulai  DateTime              @map("jam_mulai") @db.Time
-  jamTutup  DateTime              @map("jam_tutup") @db.Time
-  kuota     Int
-  status    StatusJadwalBimbingan @default(Aktif)
-  createdAt DateTime              @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt DateTime              @updatedAt @map("updated_at") @db.Timestamptz
+model Bimbingan {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mahasiswaId String          @map("mahasiswa_id") @db.Uuid
+  dosenId     String?         @map("dosen_id") @db.Uuid
+  tanggal     DateTime        @db.Date
+  catatan     String
+  filePath    String          @map("file_path")
+  fileName    String          @db.VarChar @map("file_name")
+  fileSize    Int             @map("file_size")
+  status      StatusBimbingan @default(Menunggu)
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz
 
-  dosen     Dosen                 @relation(fields: [dosenId], references: [id], onDelete: Cascade)
-  bookings  BookingBimbingan[]
+  mahasiswa   Mahasiswa       @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  dosen       Dosen?          @relation(fields: [dosenId], references: [id], onDelete: SetNull)
 
-  @@map("jadwal_bimbingan")
-}
-
-model BookingBimbingan {
-  id                 String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  jadwalId           String                    @map("jadwal_id") @db.Uuid
-  mahasiswaId        String                    @map("mahasiswa_id") @db.Uuid
-  catatanMahasiswa   String                    @map("catatan_mahasiswa")
-  catatanDosen       String?                   @map("catatan_dosen")
-  status             StatusBookingBimbingan    @default(Dipesan)
-  tanggalPembatalan  DateTime?                 @map("tanggal_pembatalan") @db.Timestamptz
-  alasanPembatalan   String?                   @map("alasan_pembatalan")
-  dibatalkanOleh     DibatalkanOleh?           @map("dibatalkan_oleh")
-  createdAt          DateTime                  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt          DateTime                  @updatedAt @map("updated_at") @db.Timestamptz
-
-  jadwal             JadwalBimbingan           @relation(fields: [jadwalId], references: [id], onDelete: Cascade)
-  mahasiswa          Mahasiswa                 @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
-
-  @@map("booking_bimbingan")
+  @@index([mahasiswaId, status])
+  @@index([dosenId, status])
+  @@index([tanggal])
+  @@map("bimbingan")
 }
 
 model Kuesioner {
@@ -444,15 +430,10 @@ enum StatusTim {
   Arsip
 }
 
-enum StatusJadwalBimbingan {
-  Aktif
-  Ditutup
-}
-
-enum StatusBookingBimbingan {
-  Dipesan
-  Dibatalkan
-  Selesai
+enum StatusBimbingan {
+  Menunggu
+  Disetujui
+  Ditolak
 }
 
 enum StatusKuesioner {
@@ -469,11 +450,6 @@ enum TipePertanyaan {
 enum StatusRespon {
   Draf
   Selesai
-}
-
-enum DibatalkanOleh {
-  Mahasiswa
-  Dosen
 }
 
 enum EntityLog {
