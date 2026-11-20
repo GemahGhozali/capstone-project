@@ -31,7 +31,7 @@ export function BimbinganMahasiswaTableEmptyState<TData extends RowData>({ table
           ) : isFilterResultEmpty ? (
             <>Tidak ada bimbingan yang cocok dengan filter yang dipilih</>
           ) : (
-            "Semua catatan bimbingan anda akan ditampilkan disini"
+            "Semua catatan bimbingan akan ditampilkan disini"
           )}
         </EmptyDescription>
       </EmptyHeader>
