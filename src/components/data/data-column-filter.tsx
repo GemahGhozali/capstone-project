@@ -29,6 +29,10 @@ export function DataColumnFilter<TData extends RowData, TValue = unknown>({
   options,
   className,
 }: DataColumnFilterProps<TData, TValue>) {
+  if (options.length === 0) {
+    return <span className={className}>{title}</span>;
+  }
+
   if (!column.getCanFilter()) {
     return <span className={className}>{title}</span>;
   }
