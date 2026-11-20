@@ -94,7 +94,7 @@ src/
     tim/           # Tim, AnggotaTim      (folder ada, isi menyusul)
     proposal/      # Proposal, ProposalReview (folder ada, isi menyusul)
     resume/        # Resume, ResumeReview (folder ada, isi menyusul)
-    konsultasi/    # JadwalKonsultasi, BookingKonsultasi (folder ada, isi menyusul)
+    bimbingan/     # Bimbingan (logbook: catatan + bukti pendukung) — SUDAH ADA
     kuesioner/     # Kuesioner → BagianKuesioner → PertanyaanKuesioner + ResponKuesioner → JawabanKuesioner
                    # ── SPESIFIKASI SAJA (BUSINESS_RULES §10, ERD, FLOW §7) — folder & implementasi MENYUSUL
     monitoring/    # read-only, tanpa tabel sendiri — FOLDER MENYUSUL

@@ -136,7 +136,7 @@ Prasyarat: Proposal tim = Disetujui
 [Jika Disetujui]
   → Mahasiswa.dosen_id = Resume.dosen_id (dospem tetap)
   → reservasi menjadi bimbingan aktif (kuota tetap terpakai)
-  → mahasiswa eligible booking bimbingan
+  → mahasiswa eligible mengisi catatan bimbingan
 
 [Jika Ditolak]
   → slot kuota dospem sebelumnya dilepas
@@ -150,49 +150,50 @@ Prasyarat: Proposal tim = Disetujui
 Status manapun → Arsip (Kaprodi; tanpa log)
 Arsip → (un-arsip) status review terakhir (ResumeReview terbaru); tanpa review → Menunggu
 ```
-Resume terarsip tidak bisa direview & tidak bisa diedit; Dosen Pembimbing tidak melihatnya (list/detail), Kaprodi & mahasiswa tetap melihat. Cek syarat `Resume = Disetujui` (booking bimbingan, kuesioner) & prasyarat upload resume (`Proposal = Disetujui`) menganggap `Arsip` lolos.
+Resume terarsip tidak bisa direview & tidak bisa diedit; Dosen Pembimbing tidak melihatnya (list/detail), Kaprodi & mahasiswa tetap melihat. Cek syarat `Resume = Disetujui` (catatan bimbingan, kuesioner) & prasyarat upload resume (`Proposal = Disetujui`) menganggap `Arsip` lolos.
 
 ---
 
-## 4. Bimbingan / Konsultasi
+## 4. Bimbingan (Logbook)
 
-### Setup (Kaprodi)
+### Prasyarat
 ```
-Isi DosenPembimbingDetail per dosen: batas_bimbingan, status Buka/Tutup
-```
-
-### Dosen: buka jadwal
-```
-Buat JadwalKonsultasi (tanggal, jam_mulai, jam_tutup, kuota)
+Resume mahasiswa = Disetujui (atau Arsip)
+Mahasiswa.dosen_id sudah terisi (dari resume yang disetujui)
 ```
 
-### Mahasiswa: booking
+### Mahasiswa: catat hasil bimbingan
 ```
-Syarat: Resume=Disetujui (punya dosen_id) 
-UI: tampilkan HANYA jadwal milik Mahasiswa.dosen_id
+Tambah catatan bimbingan
+  → tanggal (DATE), catatan (wajib), bukti pendukung (PDF/JPG/PNG/WebP, maks. 5 MB)
+  → dosen_id = Mahasiswa.dosen_id (snapshot)
+  → Bimbingan.status = Menunggu
 
-Booking (catatan_mahasiswa wajib)
-  → cek: belum ada booking aktif (Dipesan) di jadwal yang sama
-  → cek: jumlah Dipesan < kuota
-  → cek: batas_bimbingan dosen belum tercapai (mahasiswa aktif bimbingan)
-  → BookingKonsultasi.status = Dipesan
-```
-
-### Pembatalan (mahasiswa ATAU dosen)
-```
-Batalkan booking
-  → status = Dibatalkan
-  → WAJIB: alasan_pembatalan, dibatalkan_oleh, tanggal_pembatalan
-  → slot tersedia lagi → mahasiswa boleh booking ulang jadwal sama
+Edit / hapus
+  → HANYA saat status Menunggu
+  → edit dengan file baru: file lama dihapus dari disk
+  → hapus record: file bukti dihapus dari disk
 ```
 
-### Penyelesaian (dosen)
+### Dosen Pembimbing: verifikasi
 ```
-Bimbingan terjadi
-  → dosen set status = Selesai + isi catatan_dosen (opsional)
+Hanya Bimbingan.dosen_id = dosen yang login
+Status dapat diubah berkali-kali (tanpa catatan):
+  Menunggu → Disetujui | Ditolak
+  Disetujui ↔ Ditolak
+  → hanya status terkini yang disimpan
+  → setelah direview, mahasiswa tetap tidak bisa edit/hapus
 ```
 
-**Status booking**: `Dipesan → Selesai | Dibatalkan`.
+### Kaprodi: monitoring (read-only)
+```
+List mahasiswa aktif dengan resume Disetujui/Arsip
+  → Nama, NIM, Subjudul Resume, Dosen Pembimbing, Total Bimbingan Terverifikasi (Disetujui)
+Detail mahasiswa
+  → semua catatan bimbingan (semua status) + tanggal + catatan + bukti pendukung
+```
+
+**Status bimbingan**: `Menunggu → Disetujui | Ditolak`, lalu `Disetujui ↔ Ditolak` (dapat diubah berulang oleh dosen pembimbing).
 
 ---
 
@@ -202,7 +203,7 @@ Bimbingan terjadi
 List Tim            → detail: anggota (mahasiswa)
 List Proposal       → detail: tim + proposal
 List Resume         → detail: mahasiswa + resume
-List Riwayat Bimbingan → detail: mahasiswa + dosen + jadwal
+List Riwayat Bimbingan → detail: mahasiswa + dospem + semua catatan & bukti (semua status)
 Progress per Mahasiswa → status tim | status proposal | status resume
 ```
 
@@ -304,10 +305,11 @@ Status manapun → Arsip (Kaprodi) → (un-arsip) status review terakhir ?? Menu
 Status manapun → Arsip (Kaprodi) → (un-arsip) status review terakhir ?? Menunggu
 ```
 
-### Booking
+### Bimbingan
 ```
-Dipesan → Selesai
-        → Dibatalkan (boleh booking ulang jika slot ada)
+Menunggu → Disetujui (final)
+        → Ditolak (final)
+Edit/hapus hanya saat Menunggu
 ```
 
 ### AnggotaTim

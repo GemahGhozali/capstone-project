@@ -114,51 +114,49 @@ Dokumen ini adalah **single source of truth** untuk aturan bisnis. Baca sebelum 
   - Sama seperti proposal: status diset sekali, feedback lanjutan mencerminkan status terkunci.
 - **Setelah resume `Disetujui`**:
   - `Mahasiswa.dosen_id` (dosen pembimbing tetap mahasiswa) **di-set** = `Resume.dosen_id`.
-  - Mahasiswa tersebut **eligible booking bimbingan**.
+  - Mahasiswa tersebut **eligible mengisi catatan bimbingan**.
 - **Status resume**: `Menunggu` → `Disetujui` | `Ditolak` (tanpa tahap `Revisi` — kalau perlu perbaikan, dosen pilih `Ditolak`).
 - **Arsip resume** (`Arsip` adalah bagian enum `StatusResume`):
   - Hanya **Kaprodi** yang bisa mengarsipkan / mengembalikan (via `arsipResume` / `unarsipResume`).
   - Resume terarsip **tidak bisa direview** (dosen pembimbing ditolak di server action) dan **tidak bisa diedit** mahasiswa.
   - Resume terarsip **tidak tampil** untuk Dosen Pembimbing (list & detail difilter `status != Arsip`); **Kaprodi melihat semua**; mahasiswa tetap melihat resume-nya sendiri.
   - **Un-arsip**: status dikembalikan **mengikuti review terakhir** (`ResumeReview` terbaru); jika belum pernah direview → kembali `Menunggu`.
-  - Cek syarat yang bergantung `Resume.status = Disetujui` (**booking bimbingan** & **kuesioner**) menganggap `Arsip` **lolos** seperti `Disetujui` — arsip diasumsikan berasal dari data yang sudah disetujui; prasyarat upload resume (`proposal.status = Disetujui`) juga menganggap `Arsip` lolos.
+  - Cek syarat yang bergantung `Resume.status = Disetujui` (**catatan bimbingan** & **kuesioner**) menganggap `Arsip` **lolos** seperti `Disetujui` — arsip diasumsikan berasal dari data yang sudah disetujui; prasyarat upload resume (`proposal.status = Disetujui`) juga menganggap `Arsip` lolos.
   - Aksi arsip/un-arsip **tidak** dicatat ke `ActivityLog`.
 - Log timeline aktifitas resume dicatat ke `ActivityLog` (entity `Resume`).
 
 ---
 
-## 5. Jadwal Konsultasi / Bimbingan
+## 5. Bimbingan (Logbook)
 
-### 5a. Dosen Pembimbing — kelola jadwal & kuota
+### 5a. Mahasiswa — catat hasil bimbingan
 
-- Dosen pembimbing membuat jadwal **satu per satu** (bebas):
-  - `tanggal` (DATE), `jam_mulai` (TIME), `jam_tutup` (TIME), `kuota` (INT).
-- **Kuota = slot per jadwal** (contoh: jadwal Senin pagi, kuota 5 → maksimal 5 mahasiswa bisa booking jadwal itu).
-- `DosenPembimbingDetail`:
-  - `batas_bimbingan` = maksimal jumlah **mahasiswa aktif** yang bisa menjadi bimbingan dosen tersebut. Perhitungan kuota mencakup mahasiswa aktif yang sudah disetujui **dan** resume berstatus `Menunggu` (reservasi). **Diisi manual oleh Kaprodi.**
-  - `status` (`Buka`/`Tutup`) = apakah dosen menerima bimbingan baru. **Ditentukan/diubah oleh Kaprodi.**
+- **Prasyarat**: resume mahasiswa sudah **`Disetujui`** (atau `Arsip`, mengikuti aturan arsip) dan `Mahasiswa.dosen_id` sudah terisi.
+- Mahasiswa boleh memiliki **banyak catatan bimbingan**. Setiap catatan berisi:
+  - `tanggal` (DATE) — tanggal kegiatan bimbingan.
+  - `catatan` (TEXT) — wajib diisi.
+  - Satu **bukti pendukung** — PDF, JPG, PNG, atau WebP; maksimal **5 MB**.
+- Saat catatan dibuat, `dosen_id` **disalin dari `Mahasiswa.dosen_id`** sebagai snapshot dospem pemverifikasi.
+- Status awal catatan: **`Menunggu`**.
+- **Edit/hapus hanya saat status `Menunggu`**:
+  - Status `Disetujui` dan `Ditolak` **terkunci permanen** — tidak bisa diedit maupun dihapus.
+  - Saat edit dengan file baru, file bukti lama **dihapus dari disk**.
+  - Saat hapus record, file bukti juga **dihapus dari disk**.
 
-### 5b. Mahasiswa — booking
+### 5b. Dosen Pembimbing — verifikasi
 
-- **Syarat booking**:
-  1. Resume mahasiswa sudah **`Disetujui`** (sudah punya dosen pembimbing tetap).
-  2. Hanya bisa booking jadwal **dosen pembimbing-nya sendiri** — di UI **hanya tampil jadwal dospem terpilih**.
-- Mahasiswa **boleh booking lebih dari 1 jadwal**, termasuk di hari yang sama.
-- **Tidak boleh booking 2x di jadwal yang sama** (selama masih ada booking aktif di jadwal itu).
-  - Tidak perlu composite unique di DB: booking yang dibatalkan tetap tersimpan (status `Dibatalkan`), dan mahasiswa **boleh booking ulang** jadwal yang sama setelah membatalkan, **jika slot masih tersedia**.
-- Validasi sisa kuota: jumlah booking aktif (`Dipesan`) < `kuota` jadwal.
-- **Catatan mahasiswa** saat booking: wajib diisi (`catatan_mahasiswa`).
+- Dosen pembimbing **hanya bisa memverifikasi catatan milik mahasiswa bimbingannya** (`Bimbingan.dosen_id = Dosen.id`).
+- Status dapat diubah **berkali-kali** oleh dosen pembimbing: `Menunggu` → `Disetujui`/`Ditolak`, lalu `Disetujui` ↔ `Ditolak`.
+- **Tanpa catatan/feedback dosen** — keputusan hanya berupa status.
+- Perubahan status tidak menyimpan riwayat; yang tersimpan hanya status terkini.
 
-### 5c. Pembatalan & penyelesaian
+### 5c. Kaprodi — monitoring (read-only)
 
-- **Pembatalan bisa dilakukan oleh mahasiswa MAUPUN dosen.**
-- Saat status booking menjadi **`Dibatalkan`**, field berikut **wajib terisi** (validasi di aplikasi/Zod):
-  - `alasan_pembatalan`
-  - `dibatalkan_oleh` (`Mahasiswa` | `Dosen`)
-  - `tanggal_pembatalan`
-- **Status booking**: `Dipesan` → `Selesai` | `Dibatalkan`.
-- Setelah bimbingan terjadi, dosen pembimbing meng-set status **`Selesai`** dan bisa mengisi **`catatan_dosen`**.
-- `catatan_dosen` nullable (diisi saat/selesai bimbingan).
+- Menampilkan **mahasiswa aktif** yang resume-nya `Disetujui`/`Arsip`.
+- Kolom daftar: **Nama**, **NIM**, **Subjudul Resume**, **Dosen Pembimbing**, **Total Bimbingan Terverifikasi** (jumlah status `Disetujui`).
+- Urutan: total bimbingan terverifikasi terbanyak.
+- Detail mahasiswa menampilkan **semua catatan bimbingan (semua status)** beserta tanggal, catatan, dan bukti pendukung.
+- Bimbingan **tidak** dicatat ke `ActivityLog`.
 
 ---
 
@@ -184,7 +182,7 @@ Tidak ada fitur tulis — hanya baca. Tampilan:
 1. **List tim** + detail (daftar mahasiswa anggotanya).
 2. **List proposal** + detail (tim terkait + data proposal).
 3. **List pengajuan resume** + detail (mahasiswa + data resume).
-4. **List riwayat bimbingan** + detail (mahasiswa + dosen + jadwal bimbingan).
+4. **List/monitoring bimbingan** + detail (mahasiswa + dosen + semua catatan & bukti pendukung, semua status).
 5. **Monitoring progress per mahasiswa**: status tim (belum punya tim / menunggu / terbentuk), status proposal, status resume.
 
 > **Catatan arsip**: Kaprodi (pemilik fitur monitoring) tetap melihat **semua** data termasuk yang diarsip (status `Arsip` tampil sebagai penanda). Data diarsip **tidak tampil** untuk Dosen Capstone (proposal) & Dosen Pembimbing (resume).
@@ -193,7 +191,7 @@ Tidak ada fitur tulis — hanya baca. Tampilan:
 
 ## 8. Activity Log
 
-- Entity yang di-log: **`Tim`, `Proposal`, `Resume`** saja (booking/bimbingan **tidak** perlu log untuk saat ini).
+- Entity yang di-log: **`Tim`, `Proposal`, `Resume`** saja (bimbingan **tidak** perlu log untuk saat ini).
 - `entity_id` bersifat **polimorfik** — referensi ke `Tim.id` / `Proposal.id` / `Resume.id`, **tidak ada FK formal**.
 - `pesan` berisi teks kejadian, `warna` untuk styling UI timeline (`Neutral|Danger|Warning|Success|Info`).
 - `user_id` pelaku log (nullable — bisa null jika pelaku terhapus).

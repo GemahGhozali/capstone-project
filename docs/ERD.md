@@ -15,9 +15,8 @@ erDiagram
     Mahasiswa ||--o{ Resume : ""
     Dosen ||--o{ Resume : "dosen pembimbing"
     Resume ||--o{ ResumeReview : ""
-    Dosen ||--o{ JadwalKonsultasi : ""
-    JadwalKonsultasi ||--o{ BookingKonsultasi : ""
-    Mahasiswa ||--o{ BookingKonsultasi : ""
+    Dosen ||--o{ Bimbingan : "dosen pembimbing (snapshot)"
+    Mahasiswa ||--o{ Bimbingan : ""
     Kuesioner ||--o{ BagianKuesioner : ""
     BagianKuesioner ||--o{ PertanyaanKuesioner : ""
     Kuesioner ||--o{ ResponKuesioner : ""
@@ -126,24 +125,16 @@ erDiagram
         text catatan
         enum status "Menunggu|Disetujui|Ditolak — enum terpisah (StatusReviewResume), TANPA Arsip"
     }
-    JadwalKonsultasi {
+    Bimbingan {
         uuid id PK
-        uuid dosen_id FK
-        date tanggal
-        time jam_mulai
-        time jam_tutup
-        int kuota "slot per jadwal"
-    }
-    BookingKonsultasi {
-        uuid id PK
-        uuid jadwal_id FK
         uuid mahasiswa_id FK
-        text catatan_mahasiswa "wajib"
-        text catatan_dosen "nullable"
-        enum status "Dipesan|Dibatalkan|Selesai"
-        timestamptz tanggal_pembatalan "wajib jika Dibatalkan"
-        text alasan_pembatalan "wajib jika Dibatalkan"
-        enum dibatalkan_oleh "Mahasiswa|Dosen, wajib jika Dibatalkan"
+        uuid dosen_id FK "nullable, snapshot dospem saat create"
+        date tanggal
+        text catatan
+        text file_path
+        varchar file_name
+        int file_size
+        enum status "Menunggu|Disetujui|Ditolak"
     }
     Kuesioner {
         uuid id PK
@@ -372,36 +363,24 @@ erDiagram
 | created_at | TIMESTAMPTZ | NOT NULL | — |
 | updated_at | TIMESTAMPTZ | NOT NULL | — |
 
-### Konsultasi / Bimbingan
+### Bimbingan (Logbook)
 
-**JadwalKonsultasi**
+**Bimbingan**
 | Field | Tipe | Constraint | On Delete |
 |---|---|---|---|
 | id | UUID | PK | — |
-| dosen_id | UUID | FK → Dosen.id, NOT NULL | CASCADE |
-| tanggal | **DATE** | NOT NULL | — |
-| jam_mulai | TIME | NOT NULL | — |
-| jam_tutup | TIME | NOT NULL | — |
-| kuota | INT | NOT NULL (slot per jadwal) | — |
-| created_at | TIMESTAMPTZ | NOT NULL | — |
-| updated_at | TIMESTAMPTZ | NOT NULL | — |
-
-**BookingKonsultasi**
-| Field | Tipe | Constraint | On Delete |
-|---|---|---|---|
-| id | UUID | PK | — |
-| jadwal_id | UUID | FK → JadwalKonsultasi.id, NOT NULL | CASCADE |
 | mahasiswa_id | UUID | FK → Mahasiswa.id, NOT NULL | CASCADE |
-| catatan_mahasiswa | TEXT | NOT NULL | — |
-| catatan_dosen | TEXT | NULLABLE (diisi saat/selesai bimbingan) | — |
-| status | ENUM(Dipesan, Dibatalkan, Selesai) | NOT NULL | — |
-| tanggal_pembatalan | TIMESTAMPTZ | NULLABLE (**wajib** jika `Dibatalkan`) | — |
-| alasan_pembatalan | TEXT | NULLABLE (**wajib** jika `Dibatalkan`) | — |
-| dibatalkan_oleh | ENUM(Mahasiswa, Dosen) | NULLABLE (**wajib** jika `Dibatalkan`) | — |
+| dosen_id | UUID | FK → Dosen.id, NULLABLE (snapshot dospem saat create; selalu diisi app-level) | SET NULL |
+| tanggal | **DATE** | NOT NULL | — |
+| catatan | TEXT | NOT NULL | — |
+| file_path | TEXT | NOT NULL | — |
+| file_name | VARCHAR | NOT NULL | — |
+| file_size | INT | NOT NULL (bytes) | — |
+| status | ENUM(Menunggu, Disetujui, Ditolak) | NOT NULL, DEFAULT `Menunggu` | — |
 | created_at | TIMESTAMPTZ | NOT NULL | — |
 | updated_at | TIMESTAMPTZ | NOT NULL | — |
 
-> Tidak ada composite unique. Validasi app-level: (1) tidak boleh ada 2 booking **aktif** (`Dipesan`) mahasiswa yang sama pada jadwal yang sama; (2) jumlah booking `Dipesan` < `kuota`; (3) hanya jadwal milik `Mahasiswa.dosen_id`; (4) syarat `Resume.status = Disetujui`.
+> Validasi app-level: (1) create hanya saat `Resume.status = Disetujui`/`Arsip`; (2) `dosen_id` disalin dari `Mahasiswa.dosen_id` saat create; (3) edit/hapus hanya saat status `Menunggu`; (4) verifikasi hanya oleh dospem pada record, status dapat diubah berulang (`Menunggu → Disetujui/Ditolak`, lalu `Disetujui ↔ Ditolak`); (5) satu file bukti pendukung (PDF/JPG/PNG/WebP, maks. 5 MB).
 
 ### Kuesioner
 
@@ -489,9 +468,8 @@ erDiagram
 5. Dosen capstone pertama yang set status mengunci proposal; lainnya mirror status.
 6. Hanya `Resume.dosen_id` yang boleh review resume.
 7. `Mahasiswa.dosen_id` di-set saat resume `Disetujui`.
-8. Booking: syarat resume `Disetujui`, jadwal = dospem sendiri, tanpa double-booking aktif, kuota tersedia.
-9. Field `Dibatalkan` (alasan, oleh, tanggal) wajib — via Zod.
-10. Force **reset akun (ganti email + password)** saat `is_account_reset = false` — semua route ditolak kecuali `/reset-akun`.
-11. Reset password: input **email atau NIM/NIP**, token hash (UUID → SHA-256) 15 menit single-use, maks. 1 token aktif per user (request baru menimpa), hanya untuk akun `is_account_reset = true`, password baru min 8 karakter (lihat `docs/BUSINESS_RULES.md` §1).
-12. Kuesioner: struktur (metadata/bagian/pertanyaan) hanya editable saat `Draf`; kelengkapan struktur (≥1 bagian, tiap bagian ≥1 pertanyaan) divalidasi **hanya saat publish**; `Ditutup` final (tanpa reopen); hapus hanya `Draf`; `urutan` diisi otomatis.
-13. Pengisian kuesioner: prasyarat resume `Disetujui`; hanya kuesioner `Aktif`; 1 respons per mahasiswa per kuesioner; jawaban harus milik pertanyaan di kuesioner tersebut; draft disimpan per bagian (baris jawaban = terjawab, dikosongkan = dihapus); submit final memvalidasi **seluruh** pertanyaan wajib di server lalu set `Selesai` + `submitted_at`.
+8. Bimbingan: prasyarat resume `Disetujui`/`Arsip`; `dosen_id` snapshot dari `Mahasiswa.dosen_id`; edit/hapus hanya saat `Menunggu`; verifikasi hanya oleh dospem pada record, dari `Menunggu` ke `Disetujui`/`Ditolak`.
+9. Force **reset akun (ganti email + password)** saat `is_account_reset = false` — semua route ditolak kecuali `/reset-akun`.
+10. Reset password: input **email atau NIM/NIP**, token hash (UUID → SHA-256) 15 menit single-use, maks. 1 token aktif per user (request baru menimpa), hanya untuk akun `is_account_reset = true`, password baru min 8 karakter (lihat `docs/BUSINESS_RULES.md` §1).
+11. Kuesioner: struktur (metadata/bagian/pertanyaan) hanya editable saat `Draf`; kelengkapan struktur (≥1 bagian, tiap bagian ≥1 pertanyaan) divalidasi **hanya saat publish**; `Ditutup` final (tanpa reopen); hapus hanya `Draf`; `urutan` diisi otomatis.
+12. Pengisian kuesioner: prasyarat resume `Disetujui`; hanya kuesioner `Aktif`; 1 respons per mahasiswa per kuesioner; jawaban harus milik pertanyaan di kuesioner tersebut; draft disimpan per bagian (baris jawaban = terjawab, dikosongkan = dihapus); submit final memvalidasi **seluruh** pertanyaan wajib di server lalu set `Selesai` + `submitted_at`.
