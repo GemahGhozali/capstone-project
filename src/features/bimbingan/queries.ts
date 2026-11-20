@@ -3,61 +3,21 @@ import "server-only";
 import { prisma } from "@/libs/prisma";
 import { requireRole } from "@/libs/dal";
 
-export async function getMahasiswaBimbinganManagementData() {
+export async function getListBimbinganMahasiswa() {
   const { userId: mahasiswaId } = await requireRole("Mahasiswa");
 
   try {
-    const mahasiswa = await prisma.mahasiswa.findUnique({
-      where: { id: mahasiswaId },
+    return prisma.bimbingan.findMany({
+      where: { mahasiswaId },
+      orderBy: { tanggal: "desc" },
       select: {
-        dosen: {
-          select: {
-            nip: true,
-            user: {
-              select: {
-                namaLengkap: true,
-                fotoProfil: true,
-              },
-            },
-          },
-        },
-        resume: {
-          select: {
-            subjudul: true,
-            status: true,
-          },
-        },
-        bimbingan: {
-          orderBy: { tanggal: "desc" },
-          select: {
-            id: true,
-            tanggal: true,
-            catatan: true,
-            filePath: true,
-            fileName: true,
-            fileSize: true,
-            status: true,
-          },
-        },
+        id: true,
+        tanggal: true,
+        catatan: true,
+        filePath: true,
+        status: true,
       },
     });
-
-    if (!mahasiswa?.resume || !mahasiswa.dosen || !mahasiswa.bimbingan) {
-      return { resume: null, dosen: null, bimbingan: [] };
-    }
-
-    return {
-      resume: {
-        status: mahasiswa.resume.status,
-        subjudul: mahasiswa.resume.subjudul,
-      },
-      dosen: {
-        nip: mahasiswa.dosen.nip,
-        fotoProfil: mahasiswa.dosen.user.fotoProfil,
-        namaLengkap: mahasiswa.dosen.user.namaLengkap,
-      },
-      bimbingan: mahasiswa.bimbingan,
-    };
   } catch (error) {
     console.error("❌ Get Mahasiswa Bimbingan Management Data Error :", error);
     throw new Error("Terjadi kesalahan pada server!");
@@ -76,8 +36,6 @@ export async function getListBimbinganDosenPembimbing() {
         tanggal: true,
         catatan: true,
         filePath: true,
-        fileName: true,
-        fileSize: true,
         status: true,
         mahasiswa: {
           select: {
@@ -97,8 +55,6 @@ export async function getListBimbinganDosenPembimbing() {
       tanggal: bimbingan.tanggal,
       catatan: bimbingan.catatan,
       filePath: bimbingan.filePath,
-      fileName: bimbingan.fileName,
-      fileSize: bimbingan.fileSize,
       status: bimbingan.status,
       mahasiswa: {
         nim: bimbingan.mahasiswa.nim,
@@ -106,7 +62,7 @@ export async function getListBimbinganDosenPembimbing() {
       },
     }));
   } catch (error) {
-    console.error("❌ Get Dosen Bimbingan Data Error :", error);
+    console.error("❌ Get List Bimbingan Dosen Pembimbing Error :", error);
     throw new Error("Terjadi kesalahan pada server!");
   }
 }
@@ -123,19 +79,11 @@ export async function getMahasiswaWithBimbinganList(mahasiswaId: string) {
         user: {
           select: {
             namaLengkap: true,
-            fotoProfil: true,
-          },
-        },
-        kelas: {
-          select: {
-            nama: true,
-            angkatan: true,
           },
         },
         resume: {
           select: {
             subjudul: true,
-            status: true,
           },
         },
         dosen: {
@@ -144,20 +92,17 @@ export async function getMahasiswaWithBimbinganList(mahasiswaId: string) {
             user: {
               select: {
                 namaLengkap: true,
-                fotoProfil: true,
               },
             },
           },
         },
         bimbingan: {
-          orderBy: [{ tanggal: "desc" }, { createdAt: "desc" }],
+          orderBy: { tanggal: "desc" },
           select: {
             id: true,
             tanggal: true,
             catatan: true,
             filePath: true,
-            fileName: true,
-            fileSize: true,
             status: true,
           },
         },
@@ -181,24 +126,15 @@ export async function getMahasiswaWithBimbinganList(mahasiswaId: string) {
       id: mahasiswa.id,
       nim: mahasiswa.nim,
       namaLengkap: mahasiswa.user.namaLengkap,
-      fotoProfil: mahasiswa.user.fotoProfil,
-      kelas: mahasiswa.kelas,
-      resume: {
-        status: mahasiswa.resume?.status,
-        subjudul: mahasiswa.resume?.subjudul,
-      },
-      dosen: {
-        dosenPembimbing: mahasiswa.dosen?.user.namaLengkap ?? "Belum ditentukan",
-        dosenNip: mahasiswa.dosen?.nip ?? "-",
-        dosenFotoProfil: mahasiswa.dosen?.user.fotoProfil ?? null,
-      },
+      dosenPembimbing: mahasiswa.dosen?.user.namaLengkap,
+      subjudulResume: mahasiswa.resume?.subjudul,
       bimbingan: {
-        total: totalBimbingan,
         list: mahasiswa.bimbingan,
+        total: { ...totalBimbingan, keseluruhan: mahasiswa.bimbingan.length },
       },
     };
   } catch (error) {
-    console.error("❌ Get Kaprodi Bimbingan Detail Error :", error);
+    console.error("❌ Get Mahasiswa With Bimbingan List Error :", error);
     throw new Error("Terjadi kesalahan pada server!");
   }
 }
