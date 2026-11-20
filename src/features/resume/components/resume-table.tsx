@@ -15,7 +15,7 @@ interface ResumeTableProps {
 
 export function ResumeTable({ data, viewer }: ResumeTableProps) {
   const pathname = usePathname();
-  const columns = useMemo(() => resumeTableColumns({ basePath: pathname, viewer }), [pathname, viewer]);
+  const columns = useMemo(() => resumeTableColumns({ basePath: pathname, viewer, data }), [pathname, viewer, data]);
 
   return (
     <DataTable

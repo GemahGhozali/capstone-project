@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { IconEye } from "@tabler/icons-react";
 import { id as localeId } from "date-fns/locale";
 import { DataTableFeatures } from "@/components/data/features";
+import { DataColumnFilter } from "@/components/data/data-column-filter";
 import { resumeStatusStyles } from "../utils";
 import { createColumnHelper } from "@tanstack/react-table";
 import { ArchiveResumeButton } from "./archive-resume-button";
@@ -17,12 +18,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ResumeListItem>();
 
-const dosenPembimbingColumn = columnHelper.accessor("dosenPembimbing", {
-  header: "Dosen Pembimbing",
-  cell: ({ getValue }) => (getValue() ? <span>{getValue()}</span> : <Badge className="bg-neutral-500/15 text-neutral-500">Tidak Ditemukan</Badge>),
-});
+function dosenPembimbingColumn(options: string[]) {
+  return columnHelper.accessor("dosenPembimbing", {
+    filterFn: "arrHas",
+    header: ({ column }) => <DataColumnFilter column={column} title="Dosen Pembimbing" options={options} />,
+    cell: ({ getValue }) => (getValue() ? <span>{getValue()}</span> : <Badge className="bg-neutral-500/15 text-neutral-500">Tidak Ditemukan</Badge>),
+  });
+}
 
-export function resumeTableColumns({ basePath, viewer }: { basePath: string; viewer: ResumeViewer }) {
+interface ResumeTableColumnsProps {
+  data: ResumeListItem[];
+  basePath: string;
+  viewer: ResumeViewer;
+}
+
+export function resumeTableColumns({ data, basePath, viewer }: ResumeTableColumnsProps) {
+  const dosenPembimbingOptions = [...new Set(data.map((row) => row.dosenPembimbing).filter((nama): nama is string => !!nama))].sort();
+
   return columnHelper.columns([
     columnHelper.accessor((row) => `${row.namaMahasiswa} ${row.nim} ${row.subjudul} ${row.mitra}`, {
       id: "search",
@@ -66,7 +78,7 @@ export function resumeTableColumns({ basePath, viewer }: { basePath: string; vie
       cell: ({ getValue }) => format(getValue(), "eeee, d MMMM yyyy", { locale: localeId }),
     }),
 
-    ...(viewer === "Kaprodi" ? [dosenPembimbingColumn] : []),
+    ...(viewer === "Kaprodi" ? [dosenPembimbingColumn(dosenPembimbingOptions)] : []),
 
     columnHelper.accessor("status", {
       id: "status",
