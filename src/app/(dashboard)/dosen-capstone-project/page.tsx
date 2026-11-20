@@ -1,5 +1,5 @@
 import { ProposalKPICards } from "@/features/monitoring/components/proposal-kpi-cards";
-import { ProposalRecentList } from "@/features/monitoring/components/proposal-recent-list";
+import { RecentProposalList } from "@/features/monitoring/components/recent-proposal-list";
 import { getAuthenticatedUserData } from "@/features/auth/queries";
 import { getDosenCapstoneProjectDashboardOverview } from "@/features/monitoring/queries";
 
@@ -13,7 +13,7 @@ export default async function DosenCapstoneProjectPage() {
         <p className="text-muted-foreground text-sm">Berikut adalah ringkasan dari keseluruhan proposal yang masuk</p>
       </div>
       <ProposalKPICards data={data} />
-      <ProposalRecentList data={data} />
+      <RecentProposalList data={data} />
     </div>
   );
 }
