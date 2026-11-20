@@ -1,7 +1,14 @@
+import {
+  getAllBimbinganMahasiswaMonitoring,
+  getDosenPembimbingDashboardOverview,
+  getAllMahasiswaCapstoneProjectProgress,
+  getDosenCapstoneProjectDashboardOverview,
+} from "./queries";
+
 import { StatusProposal, StatusResume } from "@/generated/prisma/enums";
-import { getAllMahasiswaCapstoneProjectProgress, getAllBimbinganMahasiswaMonitoring, getDosenCapstoneProjectDashboardOverview } from "./queries";
 
 export type DosenCapstoneProjectDashboard = Awaited<ReturnType<typeof getDosenCapstoneProjectDashboardOverview>>;
+export type DosenPembimbingDashboard = Awaited<ReturnType<typeof getDosenPembimbingDashboardOverview>>;
 export type CapstoneProjectMonitoring = Awaited<ReturnType<typeof getAllMahasiswaCapstoneProjectProgress>>[number];
 export type BimbinganMahasiswaMonitoring = Awaited<ReturnType<typeof getAllBimbinganMahasiswaMonitoring>>[number];
 

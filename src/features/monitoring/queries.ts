@@ -75,6 +75,80 @@ export async function getDosenCapstoneProjectDashboardOverview() {
   }
 }
 
+export async function getDosenPembimbingDashboardOverview() {
+  const { userId: dosenId } = await requireRole("Dosen Pembimbing");
+
+  try {
+    const [bimbinganMenunggu, resumeTerbaru, totalMahasiswaDisetujui, totalResumeMenunggu] = await prisma.$transaction([
+      prisma.bimbingan.findMany({
+        where: { dosenId, status: "Menunggu" },
+        orderBy: { tanggal: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          tanggal: true,
+          catatan: true,
+          filePath: true,
+          status: true,
+          mahasiswa: {
+            select: {
+              nim: true,
+              user: { select: { namaLengkap: true } },
+            },
+          },
+        },
+      }),
+
+      prisma.resume.findMany({
+        where: { dosenId, status: { not: "Arsip" } },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          subjudul: true,
+          status: true,
+          mahasiswa: {
+            select: {
+              nim: true,
+              user: { select: { namaLengkap: true } },
+            },
+          },
+        },
+      }),
+
+      prisma.resume.count({ where: { dosenId, status: "Disetujui" } }),
+
+      prisma.resume.count({ where: { dosenId, status: "Menunggu" } }),
+    ]);
+
+    return {
+      totalResumeMenunggu,
+      totalMahasiswaDisetujui,
+      totalBimbinganMenunggu: bimbinganMenunggu.length,
+      bimbinganMenunggu: bimbinganMenunggu.map((bimbingan) => ({
+        id: bimbingan.id,
+        catatan: bimbingan.catatan,
+        tanggal: bimbingan.tanggal,
+        filePath: bimbingan.filePath,
+        status: bimbingan.status,
+        mahasiswa: bimbingan.mahasiswa.user.namaLengkap,
+      })),
+      resumeTerbaru: resumeTerbaru.map((resume) => ({
+        id: resume.id,
+        subjudul: resume.subjudul,
+        status: resume.status,
+        mahasiswa: {
+          nim: resume.mahasiswa.nim,
+          namaLengkap: resume.mahasiswa.user.namaLengkap,
+        },
+      })),
+    };
+  } catch (error) {
+    console.error("❌ Get Dosen Pembimbing Dashboard Overview Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
+
 export async function getMahasiswaCapstoneProjectProgress(mahasiswaId: string): Promise<CapstoneProjectProgress> {
   await requireRole("Mahasiswa", "Kaprodi");
 
