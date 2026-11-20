@@ -9,25 +9,37 @@ import { useApproveBimbingan, useRejectBimbingan } from "../hooks";
 interface VerifyBimbinganButtonProps {
   id: string;
   status: StatusBimbingan;
+  showLabel?: boolean;
 }
 
-export function VerifyBimbinganButton({ id, status }: VerifyBimbinganButtonProps) {
+export function VerifyBimbinganButton({ id, status, showLabel = false }: VerifyBimbinganButtonProps) {
   const { mutate: approveBimbingan, isPending: isApprovePending } = useApproveBimbingan();
   const { mutate: rejectBimbingan, isPending: isRejectPending } = useRejectBimbingan();
 
+  const size = showLabel ? "sm" : "icon-sm";
   const canApprove = status === "Menunggu" || status === "Ditolak";
   const canReject = status === "Menunggu" || status === "Disetujui";
 
   return (
     <>
       {canApprove && (
-        <Button variant="success" size="icon-sm" onClick={() => approveBimbingan(id)} disabled={isApprovePending}>
-          {isApprovePending ? <Spinner /> : <IconCheck />}
+        <Button size={size} variant="success" disabled={isApprovePending} onClick={() => approveBimbingan(id)}>
+          {showLabel && (isApprovePending ? "Memproses" : "Setujui")}
+          {isApprovePending ? (
+            <Spinner data-icon={showLabel ? "inline-end" : undefined} />
+          ) : (
+            <IconCheck data-icon={showLabel ? "inline-end" : undefined} />
+          )}
         </Button>
       )}
       {canReject && (
-        <Button variant="destructive" size="icon-sm" onClick={() => rejectBimbingan(id)} disabled={isRejectPending}>
-          {isRejectPending ? <Spinner /> : <IconX />}
+        <Button size={size} variant="destructive" disabled={isRejectPending} onClick={() => rejectBimbingan(id)}>
+          {showLabel && (isRejectPending ? "Memproses" : "Tolak")}
+          {isRejectPending ? (
+            <Spinner data-icon={showLabel ? "inline-end" : undefined} />
+          ) : (
+            <IconX data-icon={showLabel ? "inline-end" : undefined} />
+          )}
         </Button>
       )}
     </>
