@@ -15,11 +15,6 @@ export const UpdateBimbinganSchema = CreateBimbinganSchema.extend({
   file: z.union([BimbinganFileSchema, z.string()], "Bukti pendukung wajib diupload!"),
 });
 
-export const ReviewBimbinganSchema = z.object({
-  status: z.enum(["Disetujui", "Ditolak"], "Status bimbingan wajib dipilih!"),
-});
-
 export type CreateBimbinganInput = z.infer<typeof CreateBimbinganSchema>;
 export type UpdateBimbinganInput = z.infer<typeof UpdateBimbinganSchema>;
-export type ReviewBimbinganInput = z.infer<typeof ReviewBimbinganSchema>;
 export type BimbinganInput = CreateBimbinganInput | UpdateBimbinganInput;
