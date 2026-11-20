@@ -1,0 +1,102 @@
+"use client";
+
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
+import { DataColumnSort } from "@/components/data/data-column-sort";
+import { StatusBimbingan } from "@/generated/prisma/enums";
+import { DataColumnFilter } from "@/components/data/data-column-filter";
+import { DataTableFeatures } from "@/components/data/features";
+import { createColumnHelper } from "@tanstack/react-table";
+import { BimbinganMahasiswa } from "../types";
+import { bimbinganStatusStyles } from "../utils";
+import { IconArrowUpRight, IconEdit, IconFileDescription, IconTrash } from "@tabler/icons-react";
+import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
+
+const columnHelper = createColumnHelper<DataTableFeatures, BimbinganMahasiswa>();
+
+const StatusBimbinganOptions = Object.keys(StatusBimbingan);
+
+interface BimbinganMahasiswaTableActions {
+  onEdit: (bimbingan: BimbinganMahasiswa) => void;
+  onDelete: (bimbingan: BimbinganMahasiswa) => void;
+}
+
+export function bimbinganMahasiswaTableColumns({ onEdit, onDelete }: BimbinganMahasiswaTableActions) {
+  return columnHelper.columns([
+    columnHelper.accessor("catatan", {
+      header: "Catatan Bimbingan",
+      cell: ({ getValue }) => {
+        const catatan = getValue();
+
+        return (
+          <div className="block min-w-48 max-w-100 whitespace-normal space-y-1">
+            <p className="line-clamp-1">{catatan}</p>
+            <Popover>
+              <PopoverTrigger
+                render={
+                  <Button variant="link" size="sm" className="h-auto p-0 text-sidebar-primary hover:no-underline">
+                    Lihat Selengkapnya
+                    <IconArrowUpRight />
+                  </Button>
+                }
+              />
+              <PopoverContent align="start" className="w-120 max-w-[calc(100vw-4.5rem)]">
+                <PopoverHeader>
+                  <PopoverTitle>Catatan Bimbingan</PopoverTitle>
+                  <PopoverDescription>{catatan}</PopoverDescription>
+                </PopoverHeader>
+              </PopoverContent>
+            </Popover>
+          </div>
+        );
+      },
+    }),
+
+    columnHelper.accessor("tanggal", {
+      header: ({ column }) => <DataColumnSort column={column} title="Tanggal Bimbingan" />,
+      cell: ({ getValue }) => format(getValue(), "eeee, d MMMM yyyy", { locale: localeId }),
+    }),
+
+    columnHelper.accessor("status", {
+      id: "status",
+      filterFn: "arrHas",
+      header: ({ column }) => <DataColumnFilter column={column} title="Status Review" options={StatusBimbinganOptions} />,
+      cell: ({ getValue }) => {
+        const status = getValue();
+        return <Badge className={bimbinganStatusStyles[status]}>{status}</Badge>;
+      },
+    }),
+
+    columnHelper.display({
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const bimbingan = row.original;
+
+        return (
+          <div className="space-x-3">
+            <Link href={bimbingan.filePath} target="_blank">
+              <Button variant="outline" size="icon-sm">
+                <IconFileDescription />
+              </Button>
+            </Link>
+            {bimbingan.status === "Menunggu" && (
+              <>
+                <Button variant="outline" size="icon-sm" onClick={() => onEdit(bimbingan)}>
+                  <IconEdit />
+                </Button>
+
+                <Button variant="destructive" size="icon-sm" onClick={() => onDelete(bimbingan)}>
+                  <IconTrash />
+                </Button>
+              </>
+            )}
+          </div>
+        );
+      },
+    }),
+  ]);
+}
