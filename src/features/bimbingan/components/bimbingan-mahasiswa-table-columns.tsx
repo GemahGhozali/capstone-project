@@ -10,21 +10,22 @@ import { StatusBimbingan } from "@/generated/prisma/enums";
 import { DataColumnFilter } from "@/components/data/data-column-filter";
 import { DataTableFeatures } from "@/components/data/features";
 import { createColumnHelper } from "@tanstack/react-table";
-import { BimbinganMahasiswa } from "../types";
 import { bimbinganStatusStyles } from "../utils";
 import { CatatanBimbinganPopover } from "./catatan-bimbingan-popover";
 import { IconEdit, IconFileDescription, IconTrash } from "@tabler/icons-react";
+import { BimbinganMahasiswa, BimbinganMahasiswaViewer } from "../types";
 
 const columnHelper = createColumnHelper<DataTableFeatures, BimbinganMahasiswa>();
 
 const StatusBimbinganOptions = Object.keys(StatusBimbingan);
 
 interface BimbinganMahasiswaTableActions {
+  viewer: BimbinganMahasiswaViewer;
   onEdit: (bimbingan: BimbinganMahasiswa) => void;
   onDelete: (bimbingan: BimbinganMahasiswa) => void;
 }
 
-export function bimbinganMahasiswaTableColumns({ onEdit, onDelete }: BimbinganMahasiswaTableActions) {
+export function bimbinganMahasiswaTableColumns({ viewer, onEdit, onDelete }: BimbinganMahasiswaTableActions) {
   return columnHelper.columns([
     columnHelper.accessor("catatan", {
       header: "Catatan Bimbingan",
@@ -68,7 +69,7 @@ export function bimbinganMahasiswaTableColumns({ onEdit, onDelete }: BimbinganMa
                 <IconFileDescription />
               </Button>
             </Link>
-            {bimbingan.status === "Menunggu" && (
+            {viewer === "Mahasiswa" && bimbingan.status === "Menunggu" && (
               <>
                 <Button variant="outline" size="icon-sm" onClick={() => onEdit(bimbingan)}>
                   <IconEdit />

@@ -2,15 +2,16 @@
 
 import { DataTable } from "@/components/data/data-table";
 import { useMemo, useState } from "react";
-import { BimbinganMahasiswa } from "../types";
 import { BimbinganFormSheet } from "./bimbingan-form-sheet";
 import { DeleteBimbinganAlertDialog } from "./delete-bimbingan-alert-dialog";
 import { bimbinganMahasiswaTableColumns } from "./bimbingan-mahasiswa-table-columns";
 import { BimbinganMahasiswaTableToolbar } from "./bimbingan-mahasiswa-table-toolbar";
 import { BimbinganMahasiswaTableEmptyState } from "./bimbingan-mahasiswa-table-empty-state";
+import { BimbinganMahasiswa, BimbinganMahasiswaViewer } from "../types";
 
 interface BimbinganMahasiswaTableProps {
   data: BimbinganMahasiswa[];
+  viewer?: BimbinganMahasiswaViewer;
 }
 
 type BimbinganMahasiswaDialogActions =
@@ -18,7 +19,7 @@ type BimbinganMahasiswaDialogActions =
   | { action: "edit"; bimbingan: BimbinganMahasiswa }
   | { action: "delete"; bimbingan: BimbinganMahasiswa };
 
-export function BimbinganMahasiswaTable({ data }: BimbinganMahasiswaTableProps) {
+export function BimbinganMahasiswaTable({ data, viewer = "Mahasiswa" }: BimbinganMahasiswaTableProps) {
   const [dialog, setDialog] = useState<BimbinganMahasiswaDialogActions | undefined>(undefined);
 
   const handleCreateKuesioner = () => setDialog({ action: "create" });
@@ -32,11 +33,14 @@ export function BimbinganMahasiswaTable({ data }: BimbinganMahasiswaTableProps) 
   const columns = useMemo(
     () =>
       bimbinganMahasiswaTableColumns({
+        viewer,
         onEdit: (bimbingan) => setDialog({ action: "edit", bimbingan }),
         onDelete: (bimbingan) => setDialog({ action: "delete", bimbingan }),
       }),
-    [],
+    [viewer],
   );
+
+  const isMahasiswa = viewer === "Mahasiswa";
 
   return (
     <>
@@ -45,12 +49,16 @@ export function BimbinganMahasiswaTable({ data }: BimbinganMahasiswaTableProps) 
         columns={columns}
         getRowId={(bimbingan) => bimbingan.id}
         initialState={{ columnVisibility: { search: false } }}
-        renderToolbar={(table) => <BimbinganMahasiswaTableToolbar table={table} onCreate={handleCreateKuesioner} />}
+        renderToolbar={isMahasiswa ? (table) => <BimbinganMahasiswaTableToolbar table={table} onCreate={handleCreateKuesioner} /> : undefined}
         renderEmptyState={(table) => <BimbinganMahasiswaTableEmptyState table={table} />}
       />
 
-      <BimbinganFormSheet open={openBimbinganForm} bimbingan={bimbinganToEdit} closeDialog={handleCloseDialog} />
-      <DeleteBimbinganAlertDialog bimbingan={bimbinganToDelete} closeDialog={handleCloseDialog} />
+      {isMahasiswa && (
+        <>
+          <BimbinganFormSheet open={openBimbinganForm} bimbingan={bimbinganToEdit} closeDialog={handleCloseDialog} />
+          <DeleteBimbinganAlertDialog bimbingan={bimbinganToDelete} closeDialog={handleCloseDialog} />
+        </>
+      )}
     </>
   );
 }
