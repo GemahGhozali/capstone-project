@@ -7,10 +7,10 @@ import { useRouter } from "next/navigation";
 import { runAction } from "@/utils/action-runner";
 import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BimbinganMahasiswa } from "./types";
 import { ActionResponse } from "@/types";
+import { BimbinganMahasiswa } from "./types";
 import { BimbinganInput, CreateBimbinganSchema, UpdateBimbinganSchema } from "./schemas";
-import { createBimbingan, deleteBimbingan, reviewBimbingan, updateBimbingan } from "./actions";
+import { createBimbingan, deleteBimbingan, verifyBimbingan, updateBimbingan } from "./actions";
 
 interface UseBimbinganForm {
   bimbingan?: BimbinganMahasiswa;
@@ -72,11 +72,28 @@ export function useDeleteBimbingan() {
   });
 }
 
-export function useReviewBimbingan() {
+export function useApproveBimbingan() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: "Disetujui" | "Ditolak" }) => runAction(() => reviewBimbingan(id, { status })),
+    mutationFn: (id: string) => runAction(() => verifyBimbingan(id, "Disetujui")),
+
+    onSuccess: (response: ActionResponse) => {
+      toast.add({ type: "success", description: response.message });
+      router.refresh();
+    },
+
+    onError: (response: ActionResponse) => {
+      toast.add({ type: "error", description: response.message });
+    },
+  });
+}
+
+export function useRejectBimbingan() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (id: string) => runAction(() => verifyBimbingan(id, "Ditolak")),
 
     onSuccess: (response: ActionResponse) => {
       toast.add({ type: "success", description: response.message });
