@@ -12,8 +12,8 @@ import { DataTableFeatures } from "@/components/data/features";
 import { createColumnHelper } from "@tanstack/react-table";
 import { BimbinganMahasiswa } from "../types";
 import { bimbinganStatusStyles } from "../utils";
-import { IconArrowUpRight, IconEdit, IconFileDescription, IconTrash } from "@tabler/icons-react";
-import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
+import { CatatanBimbinganPopover } from "./catatan-bimbingan-popover";
+import { IconEdit, IconFileDescription, IconTrash } from "@tabler/icons-react";
 
 const columnHelper = createColumnHelper<DataTableFeatures, BimbinganMahasiswa>();
 
@@ -34,22 +34,7 @@ export function bimbinganMahasiswaTableColumns({ onEdit, onDelete }: BimbinganMa
         return (
           <div className="block min-w-48 max-w-100 whitespace-normal space-y-1">
             <p className="line-clamp-1">{catatan}</p>
-            <Popover>
-              <PopoverTrigger
-                render={
-                  <Button variant="link" size="sm" className="h-auto p-0 text-sidebar-primary hover:no-underline">
-                    Lihat Selengkapnya
-                    <IconArrowUpRight />
-                  </Button>
-                }
-              />
-              <PopoverContent align="start" className="w-120 max-w-[calc(100vw-4.5rem)]">
-                <PopoverHeader>
-                  <PopoverTitle>Catatan Bimbingan</PopoverTitle>
-                  <PopoverDescription>{catatan}</PopoverDescription>
-                </PopoverHeader>
-              </PopoverContent>
-            </Popover>
+            <CatatanBimbinganPopover catatan={catatan} />
           </div>
         );
       },
