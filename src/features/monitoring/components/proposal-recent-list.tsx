@@ -2,16 +2,14 @@ import Link from "next/link";
 
 import { cn } from "cn";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { IconEye } from "@tabler/icons-react";
-import { id as localeId } from "date-fns/locale";
-import { ProposalMonitoring } from "../types";
 import { proposalStatusStyles } from "@/features/proposal/utils";
+import { DosenCapstoneProjectDashboard } from "../types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ProposalRecentListProps {
-  data: ProposalMonitoring;
+  data: DosenCapstoneProjectDashboard;
 }
 
 export function ProposalRecentList({ data }: ProposalRecentListProps) {
@@ -32,10 +30,8 @@ export function ProposalRecentList({ data }: ProposalRecentListProps) {
             <CardHeader className="p-4 flex flex-col justify-between lg:items-end lg:flex-row gap-4">
               <div className="space-y-1">
                 <Badge className={cn(proposalStatusStyles[proposal.status], "mb-3")}>{proposal.status}</Badge>
-                <CardTitle className="line-clamp-1">{proposal.namaTim}</CardTitle>
-                <CardDescription className="line-clamp-1">
-                  {format(proposal.tanggalPengajuan, "eeee, dd MMMM yyyy", { locale: localeId })}
-                </CardDescription>
+                <CardTitle className="line-clamp-1">{proposal.judul}</CardTitle>
+                <CardDescription className="line-clamp-1">{proposal.namaTim}</CardDescription>
               </div>
               <Link href={`/dosen-capstone-project/proposal-masuk/${proposal.id}/detail`} className="max-lg:w-full">
                 <Button variant="outline" size="sm" className="max-lg:w-full">

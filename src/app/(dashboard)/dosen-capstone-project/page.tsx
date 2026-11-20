@@ -1,10 +1,10 @@
 import { ProposalKPICards } from "@/features/monitoring/components/proposal-kpi-cards";
 import { ProposalRecentList } from "@/features/monitoring/components/proposal-recent-list";
 import { getAuthenticatedUserData } from "@/features/auth/queries";
-import { getProposalMonitoringOverview } from "@/features/monitoring/queries";
+import { getDosenCapstoneProjectDashboardOverview } from "@/features/monitoring/queries";
 
 export default async function DosenCapstoneProjectPage() {
-  const [data, user] = await Promise.all([getProposalMonitoringOverview(), getAuthenticatedUserData()]);
+  const [data, user] = await Promise.all([getDosenCapstoneProjectDashboardOverview(), getAuthenticatedUserData()]);
 
   return (
     <div className="space-y-6">

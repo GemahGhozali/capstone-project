@@ -5,7 +5,7 @@ import { requireRole } from "@/libs/dal";
 import { StatusProposal } from "@/generated/prisma/enums";
 import { CapstoneProjectProgress } from "./types";
 
-export async function getProposalMonitoringOverview() {
+export async function getDosenCapstoneProjectDashboardOverview() {
   await requireRole("Dosen Capstone Project");
 
   try {
@@ -33,8 +33,8 @@ export async function getProposalMonitoringOverview() {
         take: 5,
         select: {
           id: true,
+          judul: true,
           status: true,
-          createdAt: true,
           tim: { select: { nama: true } },
         },
       }),
@@ -64,9 +64,9 @@ export async function getProposalMonitoringOverview() {
       },
       proposalTerbaru: proposalTerbaru.map(({ tim, ...proposal }) => ({
         id: proposal.id,
-        namaTim: tim.nama,
+        judul: proposal.judul,
         status: proposal.status,
-        tanggalPengajuan: proposal.createdAt,
+        namaTim: tim.nama,
       })),
     };
   } catch (error) {

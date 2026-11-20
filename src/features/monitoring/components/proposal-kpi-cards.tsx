@@ -1,11 +1,11 @@
 import { cn } from "cn";
 import { CircularProgress } from "@/components/ui/circular-progress";
-import { ProposalMonitoring } from "../types";
+import { DosenCapstoneProjectDashboard } from "../types";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { IconCircleCheck, IconCircleX, IconClipboardText, IconEdit, IconHourglass } from "@tabler/icons-react";
 
 interface ProposalKPICardsProps {
-  data: ProposalMonitoring;
+  data: DosenCapstoneProjectDashboard;
 }
 
 export function ProposalKPICards({ data }: ProposalKPICardsProps) {
