@@ -5,7 +5,7 @@ import { formatZodError } from "@/utils/format-zod-error";
 import { ActionResponse } from "@/types";
 import { userIsValidAndHasRole } from "@/libs/dal";
 import { deleteFile, uploadFile } from "@/utils/file";
-import { BimbinganInput, CreateBimbinganSchema, ReviewBimbinganInput, ReviewBimbinganSchema, UpdateBimbinganSchema } from "./schemas";
+import { BimbinganInput, CreateBimbinganSchema, UpdateBimbinganSchema } from "./schemas";
 
 export async function createBimbingan(data: BimbinganInput): Promise<ActionResponse> {
   const parsed = CreateBimbinganSchema.safeParse(data);
@@ -176,15 +176,7 @@ export async function deleteBimbingan(id: string): Promise<ActionResponse> {
   }
 }
 
-export async function reviewBimbingan(id: string, data: ReviewBimbinganInput): Promise<ActionResponse> {
-  const parsed = ReviewBimbinganSchema.safeParse(data);
-
-  if (!parsed.success) {
-    return { success: false, message: "Data tidak valid!", errors: formatZodError(parsed.error) };
-  }
-
-  const { status } = parsed.data;
-
+export async function verifyBimbingan(id: string, status: "Disetujui" | "Ditolak"): Promise<ActionResponse> {
   try {
     const { id: dosenId } = await userIsValidAndHasRole("Dosen Pembimbing");
 
@@ -203,10 +195,6 @@ export async function reviewBimbingan(id: string, data: ReviewBimbinganInput): P
 
     if (bimbingan.dosenId !== dosenId) {
       return { success: false, message: "Anda tidak berhak memverifikasi catatan bimbingan ini!" };
-    }
-
-    if (bimbingan.status !== "Menunggu") {
-      return { success: false, message: "Catatan bimbingan ini sudah diverifikasi!" };
     }
 
     await prisma.bimbingan.update({ where: { id: bimbingan.id }, data: { status } });
