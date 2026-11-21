@@ -15,6 +15,8 @@ export async function getListBimbinganMahasiswa() {
         tanggal: true,
         catatan: true,
         filePath: true,
+        fileName: true,
+        fileSize: true,
         status: true,
       },
     });
