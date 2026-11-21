@@ -170,6 +170,7 @@ Dokumen ini adalah **single source of truth** untuk aturan bisnis. Baca sebelum 
   - `Dosen.status`: `Aktif` | `Nonaktif` | `Pindah`
   - `User.is_active`: `true` hanya saat `Mahasiswa.status` = `Aktif` atau `Tuntas`, sisanya `false`
 - CRUD Mahasiswa mendukung **select row** (checkbox per baris + select all halaman) untuk **bulk ubah status** dan **bulk hapus** oleh Kaprodi.
+- **Import massal mahasiswa (Excel)** oleh Kaprodi: unduh template (sheet `Import Mahasiswa` + `Daftar Kelas`), isi **NIM, Nama Lengkap, Kode Kelas, Tanggal Masuk**. Email placeholder = `nim@gmail.com`, password awal = NIM, status = `Aktif`, `is_account_reset = false`. Import bersifat **atomik** — jika ada satu baris tidak valid (NIM/email duplikat, kode kelas tidak ditemukan, tanggal tidak valid), seluruh import dibatalkan dan error per baris ditampilkan. Maksimal **500 baris** dan **5 MB** per file.
 - Kaprodi juga assign **role** user (termasuk merangkap) via `UserRole`.
 - Kaprodi isi/mengubah `DosenPembimbingDetail` (batas bimbingan, Buka/Tutup).
 

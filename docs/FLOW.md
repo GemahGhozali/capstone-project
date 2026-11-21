@@ -216,6 +216,14 @@ CRUD Mahasiswa & Dosen (+ filter, sort, pagination)
   → insert User (identifier, password default=identifier) + profile
   → assign UserRole
   → soft delete = set status enum / is_active
+
+Import massal mahasiswa (Excel)
+  → download template (sheet Import Mahasiswa + Daftar Kelas)
+  → validasi SELURUH baris (NIM unik, kode kelas valid, tanggal valid)
+  → ada error? → batal total + tampilkan error per baris
+  → valid → transaksi atomik: User (email=nim@gmail.com, password=nim, is_account_reset=false)
+             + Mahasiswa (id=User.id, status=Aktif) + UserRole Mahasiswa
+
 Edit DosenPembimbingDetail (batas_bimbingan, Buka/Tutup)
 ```
 
