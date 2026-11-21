@@ -2,6 +2,7 @@ import "server-only";
 
 import writeExcelFile, { type Cell, type SheetData } from "write-excel-file/node";
 
+const XLSX_DATE_FORMAT = "dd/mm/yyyy";
 const XLSX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 const cellBorder = {
@@ -19,11 +20,21 @@ export interface ExcelColumn<TRow> {
   value: (row: TRow) => ExcelCellValue;
 }
 
+export interface ExcelSheetData {
+  data: SheetData;
+  columnWidths: number[];
+}
+
 interface BuildExcelResponseOptions<TRow> {
   fileName: string;
   sheetName: string;
   columns: ExcelColumn<TRow>[];
   rows: TRow[];
+}
+
+interface BuildExcelWorkbookResponseOptions {
+  fileName: string;
+  sheets: (ExcelSheetData & { sheetName: string })[];
 }
 
 function createCell<TRow>(column: ExcelColumn<TRow>, row: TRow): Cell {
@@ -41,7 +52,7 @@ function createCell<TRow>(column: ExcelColumn<TRow>, row: TRow): Cell {
     return {
       value,
       type: Date,
-      format: "dd/mm/yyyy",
+      format: XLSX_DATE_FORMAT,
       ...cellBorder,
       alignVertical: "top",
       ...(column.align && { align: column.align }),
@@ -57,7 +68,7 @@ function createCell<TRow>(column: ExcelColumn<TRow>, row: TRow): Cell {
   };
 }
 
-export async function buildExcelResponse<TRow>({ fileName, sheetName, columns, rows }: BuildExcelResponseOptions<TRow>) {
+export function buildExcelSheetData<TRow>({ columns, rows }: { columns: ExcelColumn<TRow>[]; rows: TRow[] }): ExcelSheetData {
   const headerRow = columns.map((column) => ({
     value: column.header,
     fontWeight: "bold" as const,
@@ -68,19 +79,44 @@ export async function buildExcelResponse<TRow>({ fileName, sheetName, columns, r
     ...cellBorder,
   }));
 
-  const sheetData: SheetData = [headerRow, ...rows.map((row) => columns.map((column) => createCell(column, row)))];
+  return {
+    data: [headerRow, ...rows.map((row) => columns.map((column) => createCell(column, row)))],
+    columnWidths: columns.map((column) => column.width ?? 20),
+  };
+}
 
-  const buffer = await writeExcelFile(sheetData, {
-    sheet: sheetName,
-    columns: columns.map((column) => ({ width: column.width ?? 20 })),
-    stickyRowsCount: 1,
-    dateFormat: "dd/mm/yyyy",
-  }).toBuffer();
-
+function createExcelResponse(fileName: string, buffer: Uint8Array) {
   return new Response(new Uint8Array(buffer), {
     headers: {
       "Content-Type": XLSX_MIME_TYPE,
       "Content-Disposition": `attachment; filename="${fileName}"`,
     },
   });
+}
+
+export async function buildExcelResponse<TRow>({ fileName, sheetName, columns, rows }: BuildExcelResponseOptions<TRow>) {
+  const { data, columnWidths } = buildExcelSheetData({ columns, rows });
+
+  const buffer = await writeExcelFile(data, {
+    sheet: sheetName,
+    columns: columnWidths.map((width) => ({ width })),
+    stickyRowsCount: 1,
+    dateFormat: XLSX_DATE_FORMAT,
+  }).toBuffer();
+
+  return createExcelResponse(fileName, buffer);
+}
+
+export async function buildExcelWorkbookResponse({ fileName, sheets }: BuildExcelWorkbookResponseOptions) {
+  const workbookSheets = sheets.map(({ sheetName, data, columnWidths }) => ({
+    data,
+    sheet: sheetName,
+    columns: columnWidths.map((width) => ({ width })),
+    stickyRowsCount: 1,
+    dateFormat: XLSX_DATE_FORMAT,
+  }));
+
+  const buffer = await writeExcelFile(workbookSheets).toBuffer();
+
+  return createExcelResponse(fileName, buffer);
 }
