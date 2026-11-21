@@ -83,7 +83,7 @@ export function resumeTableColumns({ data, basePath, viewer }: ResumeTableColumn
     columnHelper.accessor("status", {
       id: "status",
       header: "Status",
-      filterFn: "equalsString",
+      filterFn: "arrHas",
       cell: ({ getValue }) => {
         const status = getValue();
 
