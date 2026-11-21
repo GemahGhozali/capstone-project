@@ -140,27 +140,40 @@ export async function createImportedMahasiswaAccounts(
   hashedPasswords: string[],
   mahasiswaRoleId: string,
 ) {
-  await prisma.$transaction(
-    rowsToCreate.map((row, index) =>
-      prisma.user.create({
-        data: {
-          namaLengkap: row.namaLengkap,
-          alamatEmail: generateMahasiswaDefaultEmail(row.nim),
-          identifier: row.nim,
-          password: hashedPasswords[index],
-          fotoProfil: null,
-          isActive: true,
-          mahasiswa: {
-            create: {
-              nim: row.nim,
-              tanggalMasuk: row.tanggalMasuk,
-              kelasId: row.kelasId,
-              status: "Aktif",
-            },
-          },
-          userRoles: { create: { roleId: mahasiswaRoleId } },
-        },
-      }),
-    ),
-  );
+  await prisma.$transaction(async (transaction) => {
+    const createdUsers = await transaction.user.createManyAndReturn({
+      select: { id: true, identifier: true },
+      data: rowsToCreate.map((row, index) => ({
+        namaLengkap: row.namaLengkap,
+        alamatEmail: generateMahasiswaDefaultEmail(row.nim),
+        identifier: row.nim,
+        password: hashedPasswords[index],
+        fotoProfil: null,
+        isActive: true,
+      })),
+    });
+
+    const rowByNim = new Map(rowsToCreate.map((row) => [row.nim, row]));
+
+    const mahasiswaData = createdUsers.map((user) => {
+      const row = rowByNim.get(user.identifier)!;
+
+      return {
+        id: user.id,
+        nim: row.nim,
+        tanggalMasuk: row.tanggalMasuk,
+        kelasId: row.kelasId,
+        status: "Aktif" as const,
+      };
+    });
+
+    await transaction.mahasiswa.createMany({ data: mahasiswaData });
+
+    await transaction.userRole.createMany({
+      data: createdUsers.map((user) => ({
+        userId: user.id,
+        roleId: mahasiswaRoleId,
+      })),
+    });
+  });
 }
