@@ -1,6 +1,6 @@
 "use client";
 
-import { IconFolderOpen } from "@tabler/icons-react";
+import { IconBook } from "@tabler/icons-react";
 import { DataTableFeatures } from "@/components/data/features";
 import { ReactTable, RowData } from "@tanstack/react-table";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
@@ -20,7 +20,7 @@ export function BimbinganDosenTableEmptyState<TData extends RowData>({ table }: 
     <Empty>
       <EmptyHeader className="max-w-none!">
         <EmptyMedia variant="icon">
-          <IconFolderOpen />
+          <IconBook />
         </EmptyMedia>
         <EmptyTitle>{isFilterResultEmpty ? "Bimbingan Tidak Ditemukan" : "Tidak Ada Data Bimbingan"}</EmptyTitle>
         <EmptyDescription>
