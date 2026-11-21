@@ -2,20 +2,25 @@
 
 import {
   CreateMahasiswaInput,
-  CreateMahasiswaSchema,
   UpdateMahasiswaInput,
+  ImportMahasiswaInput,
+  CreateMahasiswaSchema,
   UpdateMahasiswaSchema,
+  ImportMahasiswaSchema,
   BulkDeleteMahasiswaSchema,
   BulkUpdateStatusMahasiswaSchema,
 } from "./schemas";
 
 import { prisma } from "@/libs/prisma";
-import { hashPassword } from "@/libs/bcrypt";
 import { formatZodError } from "@/utils/format-zod-error";
 import { ActionResponse } from "@/types";
 import { StatusMahasiswa } from "@/generated/prisma/enums";
 import { userIsValidAndHasRole } from "@/libs/dal";
 import { deleteFile, uploadFileOptional } from "@/utils/file";
+import { hashPassword, hashPasswordsInBatches } from "@/libs/bcrypt";
+import { ImportMahasiswaResult, MahasiswaImportColumn } from "./types";
+import { createImportedMahasiswaAccounts, prepareMahasiswaImportRows } from "./services";
+import { ExcelReadError, getFilledExcelRows, readExcelSheet, resolveExcelColumnIndexes, ExcelSheetRows } from "@/libs/excel";
 
 export async function createMahasiswa(data: CreateMahasiswaInput): Promise<ActionResponse> {
   const parsed = CreateMahasiswaSchema.safeParse(data);
@@ -310,6 +315,96 @@ export async function bulkDeleteMahasiswa(ids: string[]): Promise<ActionResponse
     return { success: true, message: `${users.length} mahasiswa berhasil dihapus!` };
   } catch (error) {
     console.log("❌ Bulk Delete Mahasiswa Error :", error);
+    return { success: false, message: "Terjadi kesalahan pada server!" };
+  }
+}
+
+const MAX_MAHASISWA_IMPORT_ROWS = 500;
+
+const MAHASISWA_IMPORT_COLUMN_ALIASES = {
+  nim: ["nim"],
+  namaLengkap: ["nama lengkap", "nama"],
+  kodeKelas: ["kode kelas"],
+  tanggalMasuk: ["tanggal masuk"],
+} as const satisfies Record<MahasiswaImportColumn, readonly string[]>;
+
+const MAHASISWA_IMPORT_COLUMN_LABELS: Record<MahasiswaImportColumn, string> = {
+  nim: "NIM",
+  namaLengkap: "Nama Lengkap",
+  kodeKelas: "Kode Kelas",
+  tanggalMasuk: "Tanggal Masuk",
+};
+
+export async function importMahasiswa(data: ImportMahasiswaInput): Promise<ActionResponse<ImportMahasiswaResult>> {
+  const parsed = ImportMahasiswaSchema.safeParse(data);
+
+  if (!parsed.success) {
+    return { success: false, message: "File tidak valid!", errors: formatZodError(parsed.error) };
+  }
+
+  const { file } = parsed.data;
+
+  try {
+    await userIsValidAndHasRole("Kaprodi");
+
+    let rows: ExcelSheetRows;
+
+    try {
+      rows = await readExcelSheet(file);
+    } catch (error) {
+      if (error instanceof ExcelReadError) {
+        console.error("❌ Import Mahasiswa Error :", error);
+        return { success: false, message: error.message };
+      }
+
+      throw error;
+    }
+
+    const [headerRow = [], ...dataRows] = rows;
+
+    const columns = resolveExcelColumnIndexes(headerRow, MAHASISWA_IMPORT_COLUMN_ALIASES);
+
+    if (!columns.exist) {
+      const missingHeaderColumns = columns.missingColumns.map((column) => MAHASISWA_IMPORT_COLUMN_LABELS[column]).join(", ");
+      return { success: false, message: `Kolom tidak ditemukan : ${missingHeaderColumns}. Silahkan gunakan template yang disediakan.` };
+    }
+
+    const filledDataRows = getFilledExcelRows(dataRows, { startRowNumber: 2 });
+
+    if (filledDataRows.length === 0) {
+      return { success: false, message: "File Excel tidak berisi data mahasiswa!" };
+    }
+
+    if (filledDataRows.length > MAX_MAHASISWA_IMPORT_ROWS) {
+      return {
+        success: false,
+        message: `Maksimal ${MAX_MAHASISWA_IMPORT_ROWS} baris per import. File Anda berisi ${filledDataRows.length} baris.`,
+      };
+    }
+
+    const { rowsToCreate, rowErrors } = await prepareMahasiswaImportRows(filledDataRows, columns.columnIndexes);
+
+    if (rowErrors.length > 0) {
+      rowErrors.sort((a, b) => a.row - b.row);
+
+      return {
+        success: false,
+        message: `Terdapat ${rowErrors.length} kesalahan data! Tidak ada data yang diimport.`,
+        data: { errors: rowErrors },
+      };
+    }
+
+    const mahasiswaRole = await prisma.role.findUnique({ where: { nama: "Mahasiswa" }, select: { id: true } });
+
+    if (!mahasiswaRole) throw new Error("Role mahasiswa tidak ditemukan di database!");
+
+    const hashedPasswords = await hashPasswordsInBatches(rowsToCreate.map((row) => row.nim));
+
+    await createImportedMahasiswaAccounts(rowsToCreate, hashedPasswords, mahasiswaRole.id);
+
+    return { success: true, message: `${rowsToCreate.length} mahasiswa berhasil diimpor!` };
+  } catch (error) {
+    console.log("❌ Import Mahasiswa Error :", error);
     return { success: false, message: "Terjadi kesalahan pada server!" };
   }
 }
