@@ -2,16 +2,18 @@
 
 import { IconNut } from "@tabler/icons-react";
 import { ReactTable } from "@tanstack/react-table";
-import { StatusProposal } from "@/generated/prisma/enums";
 import { DataSearchBar } from "@/components/data/data-search-bar";
+import { StatusProposal } from "@/generated/prisma/enums";
 import { ProposalListItem } from "../types";
+import { DataExportButton } from "@/components/data/data-export-button";
 import { DataTableFeatures } from "@/components/data/features";
-import { DataFilterDropdown } from "@/components/data/data-filter-dropdown";
 import { DataColumnVisibility } from "@/components/data/data-column-visibility";
 import { ProposalTableSelectionBar } from "./proposal-table-selection-bar";
+import { DataFilterDropdown, getColumnFilterOptions } from "@/components/data/data-filter-dropdown";
 
 interface ProposalTableToolbarProps {
   table: ReactTable<DataTableFeatures, ProposalListItem>;
+  showExport?: boolean;
 }
 
 const ColumnLabels: Record<string, string> = {
@@ -22,13 +24,21 @@ const ColumnLabels: Record<string, string> = {
   status: "Status",
 };
 
-export function ProposalTableToolbar({ table }: ProposalTableToolbarProps) {
+export function ProposalTableToolbar({ table, showExport = false }: ProposalTableToolbarProps) {
   const isSelectionActive = table.getSelectedRowModel().rows.length > 0;
+
+  const params = new URLSearchParams();
+
+  const selectedStatus = getColumnFilterOptions(table.getColumn("status"));
+  selectedStatus.forEach((status) => params.append("status", status));
+
+  const exportQuery = params.toString();
+  const exportHref = `/api/export/proposal${exportQuery ? `?${exportQuery}` : ""}`;
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-3 max-sm:flex-col">
-        <DataSearchBar table={table} placeholder="Cari nama tim, judul, atau mitra disini..." className="sm:max-w-96" />
+      <div className="flex gap-3 max-lg:flex-col">
+        <DataSearchBar table={table} placeholder="Cari nama tim, judul, atau mitra disini..." className="lg:max-w-96" />
         <DataColumnVisibility table={table} labels={ColumnLabels} />
         <DataFilterDropdown
           table={table}
@@ -37,6 +47,7 @@ export function ProposalTableToolbar({ table }: ProposalTableToolbarProps) {
           icon={<IconNut data-icon="inline-start" />}
           options={Object.keys(StatusProposal)}
         />
+        {showExport && <DataExportButton href={exportHref} className="lg:ml-auto" />}
       </div>
       {isSelectionActive && <ProposalTableSelectionBar table={table} />}
     </div>

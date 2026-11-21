@@ -24,7 +24,7 @@ export function ProposalTable({ data, viewer }: ProposalTableProps) {
       enableRowSelection={viewer === "Kaprodi"}
       getRowId={(proposal) => proposal.id}
       initialState={{ columnVisibility: { search: false } }}
-      renderToolbar={(table) => <ProposalTableToolbar table={table} />}
+      renderToolbar={(table) => <ProposalTableToolbar table={table} showExport={viewer === "Kaprodi"} />}
       renderEmptyState={(table) => <ProposalTableEmptyState table={table} />}
     />
   );
