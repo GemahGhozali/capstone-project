@@ -259,7 +259,7 @@ function useSubmitKuesioner(kuesionerId: string) {
 
     onSuccess: (response) => {
       toast.add({ type: "success", description: response.message });
-      router.push("/mahasiswa/kuesioner");
+      router.push("/mahasiswa/pengisian-kuesioner");
     },
 
     onError: (response: ActionResponse) => {
@@ -308,7 +308,7 @@ export function useFillKuesionerForm({ kuesionerId, bagian, jawaban, prevBagianI
             break;
 
           case "leave":
-            router.push("/mahasiswa/kuesioner");
+            router.push("/mahasiswa/pengisian-kuesioner");
             break;
 
           case "submit":
