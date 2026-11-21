@@ -8,9 +8,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { ActionResponse } from "@/types";
 import { StatusMahasiswa } from "@/generated/prisma/enums";
-import { MahasiswaDetails } from "./types";
-import { MahasiswaInput, UpdateMahasiswaSchema, CreateMahasiswaSchema } from "./schemas";
-import { bulkDeleteMahasiswa, bulkUpdateStatusMahasiswa, createMahasiswa, updateMahasiswa, deleteMahasiswa } from "./actions";
+import { ImportMahasiswaResult, MahasiswaDetails } from "./types";
+import { MahasiswaInput, UpdateMahasiswaSchema, CreateMahasiswaSchema, ImportMahasiswaInput, ImportMahasiswaSchema } from "./schemas";
+import { bulkDeleteMahasiswa, bulkUpdateStatusMahasiswa, createMahasiswa, importMahasiswa, updateMahasiswa, deleteMahasiswa } from "./actions";
 
 interface UseMahasiswaForm {
   mahasiswa?: MahasiswaDetails;
@@ -110,4 +110,22 @@ export function useBulkDeleteMahasiswa() {
       toast.add({ type: "error", description: response.message });
     },
   });
+}
+
+export function useImportMahasiswaForm() {
+  const form = useForm({ resolver: zodResolver(ImportMahasiswaSchema) });
+
+  const mutation = useMutation({
+    mutationFn: (data: ImportMahasiswaInput) => runAction(() => importMahasiswa(data)),
+
+    onSuccess: (response) => {
+      toast.add({ type: "success", description: response.message });
+    },
+
+    onError: (response: ActionResponse<ImportMahasiswaResult>) => {
+      toast.add({ type: "error", description: "Gagal mengimport data mahasiswa!" });
+    },
+  });
+
+  return { form, mutation };
 }
