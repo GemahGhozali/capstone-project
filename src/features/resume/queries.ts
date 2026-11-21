@@ -2,8 +2,9 @@ import "server-only";
 
 import { prisma } from "@/libs/prisma";
 import { requireRole } from "@/libs/dal";
+import { StatusResume } from "@/generated/prisma/enums";
 
-export async function getAllResume() {
+export async function getAllResume(status?: StatusResume[]) {
   const session = await requireRole("Dosen Pembimbing", "Kaprodi");
 
   try {
@@ -12,6 +13,7 @@ export async function getAllResume() {
     const allResume = await prisma.resume.findMany({
       where: {
         ...(isDosenPembimbing && { dosenId: session.userId, status: { not: "Arsip" } }),
+        ...(status?.length && { AND: [{ status: { in: status } }] }),
       },
       orderBy: { mahasiswa: { nim: "asc" } },
       select: {

@@ -2,15 +2,19 @@ import "server-only";
 
 import { prisma } from "@/libs/prisma";
 import { requireRole } from "@/libs/dal";
+import { StatusProposal } from "@/generated/prisma/enums";
 
-export async function getAllProposal() {
+export async function getAllProposal(status?: StatusProposal[]) {
   const session = await requireRole("Dosen Capstone Project", "Kaprodi");
 
   try {
     const isDosenCapstone = session.currentRole === "Dosen Capstone Project";
 
     const allProposal = await prisma.proposal.findMany({
-      where: { ...(isDosenCapstone && { status: { not: "Arsip" } }) },
+      where: {
+        ...(isDosenCapstone && { status: { not: "Arsip" } }),
+        ...(status?.length && { AND: [{ status: { in: status } }] }),
+      },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
