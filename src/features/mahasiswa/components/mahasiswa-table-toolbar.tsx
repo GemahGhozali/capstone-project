@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ReactTable } from "@tanstack/react-table";
 import { DataSearchBar } from "@/components/data/data-search-bar";
 import { StatusMahasiswa } from "@/generated/prisma/enums";
-import { IconNut, IconPlus } from "@tabler/icons-react";
+import { IconDownload, IconNut, IconPlus } from "@tabler/icons-react";
 import { DataTableFeatures } from "@/components/data/features";
 import { MahasiswaOverview } from "../types";
 import { DataFilterDropdown } from "@/components/data/data-filter-dropdown";
@@ -29,11 +29,19 @@ export function MahasiswaTableToolbar({ table }: MahasiswaTableToolbarProps) {
           icon={<IconNut data-icon="inline-start" />}
           options={Object.keys(StatusMahasiswa)}
         />
-        <Link href="/kaprodi/daftar-mahasiswa/tambah" className="lg:ml-auto">
-          <Button className="max-lg:w-full">
-            Tambah Mahasiswa <IconPlus data-icon="inline-end" />
-          </Button>
-        </Link>
+        <div className="flex gap-3 max-lg:flex-col lg:ml-auto">
+          <Link href="/kaprodi/daftar-mahasiswa/import">
+            <Button variant="outline" className="max-lg:w-full">
+              Import Mahasiswa
+              <IconDownload data-icon="inline-end" />
+            </Button>
+          </Link>
+          <Link href="/kaprodi/daftar-mahasiswa/tambah">
+            <Button className="max-lg:w-full">
+              Tambah Mahasiswa <IconPlus data-icon="inline-end" />
+            </Button>
+          </Link>
+        </div>
       </div>
       {isSelectionActive && <MahasiswaTableSelectionBar table={table} />}
     </div>
