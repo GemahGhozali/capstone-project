@@ -113,7 +113,10 @@ export function useBulkDeleteMahasiswa() {
 }
 
 export function useImportMahasiswaForm() {
-  const form = useForm({ resolver: zodResolver(ImportMahasiswaSchema) });
+  const form = useForm({
+    resolver: zodResolver(ImportMahasiswaSchema),
+    defaultValues: { defaultPassword: "12345678" },
+  });
 
   const mutation = useMutation({
     mutationFn: (data: ImportMahasiswaInput) => runAction(() => importMahasiswa(data)),

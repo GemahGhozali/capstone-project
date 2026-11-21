@@ -37,6 +37,7 @@ export const BulkDeleteMahasiswaSchema = z.object({
 
 export const ImportMahasiswaSchema = z.object({
   file: ImportMahasiswaFileSchema,
+  defaultPassword: z.string().min(8, "Default password wajib diisi dan minimal 8 karakter!"),
 });
 
 export const ImportMahasiswaRowSchema = z.object({

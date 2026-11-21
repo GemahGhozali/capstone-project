@@ -342,7 +342,7 @@ export async function importMahasiswa(data: ImportMahasiswaInput): Promise<Actio
     return { success: false, message: "File tidak valid!", errors: formatZodError(parsed.error) };
   }
 
-  const { file } = parsed.data;
+  const { file, defaultPassword } = parsed.data;
 
   try {
     await userIsValidAndHasRole("Kaprodi");
@@ -398,9 +398,9 @@ export async function importMahasiswa(data: ImportMahasiswaInput): Promise<Actio
 
     if (!mahasiswaRole) throw new Error("Role mahasiswa tidak ditemukan di database!");
 
-    const hashedPasswords = await hashPasswordsInBatches(rowsToCreate.map((row) => row.nim));
+    const hashedPassword = await hashPassword(defaultPassword);
 
-    await createImportedMahasiswaAccounts(rowsToCreate, hashedPasswords, mahasiswaRole.id);
+    await createImportedMahasiswaAccounts(rowsToCreate, hashedPassword, mahasiswaRole.id);
 
     return { success: true, message: `${rowsToCreate.length} mahasiswa berhasil diimpor!` };
   } catch (error) {

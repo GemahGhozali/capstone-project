@@ -135,19 +135,15 @@ export async function prepareMahasiswaImportRows(
   return { rowsToCreate, rowErrors };
 }
 
-export async function createImportedMahasiswaAccounts(
-  rowsToCreate: MahasiswaImportRowToCreate[],
-  hashedPasswords: string[],
-  mahasiswaRoleId: string,
-) {
+export async function createImportedMahasiswaAccounts(rowsToCreate: MahasiswaImportRowToCreate[], hashedPasswords: string, mahasiswaRoleId: string) {
   await prisma.$transaction(async (transaction) => {
     const createdUsers = await transaction.user.createManyAndReturn({
       select: { id: true, identifier: true },
-      data: rowsToCreate.map((row, index) => ({
+      data: rowsToCreate.map((row) => ({
         namaLengkap: row.namaLengkap,
         alamatEmail: generateMahasiswaDefaultEmail(row.nim),
         identifier: row.nim,
-        password: hashedPasswords[index],
+        password: hashedPasswords,
         fotoProfil: null,
         isActive: true,
       })),
