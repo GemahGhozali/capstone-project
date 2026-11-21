@@ -25,6 +25,7 @@ export function DataPagination<TData extends RowData>({ table }: DataPaginationP
                   {pageSize}
                 </SelectItem>
               ))}
+              <SelectItem value={`${table.getCoreRowModel().rows.length}`}>Semua</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
