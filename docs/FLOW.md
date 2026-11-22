@@ -294,6 +294,39 @@ Daftar pengisian → mahasiswa eligible + status (Belum / Sedang Mengisi / Seles
 TANPA jawaban individual mahasiswa
 ```
 
+> Nilai Capstone ditampilkan di halaman Pengisian Kuesioner setelah syarat terpenuhi — lihat §8.
+
+---
+
+## 8. Penilaian Mahasiswa (spesifikasi — implementasi menyusul)
+
+Aturan lengkap di `docs/BUSINESS_RULES.md` §12; skema di `docs/ERD.md`.
+
+### Kaprodi: beri nilai
+
+```
+Daftar penilaian = mahasiswa status Aktif + Tuntas (Nonaktif/Arsip tidak tampil)
+  → filter: pencarian NIM/nama, status, kelas; pagination
+  → beri/ubah nilai satu per satu (dialog, integer 0–100)
+      → upsert Penilaian + Mahasiswa.status = Tuntas (jika Aktif)
+  → batal nilai (hapus Penilaian)
+      → status Tuntas → Aktif
+  → import nilai (Excel, sheet "Import Penilaian": kolom NIM, Nilai)
+      → validasi atomik: NIM terdaftar & Aktif/Tuntas, tanpa duplikat, nilai 0–100, maks. 500 baris/5 MB
+      → ada error → batal total + error per baris
+      → valid → upsert semua + set Tuntas (yang Aktif), satu transaksi
+```
+
+### Mahasiswa: melihat nilai (di halaman Pengisian Kuesioner)
+
+```
+Gerbang tampil: punya ≥1 ResponKuesioner.status = Selesai (kuesioner apa pun; Ditutup tetap dihitung)
+  → Selesai + Penilaian ada   → tampil "Nilai Capstone Anda: <nilai>"
+  → belum Selesai             → tanpa angka, hint "Nilai ditampilkan setelah Anda menyelesaikan kuesioner."
+  → Selesai, belum dinilai    → "Nilai belum diterbitkan."
+Kaprodi TIDAK dibatasi kuesioner saat memberi nilai.
+```
+
 ---
 
 ## State diagram ringkas
@@ -338,4 +371,12 @@ Draf → (hapus) HAPUS data + bagian + pertanyaan
 ```
 (tidak ada) → Draf (dibuat saat jawaban pertama tersimpan) → Selesai (final, terkunci)
 Draf di kuesioner Ditutup → tidak bisa dilanjutkan / dikirim
+```
+
+### Penilaian
+```
+(tidak ada) → dinilai (nilai 0–100) → (edit nilai) nilai diperbarui
+dinilai → (batal nilai) HAPUS baris
+Mahasiswa: Aktif → (nilai disimpan) Tuntas → (batal nilai) Aktif
+Nilai tampil ke mahasiswa hanya jika punya ≥1 respons kuesioner Selesai
 ```

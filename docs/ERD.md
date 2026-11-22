@@ -17,6 +17,7 @@ erDiagram
     Resume ||--o{ ResumeReview : ""
     Dosen ||--o{ Bimbingan : "dosen pembimbing (snapshot)"
     Mahasiswa ||--o{ Bimbingan : ""
+    Mahasiswa ||--o| Penilaian : "1-1, 1 mahasiswa 1 nilai"
     Kuesioner ||--o{ BagianKuesioner : ""
     BagianKuesioner ||--o{ PertanyaanKuesioner : ""
     Kuesioner ||--o{ ResponKuesioner : ""
@@ -135,6 +136,13 @@ erDiagram
         varchar file_name
         int file_size
         enum status "Menunggu|Disetujui|Ditolak"
+    }
+    Penilaian {
+        uuid id PK
+        uuid mahasiswa_id FK "UNIQUE — 1 mahasiswa 1 nilai"
+        int nilai "0–100 (CHECK di DB)"
+        timestamptz created_at
+        timestamptz updated_at
     }
     Kuesioner {
         uuid id PK
@@ -382,6 +390,21 @@ erDiagram
 
 > Validasi app-level: (1) create hanya saat `Resume.status = Disetujui`/`Arsip`; (2) `dosen_id` disalin dari `Mahasiswa.dosen_id` saat create; (3) edit/hapus hanya saat status `Menunggu`; (4) verifikasi hanya oleh dospem pada record, status dapat diubah berulang (`Menunggu → Disetujui/Ditolak`, lalu `Disetujui ↔ Ditolak`); (5) satu file bukti pendukung (PDF/JPG/PNG/WebP, maks. 5 MB).
 
+### Penilaian
+
+> **Spesifikasi — implementasi menyusul** (`src/features/penilaian/`). Aturan lengkap: `docs/BUSINESS_RULES.md` §12, flow: `docs/FLOW.md` §8.
+
+**Penilaian**
+| Field | Tipe | Constraint | On Delete |
+|---|---|---|---|
+| id | UUID | PK | — |
+| mahasiswa_id | UUID | FK → Mahasiswa.id, **UNIQUE (1–1)**, NOT NULL — 1 mahasiswa 1 nilai | CASCADE |
+| nilai | INT | NOT NULL — **CHECK 0–100 di DB** (`penilaian_nilai_range`) | — |
+| created_at | TIMESTAMPTZ | NOT NULL | — |
+| updated_at | TIMESTAMPTZ | NOT NULL | — |
+
+> Validasi app-level: hanya Kaprodi yang boleh memberi/mengubah/membatalkan nilai; simpan nilai menyetel `Mahasiswa.status = Tuntas`, batal nilai menghapus baris & mengembalikan `Tuntas → Aktif`; daftar penilaian hanya mahasiswa `Aktif`/`Tuntas`; import atomik (NIM terdaftar, tanpa duplikat, nilai 0–100, maks. 500 baris/5 MB); mahasiswa hanya bisa **melihat** nilai jika punya minimal 1 respons kuesioner `Selesai` (kuesioner apa pun). Tanpa `ActivityLog`.
+
 ### Kuesioner
 
 > **Spesifikasi — implementasi menyusul** (`src/features/kuesioner/`). Aturan lengkap: `docs/BUSINESS_RULES.md` §10, flow: `docs/FLOW.md` §7.
@@ -473,3 +496,4 @@ erDiagram
 10. Reset password: input **email atau NIM/NIP**, token hash (UUID → SHA-256) 15 menit single-use, maks. 1 token aktif per user (request baru menimpa), hanya untuk akun `is_account_reset = true`, password baru min 8 karakter (lihat `docs/BUSINESS_RULES.md` §1).
 11. Kuesioner: struktur (metadata/bagian/pertanyaan) hanya editable saat `Draf`; kelengkapan struktur (≥1 bagian, tiap bagian ≥1 pertanyaan) divalidasi **hanya saat publish**; `Ditutup` final (tanpa reopen); hapus hanya `Draf`; `urutan` diisi otomatis.
 12. Pengisian kuesioner: prasyarat resume `Disetujui`; hanya kuesioner `Aktif`; 1 respons per mahasiswa per kuesioner; jawaban harus milik pertanyaan di kuesioner tersebut; draft disimpan per bagian (baris jawaban = terjawab, dikosongkan = dihapus); submit final memvalidasi **seluruh** pertanyaan wajib di server lalu set `Selesai` + `submitted_at`.
+13. Penilaian: hanya Kaprodi; nilai integer 0–100; simpan/ubah nilai menyetel `Mahasiswa.status = Tuntas` (batal nilai → `Aktif`); daftar hanya mahasiswa `Aktif`/`Tuntas`; import atomik (NIM terdaftar & `Aktif`/`Tuntas`, tanpa duplikat, nilai valid, upsert); nilai hanya tampil ke mahasiswa jika punya ≥1 respons kuesioner `Selesai`.

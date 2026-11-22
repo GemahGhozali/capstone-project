@@ -252,6 +252,7 @@ Tidak ada fitur tulis — hanya baca. Tampilan:
 - Setelah `Selesai`, jawaban **tidak bisa diubah** (mahasiswa melihat state konfirmasi "terima kasih"; menampilkan kembali jawaban secara read-only bersifat opsional).
 - Kuesioner yang sudah `Ditutup` tidak bisa diisi/lanjutkan/submitted.
 - Pertanyaan opsional boleh dikosongkan; hanya pertanyaan `wajib` yang memblokir.
+- **Nilai Capstone** ditampilkan di halaman **Pengisian Kuesioner**; syarat tampil: mahasiswa punya minimal 1 respons `Selesai` (lihat §12).
 
 ### 10c. Resume posisi pengisian
 
@@ -282,6 +283,36 @@ Tidak ada fitur tulis — hanya baca. Tampilan:
 | Replace proposal | Hapus `Proposal` (+ `ProposalReview` cascade) + file dari disk |
 | Replace resume | Hapus `Resume` (+ `ResumeReview` cascade) + file dari disk |
 | Soft delete master | Set `status` enum / `is_active` |
+| Batal nilai (hapus `Penilaian`) | Hapus baris `Penilaian` + status `Tuntas → Aktif` |
 | User/role dihapus | `UserRole` cascade; `Mahasiswa`/`Dosen` cascade ke `User`; `PasswordResetToken` cascade ke `User` |
 | Hapus kuesioner (`Draf` saja) | Hapus `Kuesioner` + `BagianKuesioner` + `PertanyaanKuesioner` cascade (kuesioner yang pernah `Aktif` tidak bisa dihapus) |
 | Hapus bagian kuesioner (`Draf` saja) | Hapus `BagianKuesioner` + pertanyaan di dalamnya (cascade) |
+
+---
+
+## 12. Penilaian Mahasiswa
+
+> Spesifikasi final — implementasi (schema Prisma, `src/features/penilaian/`, route) **menyusul**. Belum ada tabel `penilaian` di database.
+
+- **Tabel `Penilaian`**: 1 mahasiswa = 1 baris (`UNIQUE(mahasiswa_id)`), field `nilai` integer **0–100** (CHECK di DB `penilaian_nilai_range`). **Tidak menyimpan siapa pemberi nilai** (tidak ada kolom `diberikan_oleh`).
+- **Akses**: hanya **Kaprodi**, halaman `/kaprodi/penilaian-mahasiswa` (menu sidebar sudah ada; route belum).
+- **Daftar mahasiswa**: menampilkan mahasiswa berstatus **`Aktif` dan `Tuntas`** dalam satu tabel (status sebagai kolom). Mahasiswa `Nonaktif` dan `Arsip` **tidak tampil** — mahasiswa yang sudah diarsipkan otomatis keluar dari daftar penilaian.
+  - Filter: pencarian NIM/nama, status (`Semua` / `Aktif` / `Tuntas`), kelas; pagination.
+- **Pemberian nilai (manual)**: satu per satu via dialog, nilai integer 0–100.
+  - Simpan nilai → **upsert** baris `Penilaian` **dan** `Mahasiswa.status = Tuntas` (jika sebelumnya `Aktif`; jika sudah `Tuntas` tetap).
+  - Nilai **boleh diedit** kapan pun (selama mahasiswa masih `Aktif`/`Tuntas`).
+- **Batal nilai**: hapus baris `Penilaian`; status dikembalikan **`Tuntas → Aktif`** (hanya jika status saat ini masih `Tuntas`; jika sudah diubah manual di master data, status dibiarkan).
+- **Import nilai (Excel)** oleh Kaprodi:
+  - Template sheet `Import Penilaian`, kolom **NIM, Nilai** (unduh via `/api/export/import-penilaian-template`).
+  - Validasi **atomik** (semua atau batal): NIM wajib & terdaftar sebagai mahasiswa `Aktif`/`Tuntas`, NIM duplikat dalam file = error, nilai wajib integer 0–100. Maksimal **500 baris** dan **5 MB** per file (mengikuti import mahasiswa §6).
+  - Ada satu baris tidak valid → seluruh import dibatalkan + error per baris ditampilkan.
+  - Lolos → **upsert** (nilai lama ditimpa nilai baru) + set `Tuntas` untuk yang `Aktif`, dalam satu transaksi.
+- **Gerbang kuesioner (hanya untuk tampil nilai)**:
+  - Kaprodi **tidak dibatasi** kuesioner — boleh menilai kapan pun, termasuk sebelum mahasiswa mengisi kuesioner.
+  - Mahasiswa hanya bisa **melihat** nilainya jika punya **minimal 1 respons kuesioner berstatus `Selesai`** — kuesioner apa pun, **tanpa** mengecek status kuesioner saat ini (kuesioner `Ditutup` tetap dihitung; jadi menutup kuesioner tidak menyembunyikan nilai lagi).
+  - Nilai ditampilkan di halaman **Pengisian Kuesioner** mahasiswa (`/mahasiswa/pengisian-kuesioner`), di atas daftar/callout kuesioner:
+    - lolos gerbang + baris `Penilaian` ada → tampil kartu **"Nilai Capstone Anda: <nilai>"**;
+    - belum ada respons `Selesai` → **tanpa angka**, hanya hint "Nilai ditampilkan setelah Anda menyelesaikan kuesioner.";
+    - sudah `Selesai` tetapi belum dinilai → "Nilai belum diterbitkan."
+- **Tanpa `ActivityLog`** (entity log tetap `Tim`, `Proposal`, `Resume`).
+- **Sinkronisasi dengan master data (§6)**: bulk ubah status mahasiswa tetap bisa menyetel `Tuntas` tanpa nilai — baris tetap tampil di halaman penilaian dengan nilai kosong sehingga bisa dilengkapi. Sebaliknya, mahasiswa yang sudah dinilai lalu statusnya diubah manual ke `Aktif` tetap menyimpan baris `Penilaian` dan nilainya tetap tampil.
