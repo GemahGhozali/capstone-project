@@ -41,7 +41,7 @@ export const ImportMahasiswaSchema = z.object({
 });
 
 export const ImportMahasiswaRowSchema = z.object({
-  nim: z.string().trim().min(1, "NIM wajib diisi!").min(8, "NIM minimal 8 karakter karena digunakan sebagai password awal!"),
+  nim: z.string().trim().min(1, "NIM wajib diisi!"),
   namaLengkap: z.string().trim().min(1, "Nama lengkap wajib diisi!"),
   kodeKelas: z.string().trim().min(1, "Kode kelas wajib diisi!"),
   tanggalMasuk: z.date("Tanggal masuk tidak valid!"),
