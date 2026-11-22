@@ -1,9 +1,10 @@
 import * as z from "zod";
 
-const NilaiSchema = z.preprocess(
-  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
-  z.coerce.number<number>("Nilai wajib diisi!").int("Nilai harus berupa angka bulat!").min(0, "Nilai minimal 0!").max(100, "Nilai maksimal 100!"),
-);
+const NilaiSchema = z.coerce
+  .number<number>("Nilai wajib diisi!")
+  .int("Nilai harus berupa angka bulat!")
+  .min(0, "Nilai minimal 0!")
+  .max(100, "Nilai maksimal 100!");
 
 const ImportPenilaianFileSchema = z
   .file("File Excel wajib diupload!")

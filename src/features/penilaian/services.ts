@@ -70,26 +70,38 @@ async function resolveMahasiswaIds(
   const nimList = parsedRows.map((row) => row.nim);
 
   const mahasiswaList = await prisma.mahasiswa.findMany({
-    where: { nim: { in: nimList }, status: { in: ["Aktif", "Tuntas"] } },
-    select: { id: true, nim: true },
+    where: { nim: { in: nimList } },
+    select: { id: true, nim: true, status: true },
   });
 
-  const mahasiswaIdByNim = new Map(mahasiswaList.map((mahasiswa) => [mahasiswa.nim, mahasiswa.id]));
+  const mahasiswaIdByNim = new Map(mahasiswaList.map((mahasiswa) => [mahasiswa.nim, mahasiswa]));
 
   for (const row of parsedRows) {
-    const mahasiswaId = mahasiswaIdByNim.get(row.nim);
+    const mahasiswa = mahasiswaIdByNim.get(row.nim);
 
-    if (!mahasiswaId) {
+    if (!mahasiswa) {
       rowErrors.push({
         row: row.rowNumber,
         field: "NIM",
-        message: "NIM tidak ditemukan atau bukan mahasiswa Aktif/Tuntas!",
+        message: "NIM mahasiswa tidak ditemukan di dalam sistem!",
       });
 
       continue;
     }
 
-    rowsToApply.push({ ...row, mahasiswaId });
+    const mahasiswaNotActive = mahasiswa.status !== "Aktif" && mahasiswa.status !== "Tuntas";
+
+    if (mahasiswaNotActive) {
+      rowErrors.push({
+        row: row.rowNumber,
+        field: "NIM",
+        message: "NIM bukan berasal dari mahasiswa yang berstatus Aktif/Tuntas!",
+      });
+
+      continue;
+    }
+
+    rowsToApply.push({ ...row, mahasiswaId: mahasiswa.id });
   }
 
   return { rowsToApply, rowErrors };

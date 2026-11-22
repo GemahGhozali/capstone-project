@@ -23,7 +23,7 @@ interface PenilaianTableToolbarProps<TData extends RowData> {
 export function PenilaianTableToolbar<TData extends RowData>({ table }: PenilaianTableToolbarProps<TData>) {
   return (
     <div className="flex gap-3 max-lg:flex-col">
-      <DataSearchBar table={table} placeholder="Cari NIM atau nama mahasiswa di sini..." className="lg:max-w-80" />
+      <DataSearchBar table={table} placeholder="Cari NIM atau nama mahasiswa disini..." className="lg:max-w-80" />
       <DataColumnVisibility table={table} labels={columnLabels} />
       <Link href="/kaprodi/penilaian-mahasiswa/import" className="lg:ml-auto">
         <Button variant="outline" className="max-lg:w-full">
