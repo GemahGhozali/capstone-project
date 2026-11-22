@@ -110,6 +110,7 @@ model Mahasiswa {
   resume          Resume?
   bimbingan       Bimbingan[]
   responKuesioner ResponKuesioner[]
+  penilaian       Penilaian?
 
   @@map("mahasiswa")
 }
@@ -267,6 +268,18 @@ model Bimbingan {
   @@index([dosenId, status])
   @@index([tanggal])
   @@map("bimbingan")
+}
+
+model Penilaian {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mahasiswaId String    @unique @map("mahasiswa_id") @db.Uuid
+  nilai       Int
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  mahasiswa   Mahasiswa @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+
+  @@map("penilaian")
 }
 
 model Kuesioner {
