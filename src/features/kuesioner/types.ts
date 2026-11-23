@@ -1,4 +1,11 @@
-import { getAllKuesioner, getKuesionerById, getKuesionerListForMahasiswa, getKuesionerWizard } from "./queries";
+import {
+  getAllKuesioner,
+  getKuesionerById,
+  getKuesionerListForMahasiswa,
+  getKuesionerWizard,
+  getAllKuesionerRespondent,
+  getResponKuesionerDetail,
+} from "./queries";
 
 export type KuesionerOverview = Awaited<ReturnType<typeof getAllKuesioner>>[number];
 export type KuesionerDetail = Awaited<ReturnType<typeof getKuesionerById>>;
@@ -10,3 +17,6 @@ export type KuesionerWizard = NonNullable<Awaited<ReturnType<typeof getKuesioner
 export type BagianKuesionerWizard = KuesionerWizard["bagian"][number];
 export type JawabanKuesionerWizard = KuesionerWizard["jawaban"][number];
 export type PertanyaanKuesionerWizard = BagianKuesionerWizard["pertanyaan"][number];
+
+export type KuesionerRespondent = NonNullable<Awaited<ReturnType<typeof getAllKuesionerRespondent>>>["respondent"][number];
+export type ResponKuesionerDetail = NonNullable<Awaited<ReturnType<typeof getResponKuesionerDetail>>>;

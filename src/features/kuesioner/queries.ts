@@ -181,6 +181,7 @@ export async function getKuesionerWizard(kuesionerId: string) {
         select: {
           id: true,
           status: true,
+          submittedAt: true,
           jawaban: {
             select: {
               pertanyaanId: true,
@@ -218,12 +219,119 @@ export async function getKuesionerWizard(kuesionerId: string) {
       periode: kuesioner.periode,
       status: kuesioner.status,
       jawaban: jawabanResponse,
+      tanggalSubmit: kuesionerResponse?.submittedAt ?? null,
       isComplete: kuesionerResponse?.status === "Selesai",
-      bagian,
       currentBagianId,
+      bagian,
     };
   } catch (error) {
     console.log("❌ Get Kuesioner Wizard Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
+
+export async function getAllKuesionerRespondent(kuesionerId: string) {
+  await requireRole("Kaprodi");
+
+  try {
+    const kuesioner = await prisma.kuesioner.findUnique({
+      where: { id: kuesionerId },
+      select: {
+        judul: true,
+        periode: true,
+        respon: {
+          where: { kuesionerId, status: "Selesai" },
+          orderBy: { submittedAt: "asc" },
+          select: {
+            id: true,
+            submittedAt: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+    if (!kuesioner) return null;
+
+    return {
+      judul: kuesioner.judul,
+      periode: kuesioner.periode,
+      respondent: kuesioner.respon.map((responden, index) => ({
+        id: responden.id,
+        nama: `Responden ${index + 1}`,
+        tanggalSubmit: responden.submittedAt ?? responden.createdAt,
+      })),
+    };
+  } catch (error) {
+    console.log("❌ Get All Kuesioner Respondent Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
+
+export async function getResponKuesionerDetail(kuesionerId: string, responId: string) {
+  await requireRole("Kaprodi");
+
+  try {
+    const [kuesioner, kuesionerResponse] = await Promise.all([
+      prisma.kuesioner.findFirst({
+        where: { id: kuesionerId, status: { in: ["Aktif", "Ditutup"] } },
+        select: {
+          bagian: {
+            orderBy: { urutan: "asc" },
+            select: {
+              id: true,
+              judul: true,
+              urutan: true,
+              pertanyaan: {
+                orderBy: { urutan: "asc" },
+                select: {
+                  id: true,
+                  teks: true,
+                  tipe: true,
+                  wajib: true,
+                  urutan: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+      prisma.responKuesioner.findFirst({
+        where: { id: responId, kuesionerId, status: "Selesai" },
+        select: {
+          submittedAt: true,
+          jawaban: {
+            select: {
+              pertanyaanId: true,
+              nilai: true,
+              jawabanTeks: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    if (!kuesioner || !kuesionerResponse) return null;
+
+    const jawabanResponse = kuesionerResponse.jawaban;
+
+    const bagian = kuesioner.bagian.map((bagian) => {
+      const pertanyaanIds = new Set(bagian.pertanyaan.map((pertanyaan) => pertanyaan.id));
+
+      const jawaban = jawabanResponse.filter(({ pertanyaanId }) => pertanyaanIds.has(pertanyaanId));
+
+      const statusBagian = checkIsBagianComplete(bagian.pertanyaan, jawaban) ? StatusPengisian.Selesai : StatusPengisian.TidakSelesai;
+
+      return { ...bagian, statusBagian };
+    });
+
+    return {
+      bagian,
+      jawaban: jawabanResponse,
+      tanggalSubmit: kuesionerResponse.submittedAt,
+    };
+  } catch (error) {
+    console.log("❌ Get Respon Kuesioner Detail Error :", error);
     throw new Error("Terjadi kesalahan pada server!");
   }
 }
