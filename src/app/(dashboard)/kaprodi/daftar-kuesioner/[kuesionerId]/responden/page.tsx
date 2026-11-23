@@ -23,7 +23,10 @@ export default async function DaftarRespondenKuesionerPage({ params }: DaftarRes
             {kuesioner.judul} - Periode {kuesioner.periode}
           </p>
         </div>
-        <DataExportButton href="" label="Export Responden" />
+        <DataExportButton
+          href={`/api/export/kuesioner-responden?kuesionerId=${encodeURIComponent(kuesionerId)}`}
+          label="Export Responden"
+        />
       </header>
       <RespondentTable data={kuesioner.respondent} kuesionerId={kuesionerId} />
     </div>

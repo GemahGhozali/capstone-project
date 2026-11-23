@@ -241,7 +241,7 @@ export async function getAllKuesionerRespondent(kuesionerId: string) {
         periode: true,
         respon: {
           where: { kuesionerId, status: "Selesai" },
-          orderBy: { submittedAt: "asc" },
+          orderBy: [{ submittedAt: "asc" }, { id: "asc" }],
           select: {
             id: true,
             submittedAt: true,
@@ -264,6 +264,87 @@ export async function getAllKuesionerRespondent(kuesionerId: string) {
     };
   } catch (error) {
     console.log("❌ Get All Kuesioner Respondent Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
+
+export async function getKuesionerRespondentExportData(kuesionerId: string) {
+  await requireRole("Kaprodi");
+
+  try {
+    const kuesioner = await prisma.kuesioner.findUnique({
+      where: { id: kuesionerId },
+      select: {
+        judul: true,
+        periode: true,
+        bagian: {
+          orderBy: { urutan: "asc" },
+          select: {
+            pertanyaan: {
+              orderBy: { urutan: "asc" },
+              select: {
+                id: true,
+                teks: true,
+                tipe: true,
+              },
+            },
+          },
+        },
+        respon: {
+          where: { status: "Selesai" },
+          orderBy: [{ submittedAt: "asc" }, { id: "asc" }],
+          select: {
+            submittedAt: true,
+            createdAt: true,
+            jawaban: {
+              select: {
+                pertanyaanId: true,
+                nilai: true,
+                jawabanTeks: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!kuesioner) return null;
+
+    const pertanyaanList = kuesioner.bagian.flatMap((bagian) => bagian.pertanyaan);
+
+    const columns = [
+      { id: "namaResponden", header: "Nama Responden" },
+      { id: "tanggalSubmit", header: "Tanggal Submit" },
+      ...pertanyaanList.map((pertanyaan) => ({
+        id: pertanyaan.id,
+        header: pertanyaan.teks,
+      })),
+    ];
+
+    const rows = kuesioner.respon.map((respon, index) => {
+      const jawabanMap = new Map(respon.jawaban.map((jawaban) => [jawaban.pertanyaanId, jawaban]));
+
+      const row: Record<string, string | number | Date | null> = {
+        namaResponden: `Responden ${index + 1}`,
+        tanggalSubmit: respon.submittedAt ?? respon.createdAt,
+      };
+
+      for (const pertanyaan of pertanyaanList) {
+        const jawaban = jawabanMap.get(pertanyaan.id);
+        row[pertanyaan.id] = jawaban == null ? null : pertanyaan.tipe === "Likert" ? jawaban.nilai : jawaban.jawabanTeks;
+      }
+
+      return row;
+    });
+
+    return {
+      rows,
+      columns,
+      judul: kuesioner.judul,
+      periode: kuesioner.periode,
+    };
+  } catch (error) {
+    console.log("❌ Get Export Kuesioner Respondent Error :", error);
     throw new Error("Terjadi kesalahan pada server!");
   }
 }
