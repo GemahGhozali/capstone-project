@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { KuesionerList } from "@/features/kuesioner/components/kuesioner-list";
+import { PenilaianMahasiswaDisplay } from "@/features/penilaian/components/penilaian-mahasiswa-display";
 import { IconInfoCircle, IconMessage } from "@tabler/icons-react";
 import { getKuesionerListForMahasiswa } from "@/features/kuesioner/queries";
 import { getAuthenticatedMahasiswaResume } from "@/features/resume/queries";
@@ -58,5 +59,10 @@ export default async function PengisianKuesionerPage() {
     );
   }
 
-  return <KuesionerList kuesionerList={kuesionerList} />;
+  return (
+    <div className="space-y-6">
+      <PenilaianMahasiswaDisplay />
+      <KuesionerList kuesionerList={kuesionerList} />
+    </div>
+  );
 }
