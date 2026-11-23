@@ -149,6 +149,39 @@ export async function getDosenPembimbingDashboardOverview() {
   }
 }
 
+export async function getKaprodiDashboardOverview() {
+  await requireRole("Kaprodi");
+
+  try {
+    const [totalMahasiswa, totalDosenAktif, totalTimAktif, totalProposal, totalResume] = await prisma.$transaction([
+      prisma.mahasiswa.count({
+        where: {
+          status: { in: ["Aktif", "Tuntas"] },
+          user: { isActive: true },
+        },
+      }),
+
+      prisma.dosen.count({
+        where: {
+          status: "Aktif",
+          user: { isActive: true },
+        },
+      }),
+
+      prisma.tim.count({ where: { status: "Aktif" } }),
+
+      prisma.proposal.count({ where: { status: { not: "Arsip" } } }),
+
+      prisma.resume.count({ where: { status: { not: "Arsip" } } }),
+    ]);
+
+    return { totalMahasiswa, totalDosenAktif, totalTimAktif, totalProposal, totalResume };
+  } catch (error) {
+    console.error("❌ Get Kaprodi Dashboard Overview Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
+
 export async function getMahasiswaCapstoneProjectProgress(mahasiswaId: string): Promise<CapstoneProjectProgress> {
   await requireRole("Mahasiswa", "Kaprodi");
 
