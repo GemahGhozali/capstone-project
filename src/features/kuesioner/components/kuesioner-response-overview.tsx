@@ -2,12 +2,12 @@ import { cn } from "cn";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { LIKERT_OPTIONS } from "../utils";
-import { KuesionerWizard } from "../types";
+import { ResponKuesionerDetail } from "../types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface KuesionerResponseOverviewProps {
-  kuesioner: KuesionerWizard;
+  kuesioner: ResponKuesionerDetail;
 }
 
 export function KuesionerResponseOverview({ kuesioner }: KuesionerResponseOverviewProps) {
@@ -15,10 +15,6 @@ export function KuesionerResponseOverview({ kuesioner }: KuesionerResponseOvervi
 
   return (
     <div className="space-y-6">
-      <div className="space-y-0.5">
-        <h1 className="font-semibold text-lg">{kuesioner.judul}</h1>
-        <p className="text-muted-foreground text-sm">{kuesioner.deskripsi ?? "Tidak ada deskripsi tercantum."}</p>
-      </div>
       {kuesioner.bagian.map((bagian, bagianIndex) => (
         <Card key={bagian.id} className="p-0 gap-0 divide-y">
           <CardHeader className="p-6 flex justify-between items-start gap-3 max-sm:flex-col">
