@@ -207,7 +207,7 @@ export async function getAllMahasiswaCapstoneProjectProgress() {
     const mahasiswaList = await prisma.mahasiswa.findMany({
       orderBy: { nim: "asc" },
       where: {
-        status: "Aktif",
+        status: { in: ["Aktif", "Tuntas"] },
         user: { isActive: true },
       },
       select: {
@@ -285,7 +285,7 @@ export async function getAllBimbinganMahasiswaMonitoring() {
     const mahasiswaList = await prisma.mahasiswa.findMany({
       orderBy: { nim: "asc" },
       where: {
-        status: "Aktif",
+        status: { in: ["Aktif", "Tuntas"] },
         user: { isActive: true },
       },
       select: {
