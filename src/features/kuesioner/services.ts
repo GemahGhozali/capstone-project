@@ -41,7 +41,8 @@ export async function ensureMahasiswaCanFillKuesioner(mahasiswaId: string) {
     return { isValid: false, message: "Anda tidak terdaftar sebagai mahasiswa!" };
   }
 
-  const mahasiswaIsNotActive = mahasiswa.status !== "Aktif" || !mahasiswa.user.isActive;
+  const mahasiswaHasInactiveStatus = mahasiswa.status !== "Aktif" && mahasiswa.status !== "Tuntas";
+  const mahasiswaIsNotActive = mahasiswaHasInactiveStatus || !mahasiswa.user.isActive;
 
   if (mahasiswaIsNotActive) {
     return { isValid: false, message: "Anda bukan mahasiswa berstatus aktif!" };
