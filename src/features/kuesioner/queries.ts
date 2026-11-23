@@ -2,8 +2,8 @@ import "server-only";
 
 import { prisma } from "@/libs/prisma";
 import { requireRole } from "@/libs/dal";
-import { StatusPengisian } from "./utils";
 import { checkIsBagianComplete } from "./services";
+import { LIKERT_OPTIONS, StatusPengisian } from "./utils";
 
 export async function getAllKuesioner() {
   try {
@@ -345,6 +345,139 @@ export async function getKuesionerRespondentExportData(kuesionerId: string) {
     };
   } catch (error) {
     console.log("❌ Get Export Kuesioner Respondent Error :", error);
+    throw new Error("Terjadi kesalahan pada server!");
+  }
+}
+
+export async function getKuesionerStatistic(kuesionerId: string) {
+  await requireRole("Kaprodi");
+
+  try {
+    const [kuesioner, distribusiLikert, jawabanEsai] = await Promise.all([
+      prisma.kuesioner.findUnique({
+        where: { id: kuesionerId },
+        select: {
+          judul: true,
+          periode: true,
+          bagian: {
+            orderBy: { urutan: "asc" },
+            select: {
+              id: true,
+              judul: true,
+              urutan: true,
+              pertanyaan: {
+                orderBy: { urutan: "asc" },
+                select: { id: true, teks: true, tipe: true, wajib: true, urutan: true },
+              },
+            },
+          },
+          respon: {
+            where: { status: "Selesai" },
+            select: { id: true },
+          },
+        },
+      }),
+
+      prisma.jawabanKuesioner.groupBy({
+        by: ["pertanyaanId", "nilai"],
+        where: {
+          nilai: { in: LIKERT_OPTIONS.map(({ value }) => value) },
+          pertanyaan: { tipe: "Likert", bagian: { kuesionerId } },
+          respon: { kuesionerId, status: "Selesai" },
+        },
+        _count: { _all: true },
+      }),
+
+      prisma.jawabanKuesioner.findMany({
+        orderBy: [{ respon: { submittedAt: "asc" } }, { createdAt: "asc" }],
+        where: {
+          jawabanTeks: { not: null },
+          pertanyaan: { tipe: "Esai", bagian: { kuesionerId } },
+          respon: { kuesionerId, status: "Selesai" },
+        },
+        select: {
+          pertanyaanId: true,
+          jawabanTeks: true,
+        },
+      }),
+    ]);
+
+    if (!kuesioner) return null;
+
+    const likertCountsByPertanyaanId = new Map<string, Map<number, number>>();
+
+    for (const item of distribusiLikert) {
+      if (item.nilai == null) continue;
+
+      const countsByLikertValue = likertCountsByPertanyaanId.get(item.pertanyaanId) ?? new Map<number, number>();
+
+      countsByLikertValue.set(item.nilai, item._count._all);
+
+      likertCountsByPertanyaanId.set(item.pertanyaanId, countsByLikertValue);
+    }
+
+    const jawabanEsaiByPertanyaan = new Map<string, string[]>();
+
+    for (const jawaban of jawabanEsai) {
+      const jawabanText = jawaban.jawabanTeks?.trim();
+
+      if (!jawabanText) continue;
+
+      const jawabanList = jawabanEsaiByPertanyaan.get(jawaban.pertanyaanId) ?? [];
+
+      jawabanList.push(jawabanText);
+
+      jawabanEsaiByPertanyaan.set(jawaban.pertanyaanId, jawabanList);
+    }
+
+    const bagian = kuesioner.bagian.map((bagian) => ({
+      id: bagian.id,
+      judul: bagian.judul,
+      urutan: bagian.urutan,
+      pertanyaan: bagian.pertanyaan.map((pertanyaan) => {
+        if (pertanyaan.tipe === "Likert") {
+          const countsByLikertValue = likertCountsByPertanyaanId.get(pertanyaan.id);
+
+          const distribusi = LIKERT_OPTIONS.map(({ value }) => ({
+            scale: String(value),
+            totalJawaban: countsByLikertValue?.get(value) ?? 0,
+          }));
+
+          const totalJawaban = distribusi.reduce((total, item) => total + item.totalJawaban, 0);
+
+          return {
+            id: pertanyaan.id,
+            teks: pertanyaan.teks,
+            tipe: "Likert" as const,
+            urutan: pertanyaan.urutan,
+            wajib: pertanyaan.wajib,
+            totalJawaban,
+            distribusi,
+          };
+        }
+
+        const jawabanEsaiPertanyaan = jawabanEsaiByPertanyaan.get(pertanyaan.id) ?? [];
+
+        return {
+          id: pertanyaan.id,
+          teks: pertanyaan.teks,
+          tipe: "Esai" as const,
+          urutan: pertanyaan.urutan,
+          wajib: pertanyaan.wajib,
+          totalJawaban: jawabanEsaiPertanyaan.length,
+          jawabanEsai: jawabanEsaiPertanyaan,
+        };
+      }),
+    }));
+
+    return {
+      judul: kuesioner.judul,
+      periode: kuesioner.periode,
+      totalResponden: kuesioner.respon.length,
+      bagian,
+    };
+  } catch (error) {
+    console.log("❌ Get Analisis Jawaban Kuesioner Error :", error);
     throw new Error("Terjadi kesalahan pada server!");
   }
 }

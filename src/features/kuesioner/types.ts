@@ -2,6 +2,7 @@ import {
   getAllKuesioner,
   getKuesionerById,
   getKuesionerWizard,
+  getKuesionerStatistic,
   getResponKuesionerDetail,
   getAllKuesionerRespondent,
   getKuesionerListForMahasiswa,
@@ -24,8 +25,11 @@ export type PertanyaanKuesionerWizard = BagianKuesionerWizard["pertanyaan"][numb
 // Kuesioner Respondent
 export type KuesionerRespondent = NonNullable<Awaited<ReturnType<typeof getAllKuesionerRespondent>>>["respondent"][number];
 
-export type KuesionerRespondentExportColumn = KuesionerRespondentExport["columns"][number];
 // Export Kuesioner Respondent
 export type ResponKuesionerDetail = NonNullable<Awaited<ReturnType<typeof getResponKuesionerDetail>>>;
 export type KuesionerRespondentExport = NonNullable<Awaited<ReturnType<typeof getKuesionerRespondentExportData>>>;
 export type KuesionerRespondentExportRow = KuesionerRespondentExport["rows"][number];
+export type KuesionerRespondentExportColumn = KuesionerRespondentExport["columns"][number];
+
+// Kuesioner Statistic
+export type KuesionerStatistic = NonNullable<Awaited<ReturnType<typeof getKuesionerStatistic>>>;
