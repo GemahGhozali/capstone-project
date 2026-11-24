@@ -11,16 +11,25 @@ interface ProposalKPICardsProps {
 export function ProposalKPICards({ data }: ProposalKPICardsProps) {
   const { totalProposal, totalTim } = data;
 
-  const proposalIsNone = totalProposal.keseluruhan === 0;
-  const allTeamSubmittedProposal = totalProposal.keseluruhan === totalTim;
-
   const percentage = totalTim > 0 ? Math.round((totalProposal.keseluruhan / totalTim) * 100) : 0;
 
+  const teamIsNone = totalTim === 0;
+  const proposalIsNone = totalProposal.keseluruhan === 0;
+  const teamAndProposalIsNone = proposalIsNone && teamIsNone;
+  const allTeamSubmittedProposal = totalProposal.keseluruhan === totalTim;
+
+  const emptyTeamMessage = `Belum ada tim Capstone Project yang terbentuk`;
   const emptyProposalMessage = `Dari ${totalTim} tim capstone project yang terbentuk, belum ada satupun yang mengumpul proposal`;
   const partialProposalMessage = `Sekitar ${percentage}% atau ${totalProposal.keseluruhan} dari ${totalTim} total tim capstone project telah mengumpulkan proposal`;
   const allProposalMessage = "Semua tim capstone project yang terbentuk sudah mengumpulkan proposal";
 
-  const proposalRatioMessage = proposalIsNone ? emptyProposalMessage : allTeamSubmittedProposal ? allProposalMessage : partialProposalMessage;
+  const proposalRatioMessage = teamAndProposalIsNone
+    ? emptyTeamMessage
+    : proposalIsNone
+      ? emptyProposalMessage
+      : allTeamSubmittedProposal
+        ? allProposalMessage
+        : partialProposalMessage;
 
   const cardIconBaseClass = "grid size-12 shrink-0 place-content-center rounded-full mb-4";
 
