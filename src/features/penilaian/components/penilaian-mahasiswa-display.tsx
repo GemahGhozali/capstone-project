@@ -37,7 +37,7 @@ export async function PenilaianMahasiswaDisplay() {
           <CardDescription>
             {mahasiswaAlreadyGraded
               ? "Nilai ini merupakan akumulasi penilaian dari keseluruhan capstone project anda."
-              : "Nilai anda masih dalam proses evaluasi! Silakan periksa halaman ini secara berkala."}
+              : "Nilai anda masih dalam proses evaluasi! Silahkan periksa halaman ini secara berkala."}
           </CardDescription>
         </div>
       </CardHeader>
