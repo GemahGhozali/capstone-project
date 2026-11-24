@@ -3,13 +3,13 @@ import { getKuesionerById } from "@/features/kuesioner/queries";
 import { KuesionerBuilder } from "@/features/kuesioner/components/kuesioner-builder";
 
 type KelolaKuesionerPageProps = {
-  params: Promise<{ id: string }>;
+  params: Promise<{ kuesionerId: string }>;
 };
 
 export default async function KelolaKuesionerPage({ params }: KelolaKuesionerPageProps) {
-  const { id } = await params;
+  const { kuesionerId } = await params;
 
-  const kuesioner = await getKuesionerById(id);
+  const kuesioner = await getKuesionerById(kuesionerId);
 
   if (!kuesioner) notFound();
 
