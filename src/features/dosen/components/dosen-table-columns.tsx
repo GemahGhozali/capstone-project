@@ -33,11 +33,11 @@ export function dosenTableColumns({ data, onDelete }: DosenTableActions) {
       filterFn: "includesString",
     }),
 
-    columnHelper.accessor("nip", {
+    columnHelper.accessor("namaLengkap", {
       header: ({ column }) => <DataColumnSort column={column} title="Nama Lengkap" />,
       cell: ({ row, getValue }) => {
-        const nip = getValue();
-        const nama = row.original.namaLengkap;
+        const nama = getValue();
+        const nip = row.original.nip;
         const fotoProfil = row.original.fotoProfil;
 
         return (

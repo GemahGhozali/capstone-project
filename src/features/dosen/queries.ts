@@ -6,6 +6,7 @@ import { prisma } from "@/libs/prisma";
 export async function getAllDosen() {
   try {
     const allDosen = await prisma.dosen.findMany({
+      orderBy: { createdAt: "asc" },
       select: {
         nip: true,
         status: true,
