@@ -73,10 +73,10 @@ export async function isUserHasActiveResetPasswordToken(userId: string) {
   });
 }
 
-export async function verifyEmailAvailability(alamatEmail: string) {
-  return prisma.user.findUnique({
-    where: { alamatEmail },
-    select: { alamatEmail: true },
+export async function verifyEmailAvailability(alamatEmail: string, userId: string) {
+  return prisma.user.findFirst({
+    where: { AND: [{ id: { not: userId } }, { alamatEmail }] },
+    select: { id: true },
   });
 }
 

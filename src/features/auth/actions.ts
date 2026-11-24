@@ -80,7 +80,7 @@ export async function resetAccount(data: ResetAccountInput): Promise<ActionRespo
   const { alamatEmail, password } = parsed.data;
 
   try {
-    const emailInUsed = await verifyEmailAvailability(alamatEmail);
+    const emailInUsed = await verifyEmailAvailability(alamatEmail, session.userId);
 
     if (emailInUsed) {
       return {
@@ -261,12 +261,9 @@ export async function updateUserAccount(data: UpdateUserAccountInput): Promise<A
     }
 
     // Validasi 2 : Cek apakah alamat email sudah dipakai user lain
-    const emailAlreadyInUsed = await prisma.user.findFirst({
-      where: { AND: [{ id: { not: session.userId } }, { alamatEmail }] },
-      select: { id: true },
-    });
+    const emailInUsed = await verifyEmailAvailability(alamatEmail, session.userId);
 
-    if (emailAlreadyInUsed) {
+    if (emailInUsed) {
       return {
         success: false,
         message: "Gagal memperbaharui akun!",
