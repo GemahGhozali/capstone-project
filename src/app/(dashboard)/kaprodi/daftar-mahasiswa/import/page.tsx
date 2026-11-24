@@ -11,7 +11,7 @@ export default function ImportMahasiswaPage() {
           <h1 className="font-semibold text-lg">Import Data Mahasiswa</h1>
           <p className="text-muted-foreground text-sm">Tambahkan data mahasiswa secara massal melalui file Excel</p>
         </div>
-        <DataExportButton href="/api/export/template-import-mahasiswa" label="Download Template" className="" />
+        <DataExportButton href="/api/export/import-mahasiswa-template" label="Download Template" />
       </header>
       <ImportMahasiswaForm />
     </div>
