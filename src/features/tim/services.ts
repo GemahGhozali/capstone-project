@@ -42,7 +42,8 @@ export async function ensureAllTeamMembersIsValid(teamMembers: TeamMemberInput[]
       return { isValid: false, message: `${member.namaLengkap} (${member.nim}) tidak ditemukan sebagai mahasiswa!` };
     }
 
-    const memberNotActiveMahasiswa = mahasiswa.status !== "Aktif" || !mahasiswa.user.isActive;
+    const memberHasInactiveStatus = mahasiswa.status !== "Aktif" && mahasiswa.status !== "Tuntas";
+    const memberNotActiveMahasiswa = memberHasInactiveStatus || !mahasiswa.user.isActive;
 
     if (memberNotActiveMahasiswa) {
       return { isValid: false, message: `${mahasiswa.user.namaLengkap} (${mahasiswa.nim}) bukan mahasiswa berstatus aktif!` };

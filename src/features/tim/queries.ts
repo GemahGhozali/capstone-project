@@ -27,7 +27,7 @@ export async function searchInvitableMahasiswa({ query, authenticatedMahasiswaId
     take: 5,
     where: {
       user: { isActive: true },
-      status: StatusMahasiswa.Aktif,
+      status: { in: ["Aktif", "Tuntas"] },
       id: { not: authenticatedMahasiswaId },
       AND: [
         invitableTeamFilter,

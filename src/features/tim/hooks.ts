@@ -29,7 +29,7 @@ export function useSearchMahasiswa() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mahasiswaResults, setMahasiswaResults] = useState<Map<string, SearchMahasiswaResult>>(new Map());
 
-  const debouncedQuery = useDebounce(searchQuery, 500).trim();
+  const debouncedQuery = useDebounce(searchQuery, 300).trim();
   const normalizedQuery = searchQuery.trim();
 
   const isDebouncing = debouncedQuery.length >= 1;
