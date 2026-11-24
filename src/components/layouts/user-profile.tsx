@@ -16,16 +16,17 @@ import { RoleSwitcher } from "./role-switcher";
 import { SessionPayload } from "@/libs/session";
 import { generateNameInitials } from "@/utils/generate-name-initials";
 import { AuthenticatedUserData } from "@/features/auth/types";
-import { IconSelector, IconLogout } from "@tabler/icons-react";
+import { IconSelector, IconLogout, IconUser } from "@tabler/icons-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 
 interface UserProfileProps {
   session: SessionPayload;
   user: AuthenticatedUserData;
+  onOpenProfile: () => void;
 }
 
-export function UserProfile({ session, user }: UserProfileProps) {
+export function UserProfile({ session, user, onOpenProfile }: UserProfileProps) {
   const { mutate: logout } = useLogout();
 
   const { state, isMobile } = useSidebar();
@@ -38,7 +39,7 @@ export function UserProfile({ session, user }: UserProfileProps) {
         <DropdownMenu>
           <DropdownMenuTrigger render={<SidebarMenuButton size="lg" className="aria-expanded:bg-muted h-auto" />}>
             <Avatar size="lg">
-              <AvatarImage src={user.fotoProfil || ""} alt={user.namaLengkap} />
+              <AvatarImage src={user.fotoProfil || undefined} alt={user.namaLengkap} />
               <AvatarFallback>{generateNameInitials(user.namaLengkap)}</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight space-y-1">
@@ -56,6 +57,10 @@ export function UserProfile({ session, user }: UserProfileProps) {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               {session.roles.length > 1 && <RoleSwitcher session={session} />}
+              <DropdownMenuItem onClick={onOpenProfile}>
+                <IconUser />
+                Profil Saya
+              </DropdownMenuItem>
               <DropdownMenuItem variant="destructive" onClick={() => logout()}>
                 <IconLogout />
                 Log out
