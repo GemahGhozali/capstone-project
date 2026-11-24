@@ -10,7 +10,7 @@ import { KuesionerDetail } from "../types";
 import { KuesionerFormDialog } from "./kuesioner-form-dialog";
 import { kuesionerStatusStyles } from "../utils";
 import { ChangeStatusAlertDialog } from "./change-status-alert-dialog";
-import { IconCloudUpload, IconEdit, IconLock, IconUsers } from "@tabler/icons-react";
+import { IconChartBar, IconCloudUpload, IconEdit, IconLock, IconUsers } from "@tabler/icons-react";
 
 interface KuesionerHeaderProps {
   kuesioner: NonNullable<KuesionerDetail>;
@@ -31,7 +31,7 @@ export function KuesionerHeader({ kuesioner }: KuesionerHeaderProps) {
 
   return (
     <>
-      <header className="flex lg:items-end justify-between gap-3 max-lg:flex-col">
+      <header className="flex xl:items-end justify-between gap-3 max-xl:flex-col">
         <div className="space-y-0.5">
           <Badge className={cn("mb-2.5", kuesionerStatusStyles[kuesioner.status])}>Status Kuesioner - {kuesioner.status}</Badge>
           <h1 className="font-semibold text-lg">
@@ -40,7 +40,7 @@ export function KuesionerHeader({ kuesioner }: KuesionerHeaderProps) {
           <p className="text-muted-foreground text-sm">{kuesioner.deskripsi ?? "Tidak ada deskripsi tertulis."}</p>
         </div>
         {isDrafStatus && (
-          <div className="flex gap-3 max-lg:*:grow max-sm:flex-col">
+          <div className="flex gap-3 max-xl:*:grow max-sm:flex-col">
             <Button variant="outline" onClick={() => setDialog({ action: "edit-kuesioner" })}>
               <IconEdit data-icon="inline-start" />
               Edit Kuesioner
@@ -52,8 +52,14 @@ export function KuesionerHeader({ kuesioner }: KuesionerHeaderProps) {
           </div>
         )}
         {!isDrafStatus && (
-          <div className="flex gap-3 max-lg:*:grow max-sm:flex-col">
+          <div className="flex gap-3 max-xl:*:grow max-sm:flex-col">
             <Link href={`/kaprodi/daftar-kuesioner/${kuesioner.id}/detail`} className="max-sm:grow">
+              <Button variant="outline" className="w-full">
+                <IconChartBar data-icon="inline-start" />
+                Lihat Statistik
+              </Button>
+            </Link>
+            <Link href={`/kaprodi/daftar-kuesioner/${kuesioner.id}/responden`} className="max-sm:grow">
               <Button variant="outline" className="w-full">
                 <IconUsers data-icon="inline-start" />
                 Lihat Responden

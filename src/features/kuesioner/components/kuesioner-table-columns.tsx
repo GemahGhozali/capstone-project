@@ -9,8 +9,19 @@ import {
   DropdownMenuGroup,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+
+import {
+  IconEdit,
+  IconCopy,
+  IconLock,
+  IconTrash,
+  IconUsers,
+  IconChartBar,
+  IconListDetails,
+  IconCloudUpload,
+  IconDotsVertical,
+} from "@tabler/icons-react";
 
 import { cn } from "cn";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +30,6 @@ import { KuesionerOverview } from "../types";
 import { DataTableFeatures } from "@/components/data/features";
 import { createColumnHelper } from "@tanstack/react-table";
 import { kuesionerStatusStyles } from "../utils";
-import { IconCloudUpload, IconCopy, IconDotsVertical, IconEdit, IconListDetails, IconLock, IconTrash, IconUsers } from "@tabler/icons-react";
 
 const columnHelper = createColumnHelper<DataTableFeatures, KuesionerOverview>();
 
@@ -56,7 +66,6 @@ export function kuesionerTableColumns({ onEdit, onDelete, onDuplicate, onChangeS
       header: "Total Respon",
       cell: ({ getValue }) => {
         const totalRespon = getValue();
-
         return <span>{totalRespon} Respon</span>;
       },
     }),
@@ -90,10 +99,18 @@ export function kuesionerTableColumns({ onEdit, onDelete, onDuplicate, onChangeS
             <DropdownMenuContent align="end" className="w-fit">
               <DropdownMenuGroup>
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem render={<Link href={`/kaprodi/daftar-kuesioner/${kuesioner.id}/detail`} />}>
-                  <IconUsers />
-                  Lihat Responden
-                </DropdownMenuItem>
+                {!isDraf && (
+                  <>
+                    <DropdownMenuItem render={<Link href={`/kaprodi/daftar-kuesioner/${kuesioner.id}/responden`} />}>
+                      <IconUsers />
+                      Lihat Responden
+                    </DropdownMenuItem>
+                    <DropdownMenuItem render={<Link href={`/kaprodi/daftar-kuesioner/${kuesioner.id}/detail`} />}>
+                      <IconChartBar />
+                      Lihat Statistik
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuItem render={<Link href={`/kaprodi/daftar-kuesioner/${kuesioner.id}/kelola`} />}>
                   <IconListDetails />
                   Kelola Kuesioner
@@ -132,7 +149,6 @@ export function kuesionerTableColumns({ onEdit, onDelete, onDuplicate, onChangeS
                       </DropdownMenuItem>
                     )}
                   </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
                 </>
               )}
             </DropdownMenuContent>
